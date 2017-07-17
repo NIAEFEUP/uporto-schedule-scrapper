@@ -3,6 +3,7 @@ from scrapy.contrib.spiders.init import InitSpider
 from scrapy.http import Request, FormRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.contrib.spiders import Rule
+import threading
 
 class MySpider(InitSpider):
     name = 'login_feup'
@@ -18,6 +19,7 @@ class MySpider(InitSpider):
     def __init__(self, user, password):
         self.user = user
         self.passw = password
+        self.inc = 1
 
     def init_request(self):
         """This function is called before crawling starts."""
@@ -45,7 +47,7 @@ class MySpider(InitSpider):
             print('\n\n COULDNT LOGIN \n\n')
             self.log("Bad times :(")
             # Something went wrong, we couldn't log in, so nothing happens.
-            
+
 
 #response.xpath('//li/a[contains(@title,"Cursos")]/@href').extract()
     def parse(self, response):
@@ -85,5 +87,21 @@ class MySpider(InitSpider):
         if 'tabela' in str(response.body):
             print('\n\n IN THE TABLE THING: WORKED \n\n')
             turma_id = response.xpath('//input[contains(@name, "pv_turma_id")]/@value').extract_first()
+            self.inc += 1
+            filename = 'turma-%s.html' % str(self.inc)
+            with open(filename, 'wb') as f:
+                f.write(response.body)
+
+            self.log('Saved file %s' % filename)
+            #go to each class link
+            class_link = response.xpath('//table/tr//a/@href').extract_first()
+            yield scrapy.Request(url=str(self.login_page) + str(class_link), callback=self.in_class)
         else:
             print('\n\n DAWDAWDAWDSADhor_geral.lista_turmas_curso"W WADASDW \n\n')
+
+    def in_class(self, response):
+        self.inc += 1
+        print("\n In class Page with schedules \n")
+        filename = 'hor-%s.html' % str(self.inc)
+        with open(filename, 'wb') as f:
+            f.write(response.body)
