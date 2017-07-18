@@ -22,11 +22,6 @@ class SigarraSpider(InitSpider):
     login_page = 'https://sigarra.up.pt/feup/pt/'
     start_urls = ['https://sigarra.up.pt/feup/pt/vld_validacao.validacao', ]
 
-    # rules = (
-    #    Rule(SgmlLinkExtractor(allow=r'-\w+.html$'),
-    #         callback='parse_item', follow=True),
-    #)
-
     def __init__(self, user, password):
         self.user = user
         self.passw = password
@@ -105,9 +100,10 @@ class SigarraSpider(InitSpider):
         #<form action="hor_geral.lista_turmas_curso" method="POST">
 
     def in_hor(self, response):
+        """ Will choose the correct semester and year on the schedules page """
         print('\n\n IN HORARIO PAGE \n\n')
         curso_id = response.xpath(
-            '//input[contains(@name, "pv_curso_id")]/@value').extract_first()
+            '//input[contains(@name, "pv_curso_id")]/@value').extract()
         # print('\n\n CURSO ID '+ curso_id + '\n\n')
         yield FormRequest.from_response(response,
                                         formxpath='//form[contains(@action, "hor_geral.lista_turmas_curso")]',
@@ -120,26 +116,31 @@ class SigarraSpider(InitSpider):
     def in_hor_turm(self, response):
         if 'tabela' in str(response.body):
             print('\n\n IN THE TABLE THING: WORKED \n\n')
-            turma_id = response.xpath(
-                '//input[contains(@name, "pv_turma_id")]/@value').extract_first()
+            #turma_ids = response.xpath(
+             #   '//input[contains(@name, "pv_turma_id")]/@value').extract()
+            #print("\n \n turma ids: " + str(turma_ids))
+            #for turma_id in turma_ids:
             self.inc += 1
-            filename = 'turma-%s.html' % str(self.inc)
-            with open(filename, 'wb') as f:
-                f.write(response.body)
-
-            self.log('Saved file %s' % filename)
+            self.save_html_file('turma-%s' % str(self.inc), response)
             # go to each class link
-            class_link = response.xpath('//table/tr//a/@href').extract_first()
-            yield scrapy.Request(url=str(self.login_page) + str(class_link), callback=self.in_class)
+            class_links = response.xpath(
+                '//table/tr//a/@href').extract()
+            for class_link in class_links:
+                yield scrapy.Request(url=str(self.login_page) + str(class_link), callback=self.in_class)
         else:
             print('\n\n DAWDAWDAWDSADhor_geral.lista_turmas_curso"W WADASDW \n\n')
 
     def in_class(self, response):
         self.inc += 1
         print("\n In class Page with schedules \n")
-        filename = 'hor-%s.html' % str(self.inc)
+        self.save_html_file("hor_%s" % self.inc, response)
+
+    # mostly for testing porpuses
+    def save_html_file(self, name, response):
+        filename = '%s.html' % str(name)
         with open(filename, 'wb') as f:
             f.write(response.body)
+        self.log('Saved file %s' % filename)
 
 
 # Used to call main function
