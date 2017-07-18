@@ -12,11 +12,11 @@ def main():
     crawler = CrawlerProcess({
         "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
     })
-    crawler.crawl(MySpider, user, password)
+    crawler.crawl(SigarraSpider, user, password)
     crawler.start()
 
 
-class MySpider(InitSpider):
+class SigarraSpider(InitSpider):
     name = 'login_feup'
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/feup/pt/'
@@ -142,5 +142,6 @@ class MySpider(InitSpider):
             f.write(response.body)
 
 
+# Used to call main function
 if __name__ == "__main__":
     main()

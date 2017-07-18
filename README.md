@@ -1,7 +1,7 @@
-# up-timetable-scrapper
-Python solution to extract the courses schedules from the different Faculties of UPorto
+# University of Porto Timetable Scraper
+Python solution to extract the courses schedules from the different Faculties of Univerty of Porto.
 
-## Requeriments
+## Requirements
 - [Python 3](https://www.python.org)
 - [Scrapy](https://scrapy.org)
 - [VirtualEnv (optional but recommended)](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/)
@@ -9,5 +9,7 @@ Python solution to extract the courses schedules from the different Faculties of
 Not tested but answer or postpone the pedagogical surveys.
 
 ## Usage
-Add the login_test.py to the spiders folders after creating a spider then run in the folder with the scrapper name 
-< scrapy crawl login_feup -a user=«USERNAME FEUP» -a password=«PASSWORD FEUP» >
+Run the `sigarra_scraper.py` file with python. Make sure you have all the requirements.
+```
+python sigarra_scraper.py
+```
