@@ -151,9 +151,17 @@ class SigarraSpider(InitSpider):
             professor (ex: Jorge Silva)   -> xpath('//td[@class = "textod"]//@title').extract()
             professor acronym (ex: JAS)   -> xpath('//td[@class = "textod"]//a/text()').extract()
             professor url                 -> xpath('//td[@class = "textod"]//a/@href').extract()
-            participants (ex: COMP 1253)  -> xpath('//span[@class = "textopequenoc"]/a/text()').extract()
+            class id (ex: COMP 1253)      -> xpath('//span[@class = "textopequenoc"]/a/text()').extract()
+            week day   (WIP)              -> response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]').extract()
     """
 
 # Used to call main function
 if __name__ == "__main__":
     main()
+
+
+"""
+response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]/..').extract()
+response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]/..')[12]
+hor_21.html
+"""
