@@ -10,7 +10,7 @@ def main():
     user = input("Sigarra login: ")
     password = getpass.getpass("Sigarra password: ")
     crawler = CrawlerProcess({
-        "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
+        "USER_AGENT": "NIAFEUP (ni@aefeup.pt)"
     })
     crawler.crawl(SigarraSpider, user, password)
     crawler.start()
@@ -50,7 +50,7 @@ class SigarraSpider(InitSpider):
         'Terminar sessão', that translates to 'Sign out', meaning the login was successful.
         It also verifies if the login failed due to incorrect credentials, in case the button's
         value equals 'Iniciar sessão', that translates to 'Sign in',
-        meaning the credentials were wrong or due to a change in website structure. 
+        meaning the credentials were wrong or due to a change in website structure.
         """
         result = response.xpath(
             '//div[@id="caixa-validacao-conteudo"]/button[@type="submit"]/@value').extract_first()
@@ -71,8 +71,6 @@ class SigarraSpider(InitSpider):
             print('Unexpected result. Website structure may have changed.')
             self.log('Unexpected result. Website structure may have changed.')
 
-
-# response.xpath('//li/a[contains(@title,"Cursos")]/@href').extract()
     def parse(self, response):
         pag_cursos = response.xpath(
             '//li/a[contains(@title,"Cursos")]/@href').extract_first()
@@ -92,7 +90,6 @@ class SigarraSpider(InitSpider):
         print('\n\n IN MESTRADO PAGE \n\n')
         horar = response.xpath(
             '//ul/li/a[contains(@title, "Hor")]/@href').extract_first()
-        # print('\n\n horario is:' + horar + '\n\n')
         yield scrapy.Request(url=str(self.login_page) + str(horar), callback=self.in_hor)
 
         # pv_curso_id=742&pv_ano_lectivo=2016&pv_periodos=3
@@ -116,10 +113,8 @@ class SigarraSpider(InitSpider):
     def in_hor_turm(self, response):
         if 'tabela' in str(response.body):
             print('\n\n IN THE TABLE THING: WORKED \n\n')
-            #turma_ids = response.xpath(
+            #turma_id = response.xpath(
              #   '//input[contains(@name, "pv_turma_id")]/@value').extract()
-            #print("\n \n turma ids: " + str(turma_ids))
-            #for turma_id in turma_ids:
             self.inc += 1
             self.save_html_file('turma-%s' % str(self.inc), response)
             # go to each class link
@@ -128,7 +123,7 @@ class SigarraSpider(InitSpider):
             for class_link in class_links:
                 yield scrapy.Request(url=str(self.login_page) + str(class_link), callback=self.in_class)
         else:
-            print('\n\n DAWDAWDAWDSADhor_geral.lista_turmas_curso"W WADASDW \n\n')
+            print('\n\n ERROR occured while gettin each class url. Continuing.\n\n')
 
     def in_class(self, response):
         self.inc += 1
@@ -136,12 +131,28 @@ class SigarraSpider(InitSpider):
         self.save_html_file("hor_%s" % self.inc, response)
 
     # mostly for testing porpuses
-    def save_html_file(self, name, response):
-        filename = '%s.html' % str(name)
+    def save_html_file(self, name, response, ext = 'html'):
+        filename = '%s.%s' % (str(name), ext)
         with open(filename, 'wb') as f:
             f.write(response.body)
         self.log('Saved file %s' % filename)
-
+        info_curso_name = response.xpath('//div[@id="barralocalizacao"]/a/@title').extract()[1]
+        info_all_classes = response.xpath('//table[@class="horario"]/tr/td[@rowspan>"0"]/..')
+    """
+        a class ex : info_all_classes[0]
+        following apply to a single class:
+            time start (ex: 8.30 - 9.30)  -> xpath('td[@class="horas k"]/text()').extract()
+            duration (nº of 30m blocks)   -> xpath('td[@rowspan]/@rowspan').extract()
+            type (ex: TP, TE)             -> xpath('td[@rowspan]/@class').extract()
+            title (ex: Programaçao)       -> xpath('td[@rowspan]/b/acronym/@title').extract()
+            title acronym (ex: Prog)      -> xpath('td[@rowspan]/b//a/text()').extract()
+            title url                     -> xpath('td[@rowspan]/b//a/@href').extract()
+            location (ex: B005)           -> xpath('td/table//a/text()').extract()
+            professor (ex: Jorge Silva)   -> xpath('//td[@class = "textod"]//@title').extract()
+            professor acronym (ex: JAS)   -> xpath('//td[@class = "textod"]//a/text()').extract()
+            professor url                 -> xpath('//td[@class = "textod"]//a/@href').extract()
+            participants (ex: COMP 1253)  -> xpath('//span[@class = "textopequenoc"]/a/text()').extract()
+    """
 
 # Used to call main function
 if __name__ == "__main__":
