@@ -116,7 +116,7 @@ class SigarraSpider(InitSpider):
             #turma_id = response.xpath(
              #   '//input[contains(@name, "pv_turma_id")]/@value').extract()
             self.inc += 1
-            self.save_html_file('turma-%s' % str(self.inc), response)
+            #self.save_html_file('turma-%s' % str(self.inc), response)
             # go to each class link
             class_links = response.xpath(
                 '//table/tr//a/@href').extract()
@@ -128,17 +128,69 @@ class SigarraSpider(InitSpider):
     def in_class(self, response):
         self.inc += 1
         print("\n In class Page with schedules \n")
-        self.save_html_file("hor_%s" % self.inc, response)
-
-    # mostly for testing porpuses
-    def save_html_file(self, name, response, ext = 'html'):
-        filename = '%s.%s' % (str(name), ext)
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-        self.log('Saved file %s' % filename)
         info_curso_name = response.xpath('//div[@id="barralocalizacao"]/a/@title').extract()[1]
         info_all_classes = response.xpath('//table[@class="horario"]/tr/td[@rowspan>"0"]/..')
+        class_id = response.xpath('//h1/text()').extract_first().split(' ')[-1]
+        self.save_html_file("%s_%s_%s" % (info_curso_name, class_id, self.inc), response)
+        self.parse_classes(info_all_classes, info_curso_name, class_id)
+
+    def parse_classes(self, info_all_classes, info_curso_name, class_id):
+        filename = '%s_%s_%s.txt' % (str(info_curso_name), class_id, self.inc)
+        self.inc += 1
+        f = open(filename, 'w')
+        text = ("########Curso :" + info_curso_name + '##########\n')
+        for block in info_all_classes: # a block is a 30m period, only shows the classes that start.
+            info_title = block.xpath('td[@rowspan]/b/acronym/@title').extract()
+            info_text = block.xpath('td[@rowspan]/span[@class = "textopequenoc"]/a/text()').extract()
+            info_type = block.xpath('td[@rowspan]/@class').extract()
+            info_date = block.xpath('td[@class="horas k"]/text()').extract()
+            info_duration = block.xpath('td[@rowspan]/@rowspan').extract()
+            info_classacro = block.xpath('td[@rowspan]/b//a/text()').extract()
+            info_proff_full = block.xpath('td[@rowspan]//td[@class="textod"]//acronym/@title | td[@rowspan]//td[@class="textod"][not(acronym)]').extract()
+            info_proff_acronym = block.xpath('td[@rowspan]//td[@class="textod"]//a/text()').extract()
+            info_class_acronym = block.xpath('td[@rowspan]/span[@class = "textopequenoc"]/a/text()').extract()
+            info_class_loc = block.xpath('td/table//a/text()').extract()[0::2]
+
+        text += '                           Class date: ' + info_date[0] + '\n \n' #each document is relative to a block of 30m
+
+        for i in range(len(info_title)):
+            #the informations arrays might have different, especeally when a class has more than 1 professor (ex: TP: JMC+LPE)
+            text += 'Class title: ' + info_title[i] + '\n'
+            if(i < len(info_text)):
+                text += 'Class text: ' + info_text[i] + '\n'
+            if(i < len(info_type)):
+                text += 'Class type: ' + info_type[i] + '\n'
+            if(i < len(info_duration)):
+                text += 'Class duration: ' + info_duration[i] + '\n'
+            if(i < len(info_classacro)):
+                text += 'Class Acronym: ' + info_classacro[i] + '\n'
+            if(i < len(info_proff_full)):
+                text += 'Class Professor: ' + info_proff_full[i] + '\n'
+            if(i < len(info_proff_acronym)):
+                text += 'Class Professor Acronym: ' + info_proff_acronym[i] + '\n'
+            if(i < len(info_class_acronym)):
+                text += 'Class Acronym: ' + info_class_acronym[i] + '\n'
+            if(i < len(info_class_loc)):
+                text += 'Class Location:  ' + info_class_loc[i] + '\n'
+
+            text += '\n \n'
+        f.write(text)
+        f.close()
+
+
+    # mostly for testing porpuses
+    def save_html_file(self, name, response, ext = 'html', res_is_str = False):
+        pass
+        filename = '%s.%s' % (str(name), ext)
+        with open(filename, 'wb') as f:
+            if(res_is_str):
+                f.write(response)
+            else:
+               f.write(response.body)
+        self.log('Saved file %s' % filename)
+
     """
+        Class ID (ex: 3EMM01)         -> response.xpath('//h1/text()').extract_first().split(' ')[-1]
         a class ex : info_all_classes[0]
         following apply to a single class:
             time start (ex: 8.30 - 9.30)  -> xpath('td[@class="horas k"]/text()').extract()
@@ -147,12 +199,13 @@ class SigarraSpider(InitSpider):
             title (ex: Programaçao)       -> xpath('td[@rowspan]/b/acronym/@title').extract()
             title acronym (ex: Prog)      -> xpath('td[@rowspan]/b//a/text()').extract()
             title url                     -> xpath('td[@rowspan]/b//a/@href').extract()
-            location (ex: B005)           -> xpath('td/table//a/text()').extract()
-            professor (ex: Jorge Silva)   -> xpath('//td[@class = "textod"]//@title').extract()
-            professor acronym (ex: JAS)   -> xpath('//td[@class = "textod"]//a/text()').extract()
-            professor url                 -> xpath('//td[@class = "textod"]//a/@href').extract()
-            class id (ex: COMP 1253)      -> xpath('//span[@class = "textopequenoc"]/a/text()').extract()
-            week day   (WIP)              -> response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]').extract()
+            location (ex: B005)           -> xpath('td/table//a/text()').extract()[0::2] (really badly done but works, barely)
+            professor (ex: Jorge Silva)   -> xpath('td[@rowspan]//td[@class="textod"]//acronym/@title | td[@rowspan]//td[@class="textod"][not(acronym)]').extract() (careful does not show classes with 2+ proffessores)
+            professor acronym (ex: JAS)   -> xpath('td[@rowspan]//td[@class="textod"]//a/text()').extract()
+            professor url                 -> xpath('td[@rowspan]//td[@class="textod"]//a/@href').extract()
+            class id (ex: COMP 1253)      -> xpath('td[@rowspan]/span[@class = "textopequenoc"]/a/text()').extract()
+            week day   (WIP)              -> xpath('td[@class="horas"]/text()').extract()
+
     """
 
 # Used to call main function
@@ -164,4 +217,6 @@ if __name__ == "__main__":
 response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]/..').extract()
 response.xpath('//table[@class="horario"]/tr//td[@class="horas" or @class = "horas k"]/..')[12]
 hor_21.html
+
+info_all_classes[2].xpath('td[@rowspan]//td[@class="textod"]//acronym/@title | td[@rowspan]//td[@class="textod"][not(acronym)]').extract()
 """

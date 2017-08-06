@@ -18,6 +18,6 @@ python sigarra_scraper.py
 Included there is a file 'hor_21.html' intended for training/testing the extraction of class information.
 It is intended to be used with the scrapy shell with a terminal open on same folder as file.
 
-'scrapy shell ./hor_21.html'
+'scrapy shell ./ex_course.html'
 
 The file is loaded as response. Use response.xpath('«XPATH QUERRY»') to select things.
