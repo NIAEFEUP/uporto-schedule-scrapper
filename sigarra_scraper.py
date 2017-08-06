@@ -4,6 +4,7 @@ from scrapy.spiders.init import InitSpider
 from scrapy.http import Request, FormRequest
 from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
+from unqlite import UnQLite
 
 
 def main():
@@ -26,6 +27,9 @@ class SigarraSpider(InitSpider):
         self.user = user
         self.passw = password
         self.inc = 1
+        self.db = UnQLite('./class.db')
+        self.classes_db = self.db.collection('classes')
+        self.classes_db.create()
 
     def init_request(self):
         """This function is called before crawling starts."""
@@ -137,7 +141,7 @@ class SigarraSpider(InitSpider):
     def parse_classes(self, info_all_classes, info_curso_name, class_id):
         filename = '%s_%s_%s.txt' % (str(info_curso_name), class_id, self.inc)
         self.inc += 1
-        f = open(filename, 'w')
+      #  f = open(filename, 'w')
         text = ("########Curso :" + info_curso_name + '##########\n')
         for block in info_all_classes: # a block is a 30m period, only shows the classes that start.
             info_title = block.xpath('td[@rowspan]/b/acronym/@title').extract()
@@ -151,7 +155,7 @@ class SigarraSpider(InitSpider):
             info_class_acronym = block.xpath('td[@rowspan]/span[@class = "textopequenoc"]/a/text()').extract()
             info_class_loc = block.xpath('td/table//a/text()').extract()[0::2]
 
-        text += '                           Class date: ' + info_date[0] + '\n \n' #each document is relative to a block of 30m
+        text += '         Class date: ' + info_date[0] + '\n \n' #each document is relative to a block of 30m
 
         for i in range(len(info_title)):
             #the informations arrays might have different, especeally when a class has more than 1 professor (ex: TP: JMC+LPE)
@@ -174,20 +178,31 @@ class SigarraSpider(InitSpider):
                 text += 'Class Location:  ' + info_class_loc[i] + '\n'
 
             text += '\n \n'
-        f.write(text)
-        f.close()
+            self.classes_db.store( {'course' : info_curso_name[i],
+                                    'date' : info_date[0],
+                                    'title': info_type[i],
+                                    'text' : info_text[i],
+                                    'duration' : info_duration[i],
+                                    'acronym': info_classacro[i],
+                                    'professor': info_proff_full[i],
+                                    'prof_acro' : info_proff_acronym[i],
+                                    'id' : info_class_acronym[i],
+                                    'location' : info_class_loc[i]})
+
+    #    f.write(text)
+    #    f.close()
 
 
     # mostly for testing porpuses
     def save_html_file(self, name, response, ext = 'html', res_is_str = False):
         pass
-        filename = '%s.%s' % (str(name), ext)
-        with open(filename, 'wb') as f:
-            if(res_is_str):
-                f.write(response)
-            else:
-               f.write(response.body)
-        self.log('Saved file %s' % filename)
+   #     filename = '%s.%s' % (str(name), ext)
+   #     with open(filename, 'wb') as f:
+   #         if(res_is_str):
+   #             f.write(response)
+   #         else:
+   #            f.write(response.body)
+   #     self.log('Saved file %s' % filename)
 
     """
         Class ID (ex: 3EMM01)         -> response.xpath('//h1/text()').extract_first().split(' ')[-1]
