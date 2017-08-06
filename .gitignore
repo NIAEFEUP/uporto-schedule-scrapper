@@ -102,5 +102,5 @@ uporto-timetable-scrapper/
 .mypy_cache/
 
 #databse
-.db
+*.db
 
