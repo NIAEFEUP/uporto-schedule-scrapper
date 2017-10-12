@@ -10,5 +10,8 @@ class FacSpider(scrapy.Spider):
         filename = "faculdades.txt"
         with open(filename, 'wb') as f:
             f.write(response.body)
-        for fac in response.css(".menu-nivel-3 > a").extract():
-            print(fac)
+        for fac in response.css('.menu-nivel-3 > a'):
+            print({
+                'acronym': fac.css('::attr(href)').extract_first()[2:],
+                'name': fac.css('::attr(title)').extract_first()
+            })
