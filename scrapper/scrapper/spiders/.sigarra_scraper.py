@@ -4,7 +4,7 @@ from scrapy.spiders.init import InitSpider
 from scrapy.http import Request, FormRequest
 from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
-from unqlite import UnQLite
+#from unqlite import UnQLite
 
 
 def main():
@@ -27,9 +27,9 @@ class SigarraSpider(InitSpider):
         self.user = user
         self.passw = password
         self.inc = 1
-        self.db = UnQLite('./class.db')
-        self.classes_db = self.db.collection('classes')
-        self.classes_db.create()
+#        self.db = UnQLite('./class.db')
+#        self.classes_db = self.db.collection('classes')
+#        self.classes_db.create()
 
     def init_request(self):
         """This function is called before crawling starts."""
@@ -178,7 +178,7 @@ class SigarraSpider(InitSpider):
                 text += 'Class Location:  ' + info_class_loc[i] + '\n'
 
             text += '\n \n'
-            self.classes_db.store( {'course' : info_curso_name[i],
+        """    self.classes_db.store( {'course' : info_curso_name[i],
                                     'date' : info_date[0],
                                     'title': info_type[i],
                                     'text' : info_text[i],
@@ -188,7 +188,7 @@ class SigarraSpider(InitSpider):
                                     'prof_acro' : info_proff_acronym[i],
                                     'id' : info_class_acronym[i],
                                     'location' : info_class_loc[i]})
-
+"""
     #    f.write(text)
     #    f.close()
 
