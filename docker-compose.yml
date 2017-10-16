@@ -5,3 +5,17 @@ services:
     build: ./scrapper
     volumes:
       - ./scrapper:/scrapper
+    depends_on:
+      - mysql
+    links:
+      - mysql
+  mysql:
+    build: ./mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+  phpmyadmin:
+    build: ./phpmyadmin
+    ports:
+      - 4000:80
+    links:
+      - mysql:db
