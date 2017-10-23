@@ -11,8 +11,11 @@ services:
       - mysql
   mysql:
     build: ./mysql
+    volumes:
+      - ./mysql/data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tts
   phpmyadmin:
     build: ./phpmyadmin
     ports:

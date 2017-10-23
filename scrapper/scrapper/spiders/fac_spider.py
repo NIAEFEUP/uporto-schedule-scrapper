@@ -1,17 +1,19 @@
 import scrapy
+from ..items import Faculty
 
 class FacSpider(scrapy.Spider):
     name = "fac"
 
     start_urls = [
-    'https://sigarra.up.pt/up/pt/web_base.gera_pagina?p_pagina=escolas']
+        'https://sigarra.up.pt/up/pt/web_base.gera_pagina?p_pagina=escolas'
+    ]
 
     def parse(self, response):
         filename = "faculdades.txt"
         with open(filename, 'wb') as f:
             f.write(response.body)
-        for fac in response.css('.menu-nivel-3 > a'):
-            print({
-                'acronym': fac.css('::attr(href)').extract_first()[2:],
-                'name': fac.css('::attr(title)').extract_first()
-            })
+        for facHtml in response.css('.menu-nivel-3 > a'):
+            fac = Faculty(
+                acronym=facHtml.css('::attr(href)').extract_first()[2:],
+                name=facHtml.css('::attr(title)').extract_first()) 
+            yield fac

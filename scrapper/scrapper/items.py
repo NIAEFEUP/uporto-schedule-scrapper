@@ -13,6 +13,10 @@ class ScrapperItem(scrapy.Item):
     # name = scrapy.Field()
     pass
 
+class Faculty(scrapy.Item):
+    acronym = scrapy.Field()
+    name = scrapy.Field()
+
 
 class FinalSchedule(scrapy.Item):
     course = scrapy.Field()
