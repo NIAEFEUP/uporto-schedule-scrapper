@@ -17,6 +17,10 @@ class Faculty(scrapy.Item):
     acronym = scrapy.Field()
     name = scrapy.Field()
 
+class Course(scrapy.Item):
+    name = scrapy.Field()
+    course_type = scrapy.Field();
+    id_course = scrapy.Field();
 
 class FinalSchedule(scrapy.Item):
     course = scrapy.Field()
