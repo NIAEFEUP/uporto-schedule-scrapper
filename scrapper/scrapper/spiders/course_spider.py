@@ -1,6 +1,7 @@
 import scrapy
 from ..items import Course
 from .. import con_info
+from urllib.parse import urlparse, parse_qs
 
 class CourseSpider(scrapy.Spider):
     name = "courses"
@@ -24,7 +25,8 @@ class CourseSpider(scrapy.Spider):
     def parse(self, response):
         for courseHtml in response.css('#conteudoinner ul#{0}_a li a:first-child'.format(response.meta['course_type'])):
             course = Course(
+		id = parse_qs(urlparse(courseHtml.css('::attr(href)').extract_first()).query)['pv_curso_id'][0],
                 name = courseHtml.css('::text').extract_first(),
-                course_type = response.meta['course_type'])
-                # TODO: extrair id do ::attr(href)
+                course_type = response.meta['course_type'],
+                faculty_id = response.meta['faculty'][0])
             print(course, response.meta['faculty'][1])

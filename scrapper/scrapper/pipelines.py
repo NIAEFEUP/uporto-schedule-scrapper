@@ -41,12 +41,11 @@ class FacultyPipeline(MySQLPipeline):
             return item
         try:
             with self.connection.cursor() as cursor:
-                sql = "INSERT IGNORE INTO %s (%s) VALUES('%s')"
-                cursor.execute(sql, ('faculty', ",".join(item.keys()), "','".join(item.values())))
+                sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES('{2}')"
+                cursor.execute(sql.format('faculty', ", ".join(item.keys()), "', '".join(item.values())))
                 self.connection.commit()
         finally:
-            self.connection.close()
-        return item
+        	return item
 
 class CoursePipeline(MySQLPipeline):
     def __init__(self):
@@ -57,9 +56,8 @@ class CoursePipeline(MySQLPipeline):
             return item
         try:
             with self.connection.cursor() as cursor:
-                sql = "INSERT IGNORE INTO %s (%s) VALUES('%s')"
-                cursor.execute(sql, ('faculty', ",".join(item.keys()), "','".join(item.values())))
+                sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES('{2}')"
+                cursor.execute(sql.format('faculty', ", ".join(item.keys()), "', '".join(item.values())))
                 self.connection.commit()
         finally:
-            self.connection.close()
-        return item
+        	return item
