@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 24, 2017 at 03:32 PM
+-- Generation Time: Oct 24, 2017 at 06:06 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -33,7 +33,8 @@ CREATE TABLE `course` (
   `acronym` varchar(10) NOT NULL,
   `course_type` varchar(2) NOT NULL,
   `year` int(11) NOT NULL,
-  `url` varchar(2000) NOT NULL
+  `url` varchar(2000) NOT NULL,
+  `plan_url` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

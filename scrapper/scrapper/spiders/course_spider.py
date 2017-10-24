@@ -1,6 +1,6 @@
 import scrapy
 from ..items import Course
-from .. import con_info
+from ..con_info import ConInfo
 from urllib.parse import urlparse, parse_qs
 
 class CourseSpider(scrapy.Spider):
@@ -8,14 +8,14 @@ class CourseSpider(scrapy.Spider):
 
     start_url = "https://sigarra.up.pt/{0}/pt/cur_geral.cur_tipo_curso_view?pv_tipo_sigla={1}&pv_ano_lectivo={2}"
 
-    with con_info.connection.cursor() as cursor:
-        sql = "SELECT `id`, `acronym` FROM `faculty`;"
-        cursor.execute(sql)
-        faculties = cursor.fetchall()
-
-    con_info.connection.close()
-
     def start_requests(self):
+        con_info = ConInfo()
+        with con_info.connection.cursor() as cursor:
+            sql = "SELECT `id`, `acronym` FROM `faculty`;"
+            cursor.execute(sql)
+            self.faculties = cursor.fetchall()
+
+        con_info.connection.close()
         course_types = ['L', 'MI', 'M', 'D'];
         year = 2017
         for faculty in self.faculties:
@@ -36,6 +36,7 @@ class CourseSpider(scrapy.Spider):
                 faculty_id = response.meta['faculty_id'],
                 acronym = courseHtml.css('span.pagina-atual::text').extract_first()[3:],
                 url = response.url,
+                plan_url = response.urljoin(courseHtml.xpath('(//h3[text()="Planos de Estudos"]/following-sibling::div[1]//a)[1]/@href').extract_first()),
                 year = response.meta['year'])
             yield course
             # print(course)
