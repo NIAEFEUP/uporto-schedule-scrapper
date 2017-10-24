@@ -17,16 +17,25 @@ class CourseSpider(scrapy.Spider):
 
     def start_requests(self):
         course_types = ['L', 'MI', 'M', 'D'];
+        year = 2017
         for faculty in self.faculties:
             for course_type in course_types:
-                url = self.start_url.format(faculty[1], course_type, '2017')
-                yield scrapy.Request(url=url, meta={'faculty':faculty, 'course_type':course_type}, callback=self.parse)
+                url = self.start_url.format(faculty[1], course_type, year)
+                yield scrapy.Request(url=url, meta={'faculty_id':faculty[0], 'course_type':course_type, 'year':year}, callback=self.parse_get_url)
+
+    def parse_get_url(self, response):
+        for a in response.css('#conteudoinner ul#{0}_a li a:first-child'.format(response.meta['course_type'])):
+            yield response.follow(a, meta=response.meta, callback=self.parse)
 
     def parse(self, response):
-        for courseHtml in response.css('#conteudoinner ul#{0}_a li a:first-child'.format(response.meta['course_type'])):
+        for courseHtml in response.css('body'):
             course = Course(
-		id = parse_qs(urlparse(courseHtml.css('::attr(href)').extract_first()).query)['pv_curso_id'][0],
-                name = courseHtml.css('::text').extract_first(),
+		        course_id = int(parse_qs(urlparse(response.url).query)['pv_curso_id'][0]),
+                name = courseHtml.css('#conteudoinner h1:last-of-type::text').extract_first(),
                 course_type = response.meta['course_type'],
-                faculty_id = response.meta['faculty'][0])
-            print(course, response.meta['faculty'][1])
+                faculty_id = response.meta['faculty_id'],
+                acronym = courseHtml.css('span.pagina-atual::text').extract_first()[3:],
+                url = response.url,
+                year = response.meta['year'])
+            yield course
+            # print(course)
