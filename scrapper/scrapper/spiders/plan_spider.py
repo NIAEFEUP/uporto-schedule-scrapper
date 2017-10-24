@@ -18,11 +18,16 @@ class PlanSpider(scrapy.Spider):
 
     def parse(self, response):
         print(response.url)
-        for planHtml in response.css('#anos_curr_div > .caixa'):
+        # css alternative for below: #anos_curr_div > .caixa
+        for planHtml in response.xpath('//*[@id="anos_curr_div"]/div'):
             course_year = planHtml.xpath("./a/text()").extract_first()
             if course_year is None:
                 continue
             course_year = int(course_year[2])
-            for semesterHtml in planHtml.css('table > tbody > tr > td > table > tbody > tr > td > table > tbody'):
+            # css alternative for below: table > tbody > tr:first-child > td > table > tbody > tr > td > table > tbody
+            for semesterHtml in planHtml.xpath('//table/tbody/tr[1]/td/table/tbody/tr/td/table/tbody'):
                 print(semesterHtml.extract_first())
                 print(semesterHtml.css('tr > th').extract_first())
+
+        # TODO: test css/xpath selectors for the page example in scrapy shell to determine what is wrong
+        # example page is dumped and url is in the README example

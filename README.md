@@ -1,41 +1,29 @@
-# University of Porto Timetable Scraper - *UPTS*
-Python solution to extract the courses schedules from the different Faculties of Univerty of Porto.
+# University of Porto Timetable Scrapper - *UPTS*
+Python solution to extract the courses schedules from the different Faculties of University of Porto.
 
 ## Requirements
-- [Python 3](https://www.python.org)
-- [Scrapy](https://scrapy.org)
-- [VirtualEnv (optional but recommended)](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/)
+- docker-ce
+- docker-compose
 
-Not tested but answer or postpone the pedagogical surveys.
+## Run
+### Main computer
+- `docker-compose build`
+- `docker-compose up`
+- Wait for MySQL to initialize
+- `docker-compose run scrapper bash`
+### Scrapper image
+- `scrapy crawl faculties`
+- `scrapy crawl courses`
+- `scrapy crawl plans`
 
-## Usage
-Run the following scrapy command. Make sure you have all the requirements.
+To inspect the scrapy engine, use `scrapy shell "url"`
+
+Example:
 ```
-scrapy crawl login_feup -a user=«USERCODE» -a passw=«PASSWORD»
+root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_geral.cur_planos_estudos_view?pv_plano_id=2523&pv_ano_lectivo=2017&pv_tipo_cur_sigla=D&pv_origem=CUR"
+2017-10-24 20:51:35 [scrapy.utils.log] INFO: Scrapy 1.4.0 started (bot: scrapper)
+...
+>>> open('dump.html', 'wb').write(response.body)
+63480
+>>> response.xpath('//*[@id="anos_curr_div"]/div').extract()
 ```
-Where `«USERCODE»` is your up account username and `«PASSWORD»` its password.
-The output will be exported to an entire JSON file called `classe.js`.
-
-## Developing
-UPTS follows a standard scrapy program template with the final output beign the item `FinalSchedule` defined in items.py it is composed by the following `Scrapy Fields`:
-* **course**
-* **date**
-* **title**
-* **text**
-* **duration**
-* **acronym**
-* **professor**
-* **prof_acro**
-* **id_class**
-* **location**
-
-These items will be passed to the item pipeline which will write them to a JSON file, in the future it will be a MySQL database. It's written in the pipelines.py.
-
-#### To Implement
-- [x] Refactor, Clean code and comments.
-- [x] Follow a scrapy template.
-- [x] Use items and item pipelines.
-- [ ] Implement Weekday field.
-- [ ] Export items to a MySql database.
-- [ ] Finish Faculdade scrapper.
-- [ ] Document Faculdade scrapper.
