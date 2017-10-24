@@ -39,7 +39,7 @@ class FacultyPipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Faculty):
             return item
-        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES('{2}')"
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
         prepared = sql.format('faculty', ", ".join(item.keys()), "', '".join(item.values()))
         try:
             with self.connection.cursor() as cursor:
@@ -55,8 +55,10 @@ class CoursePipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Course):
             return item
-        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES('{2}')"
-        columns = ", ".join(item.keys()
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        columns = ", ".join(item.keys())
+        values = "', '".join(str(x) for x in item.values())
+        prepared = sql.format('course', columns, values)
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(prepared)
