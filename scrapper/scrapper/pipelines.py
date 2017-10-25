@@ -12,11 +12,10 @@ class ScrapperPipeline(object):
     def process_item(self, item, spider):
         return item
 
-
 class JsonWriterPipeline(object):
 
     def open_spider(self, spider):
-        self.file = open('clases.json', 'w')
+        self.file = open('info.json', 'w')
 
     def close_spider(self, spider):
         self.file.close()
@@ -29,7 +28,7 @@ class JsonWriterPipeline(object):
 class MySQLPipeline(object):
     def __init__(self):
         self.connection = pymysql.connect(host='mysql', port=3306, user='root', passwd='root', db='tts')
-        
+
     def process_item(self, item, spider):
         return item
 
@@ -40,13 +39,29 @@ class FacultyPipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Faculty):
             return item
-        with self.connection.cursor() as cursor:
-            # Create a new record
-            sql = "INSERT IGNORE INTO %s (%s) VALUES('%s')" % ('faculty', ",".join(item.keys()), "','".join(item.values()))
-            cursor.execute(sql)
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        prepared = sql.format('faculty', ", ".join(item.keys()), "', '".join(item.values()))
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(prepared)
+                self.connection.commit()
+        finally:
+        	return item
 
-        # connection is not autocommit by default. So you must commit to save
-        # your changes.
-        self.connection.commit()
+class CoursePipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
 
-        return item
+    def process_item(self, item, spider):
+        if not isinstance(item, items.Course):
+            return item
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        columns = ", ".join(item.keys())
+        values = "', '".join(str(x) for x in item.values())
+        prepared = sql.format('course', columns, values)
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(prepared)
+                self.connection.commit()
+        finally:
+        	return item
