@@ -23,5 +23,5 @@ class PlanSpider(scrapy.Spider):
             courses = defaultdict(list)
             for table in planHtml.xpath('.//table/tr/td/table/tr/td/table'):
                 semester = table.xpath('./tr/th/text()').extract_first()
-                courses[course_year + '-' + semester].append(len(table.xpath('./tr').extract()) - 2)
+                courses[course_year + '-' + semester].append(len(table.xpath('./tr[td/a]').extract()))
             print(courses)
