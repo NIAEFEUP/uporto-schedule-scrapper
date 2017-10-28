@@ -5,6 +5,8 @@ from urllib.parse import urlparse, parse_qs
 
 class CourseSpider(scrapy.Spider):
     name = "courses"
+    allowed_domains = ['sigarra.up.pt']
+    login_page = 'https://sigarra.up.pt/feup/pt/'
 
     start_url = "https://sigarra.up.pt/{0}/pt/cur_geral.cur_tipo_curso_view?pv_tipo_sigla={1}&pv_ano_lectivo={2}"
 

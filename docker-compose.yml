@@ -12,7 +12,7 @@ services:
   mysql:
     build: ./mysql
     volumes:
-      - /var/lib/mysql
+      - ./mysql/data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tts

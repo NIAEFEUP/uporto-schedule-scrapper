@@ -1,7 +1,6 @@
 import scrapy
-# from ..items import Plan
 from ..con_info import ConInfo
-# from urllib.parse import urlparse, parse_qs
+from collections import defaultdict
 
 class PlanSpider(scrapy.Spider):
     name = "plans"
@@ -9,25 +8,20 @@ class PlanSpider(scrapy.Spider):
     def start_requests(self):
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT `id`, `plan_url` FROM `course`;"
+            sql = "SELECT `id`, `plan_url`, `name` FROM `course` LIMIT 1"
             cursor.execute(sql)
             self.courses = cursor.fetchall()
         con_info.connection.close()
         for course in self.courses:
-            yield scrapy.Request(url=course[1], meta={'course_id':course[0]}, callback=self.parse)
+            yield scrapy.Request(url=course[1], meta={'course_id':course[0], 'course_name':course[2]}, callback=self.parse)
 
     def parse(self, response):
-        print(response.url)
-        # css alternative for below: #anos_curr_div > .caixa
-        for planHtml in response.xpath('//*[@id="anos_curr_div"]/div'):
+        for planHtml in response.xpath('//*[@id="anos_curr_div"]/div[a]'):
             course_year = planHtml.xpath("./a/text()").extract_first()
-            if course_year is None:
-                continue
-            course_year = int(course_year[2])
-            # css alternative for below: table > tbody > tr:first-child > td > table > tbody > tr > td > table > tbody
-            for semesterHtml in planHtml.xpath('//table/tbody/tr[1]/td/table/tbody/tr/td/table/tbody'):
-                print(semesterHtml.extract_first())
-                print(semesterHtml.css('tr > th').extract_first())
+            print(response.meta['course_name'] + ' - ' + course_year)
 
-        # TODO: test css/xpath selectors for the page example in scrapy shell to determine what is wrong
-        # example page is dumped and url is in the README example
+            courses = defaultdict(list)
+            for table in planHtml.xpath('.//table/tr/td/table/tr/td/table'):
+                semester = table.xpath('./tr/th/text()').extract_first()
+                courses[course_year + '-' + semester].append(len(table.xpath('./tr').extract()) - 2)
+            print(courses)
