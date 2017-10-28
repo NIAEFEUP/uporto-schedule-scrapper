@@ -1,0 +1,4 @@
+scrapy
+PyMySQL
+beautifulsoup4
+lxml
