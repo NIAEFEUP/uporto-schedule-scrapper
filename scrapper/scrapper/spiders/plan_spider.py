@@ -20,8 +20,17 @@ class PlanSpider(scrapy.Spider):
             course_year = planHtml.xpath("./a/text()").extract_first()
             print(response.meta['course_name'] + ' - ' + course_year)
 
-            courses = defaultdict(list)
+            classes = defaultdict(list)
             for table in planHtml.xpath('.//table/tr/td/table/tr/td/table'):
                 semester = table.xpath('./tr/th/text()').extract_first()
-                courses[course_year + '-' + semester].append(len(table.xpath('./tr[td/a]').extract()))
-            print(courses)
+                for class_line in table.xpath('./tr[td/a and string-length(./td[1]/text()) > 0]'):
+                    class_info_node = class_line.xpath('./td')
+                    class_info = {
+                        'code': class_info_node[0].xpath('./text()').extract_first(),
+                        'acronym': class_info_node[1].xpath('./text()').extract_first(),
+                        'name': class_info_node[2].xpath('./a/text()').extract_first(),
+                        'class_url': response.urljoin(class_info_node[2].xpath('./a/@href').extract_first())
+                    }
+                    print(class_info)
+                    classes[course_year + '-' + semester].append(class_info)
+            
