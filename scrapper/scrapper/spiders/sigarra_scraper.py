@@ -43,7 +43,6 @@ class SigarraSpider(InitSpider):
 
         if result == "Terminar sessão":
             self.log("Successfully logged in. Let's start crawling!")
-            print('Sucessfully logged in.')
             # Spider will now call the parse method with a request
             return self.initialized()
         elif result == "Iniciar sessão":
