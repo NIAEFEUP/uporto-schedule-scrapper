@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 24, 2017 at 06:06 PM
+-- Generation Time: Nov 17, 2017 at 10:55 AM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -17,6 +17,21 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `tts` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE `tts`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `class`
+--
+
+DROP TABLE IF EXISTS `class`;
+CREATE TABLE `class` (
+  `id` int(11) NOT NULL,
+  `year` int(11) NOT NULL,
+  `acronym` varchar(20) NOT NULL,
+  `url` varchar(2000) NOT NULL,
+  `course_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -55,6 +70,13 @@ CREATE TABLE `faculty` (
 --
 
 --
+-- Indexes for table `class`
+--
+ALTER TABLE `class`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `course_id` (`course_id`);
+
+--
 -- Indexes for table `course`
 --
 ALTER TABLE `course`
@@ -74,6 +96,12 @@ ALTER TABLE `faculty`
 --
 
 --
+-- AUTO_INCREMENT for table `class`
+--
+ALTER TABLE `class`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `course`
 --
 ALTER TABLE `course`
@@ -88,6 +116,12 @@ ALTER TABLE `faculty`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `class`
+--
+ALTER TABLE `class`
+  ADD CONSTRAINT `class_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `course`
