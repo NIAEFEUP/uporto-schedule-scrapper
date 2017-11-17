@@ -67,7 +67,8 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
     # 'scrapper.pipelines.JsonWriterPipeline': 300,
     'scrapper.pipelines.FacultyPipeline': 0,
-    'scrapper.pipelines.CoursePipeline': 1
+    'scrapper.pipelines.CoursePipeline': 0,
+    'scrapper.pipelines.ClassPipeline': 0
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

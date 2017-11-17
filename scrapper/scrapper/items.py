@@ -27,6 +27,12 @@ class Course(scrapy.Item):
     year = scrapy.Field()
     plan_url = scrapy.Field()
 
+class Class(scrapy.Item):
+    course_id = scrapy.Field()
+    year = scrapy.Field()
+    acronym = scrapy.Field()
+    url = scrapy.Field()
+
 class FinalSchedule(scrapy.Item):
     course = scrapy.Field()
     date = scrapy.Field()

@@ -1,4 +1,5 @@
 import scrapy
+from ..items import Class
 from scrapy.http import Request, FormRequest
 from ..con_info import ConInfo
 
@@ -53,29 +54,33 @@ class ClassSpider(scrapy.Spider):
         self.log("Gathering courses")
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id LIMIT 1"
+            sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
             cursor.execute(sql)
             self.courses = cursor.fetchall()
         con_info.connection.close()
         self.log("Crawling {} courses".format(len(self.courses)))
+        # print(self.courses)
+        # return
         for course in self.courses:
+            # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
             yield scrapy.http.FormRequest(
                 url='https://sigarra.up.pt/{}/pt/hor_geral.lista_turmas_curso'.format(course[3]),
                 formdata = {'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)},
+                meta={'course_id': course[0]},
                 callback=self.extractClasses)
     
     def extractClasses(self, response):
         for yearTable in response.xpath('//*[@id="conteudoinner"]/h2[text()="Turmas"]/following-sibling::table//table'):
-            print('--------')
-            year = yearTable.xpath('tr/th/text()').extract_first()
-            print(year)
+            # print('--------')
+            # year = yearTable.xpath('tr/th/text()').extract_first()
+            # print(year)
             for classHtml in yearTable.xpath('tr/td//a'):
-                classInfo = {
-                    'year': year,
-                    'acronym': classHtml.xpath('text()').extract_first(),
-                    'url': response.urljoin(classHtml.xpath('@href').extract_first())
-                }
-                print(classInfo)
+                classInfo = Class(
+                    course_id = response.meta['course_id'],
+                    year = yearTable.xpath('tr/th/text()').extract_first(),
+                    acronym = classHtml.xpath('text()').extract_first(),
+                    url = response.urljoin(classHtml.xpath('@href').extract_first()))
+                # print(classInfo)
                 yield classInfo
             
            
