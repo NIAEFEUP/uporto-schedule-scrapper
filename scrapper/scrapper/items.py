@@ -33,7 +33,7 @@ class Class(scrapy.Item):
     acronym = scrapy.Field()
     url = scrapy.Field()
 
-class FinalSchedule(scrapy.Item):
+class Schedule(scrapy.Item):
     course = scrapy.Field()
     date = scrapy.Field()
     title = scrapy.Field()

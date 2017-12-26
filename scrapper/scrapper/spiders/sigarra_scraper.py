@@ -1,7 +1,7 @@
 import scrapy
 from scrapy.spiders.init import InitSpider
 from scrapy.http import Request, FormRequest
-from ..items import FinalSchedule
+from ..items import Schedule
 
 
 class SigarraSpider(InitSpider):
@@ -119,7 +119,7 @@ class SigarraSpider(InitSpider):
 
         for i in range(len(info_title)):
             #the informations arrays might have different, especeally when a class has more than 1 professor (ex: TP: JMC+LPE)
-            sch_item = FinalSchedule()
+            sch_item = Schedule()
             sch_item['course'] = info_curso_name[i]
             sch_item['date'] = info_date[0]
             sch_item['title'] = info_type[i]
