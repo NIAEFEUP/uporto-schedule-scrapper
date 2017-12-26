@@ -83,3 +83,21 @@ class ClassPipeline(MySQLPipeline):
                 self.connection.commit()
         finally:
         	return item
+
+class SchedulePipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+
+    def process_item(self, item, spider):
+        if not isinstance(item, items.Class):
+            return item
+        #sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        #columns = ", ".join(item.keys())
+        #values = "', '".join(str(x) for x in item.values())
+        #prepared = sql.format('class', columns, values)
+        #try:
+                #with self.connection.cursor() as cursor:
+                #cursor.execute(prepared)
+                #self.connection.commit()
+        #finally:
+        return item
