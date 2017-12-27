@@ -3,9 +3,10 @@ import scrapy
 from scrapy.http import Request, FormRequest
 
 from ..con_info import ConInfo
+from ..items import Schedule
 
 
-class ClassSpider(scrapy.Spider):
+class ScheduleSpider(scrapy.Spider):
     name = "schedules"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
@@ -57,10 +58,13 @@ class ClassSpider(scrapy.Spider):
     def classRequests(self):
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT id, url FROM `class` LIMIT 1"
+            sql = "SELECT id, url FROM `class`"
             cursor.execute(sql)
             self.classes = cursor.fetchall()
         con_info.connection.close()
+
+        # SELECT ocorrencia_id, name FROM lessons;
+        self.lessons = {'MDIS': 399879, 'AST388': 205865}
 
         self.log("Crawling {} classes".format(len(self.classes)))
         for clazz in self.classes:
@@ -94,15 +98,28 @@ class ClassSpider(scrapy.Spider):
                     class_duration = cur_col.xpath('@rowspan').extract_first()
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
-                        print("Day: {}\tStart: {}\tEnd: {}".format(cur_day, hour, hour + int(class_duration) / 2))
-                        self.extractClass(cur_col)
+                        yield self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
+                                                        response.meta['class_id'])
 
                 hour += 0.5
 
-    def extractClass(self, html):
+    def extractClassSchedule(self, html, day, duration, class_id):
         acronym_tag = html.xpath('b/acronym')
-        acronym = acronym_tag.xpath('a/text()').extract_first()
-        name = acronym_tag.xpath('@title').extract_first()
-        print(acronym)
-        print(name)
-        return
+        table = html.xpath('table/tr/td')
+
+        lesson_acronym = acronym_tag.xpath('a/text()').extract_first()
+        lesson_type = html.xpath('b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
+        location = table.xpath('a/text()').extract_first()
+        teacher = table.xpath('acronym/a/text()').extract_first()
+
+        lesson_id = self.lessons[lesson_acronym]
+
+        return Schedule(
+            class_id=class_id,
+            lesson_id=lesson_id,
+            lesson_type=lesson_type,
+            day=day,
+            duration=duration,
+            teacher_acronym=teacher,
+            location=location
+        )

@@ -18,7 +18,7 @@ class CourseSpider(scrapy.Spider):
             self.faculties = cursor.fetchall()
 
         con_info.connection.close()
-        course_types = ['L', 'MI', 'M', 'D'];
+        course_types = ['L', 'MI', 'M', 'D']
         year = 2017
         for faculty in self.faculties:
             for course_type in course_types:

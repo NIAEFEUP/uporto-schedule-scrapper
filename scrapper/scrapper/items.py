@@ -13,9 +13,11 @@ class ScrapperItem(scrapy.Item):
     # name = scrapy.Field()
     pass
 
+
 class Faculty(scrapy.Item):
     acronym = scrapy.Field()
     name = scrapy.Field()
+
 
 class Course(scrapy.Item):
     course_id = scrapy.Field()
@@ -27,20 +29,19 @@ class Course(scrapy.Item):
     year = scrapy.Field()
     plan_url = scrapy.Field()
 
+
 class Class(scrapy.Item):
     course_id = scrapy.Field()
     year = scrapy.Field()
     acronym = scrapy.Field()
     url = scrapy.Field()
 
+
 class Schedule(scrapy.Item):
-    course = scrapy.Field()
-    date = scrapy.Field()
-    title = scrapy.Field()
-    text = scrapy.Field()
-    duration = scrapy.Field()
-    acronym = scrapy.Field()
-    professor = scrapy.Field()
-    prof_acro = scrapy.Field()
-    id_class = scrapy.Field()
-    location = scrapy.Field()
+    class_id = scrapy.Field()
+    lesson_id = scrapy.Field()
+    lesson_type = scrapy.Field()  # T, TP, PL, etc.
+    day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
+    duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
+    teacher_acronym = scrapy.Field()  # JCF, GTD, etc.
+    location = scrapy.Field()  # B001, B003, etc.
