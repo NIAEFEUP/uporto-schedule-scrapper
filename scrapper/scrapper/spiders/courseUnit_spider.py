@@ -88,12 +88,13 @@ class CourseUnitSpider(scrapy.Spider):
             course_unit = CourseUnit(
                 name = course_unit_row.css(".t > a::text").extract_first(),
                 courseUnit_id = parse_qs(urlparse(course_unit_row.css(".t > a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0],
-                course_id = response.meta['course_id'],
-                acronym = "TEST")
-            yield course_unit
-            
+                course_id = response.meta['course_id'])
+            yield scrapy.http.Request(
+                url=response.urljoin(course_unit_row.css(".t > a::attr(href)").extract_first()),
+                meta={'course_unit': course_unit},
+                callback=self.extractAcronym)
 
-
-
-            
-           
+    def extractAcronym(self, response):
+        acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:last-child::text").extract_first()
+        response.meta['course_unit']['acronym'] = acronym
+        yield response.meta['course_unit']
