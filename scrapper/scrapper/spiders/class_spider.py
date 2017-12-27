@@ -1,4 +1,3 @@
-import getpass
 import scrapy
 import getpass
 from ..items import Class
@@ -22,9 +21,7 @@ class ClassSpider(scrapy.Spider):
             p_user : username -> This is the username used to login
             p_pass : password -> This is the password used to login
         """
-
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
-
         return FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
@@ -63,24 +60,29 @@ class ClassSpider(scrapy.Spider):
             cursor.execute(sql)
             self.courses = cursor.fetchall()
         con_info.connection.close()
-
         self.log("Crawling {} courses".format(len(self.courses)))
-
+        # print(self.courses)
+        # return
         for course in self.courses:
+            # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
             yield scrapy.http.FormRequest(
                 url='https://sigarra.up.pt/{}/pt/hor_geral.lista_turmas_curso'.format(course[3]),
                 formdata = {'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)},
                 meta={'course_id': course[0]},
                 callback=self.extractClasses)
-
+    
     def extractClasses(self, response):
         for yearTable in response.xpath('//*[@id="conteudoinner"]/h2[text()="Turmas"]/following-sibling::table//table'):
+            # print('--------')
+            # year = yearTable.xpath('tr/th/text()').extract_first()
+            # print(year)
             for classHtml in yearTable.xpath('tr/td//a'):
                 classInfo = Class(
                     course_id = response.meta['course_id'],
                     year = int(yearTable.xpath('tr/th/text()').extract_first()[0]) if classHtml.xpath('text()').extract_first()[0].isdigit() else 0,
                     acronym = classHtml.xpath('text()').extract_first(),
                     url = response.urljoin(classHtml.xpath('@href').extract_first()))
+                # print(classInfo)
                 yield classInfo
-
-
+            
+           
