@@ -1,4 +1,4 @@
 scrapy
 PyMySQL
-beautifulsoup4
-lxml
+#beautifulsoup4
+#lxml
