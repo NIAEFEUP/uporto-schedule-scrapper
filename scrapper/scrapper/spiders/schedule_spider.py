@@ -23,8 +23,6 @@ class ScheduleSpider(scrapy.Spider):
             p_user : username -> This is the username used to login
             p_pass : password -> This is the password used to login
         """
-        self.user = input("User: ")
-        self.passw = getpass.getpass()
         return FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
@@ -114,9 +112,9 @@ class ScheduleSpider(scrapy.Spider):
 
         lesson_id = self.lessons[lesson_acronym]
 
-        return Schedule(
+        yield Schedule(
             class_id=class_id,
-            lesson_id=lesson_id,
+            lesson_id=0,
             lesson_type=lesson_type,
             day=day,
             duration=duration,
