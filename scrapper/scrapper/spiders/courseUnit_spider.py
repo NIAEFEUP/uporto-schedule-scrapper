@@ -3,8 +3,8 @@ from ..items import Class
 from scrapy.http import Request, FormRequest
 from ..con_info import ConInfo
 
-class ClassSpider(scrapy.Spider):
-    name = "classes"
+class CourseUnitSpider(scrapy.Spider):
+    name = "courseUnits"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
 
@@ -63,24 +63,13 @@ class ClassSpider(scrapy.Spider):
         # return
         for course in self.courses:
             # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
-            yield scrapy.http.FormRequest(
-                url='https://sigarra.up.pt/{}/pt/hor_geral.lista_turmas_curso'.format(course[3]),
-                formdata = {'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)},
+            yield scrapy.http.Request(
+                url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(course[3], course[1], course[2]),
                 meta={'course_id': course[0]},
-                callback=self.extractClasses)
+                callback=self.extractCourseUnits)
     
-    def extractClasses(self, response):
-        for yearTable in response.xpath('//*[@id="conteudoinner"]/h2[text()="Turmas"]/following-sibling::table//table'):
-            # print('--------')
-            # year = yearTable.xpath('tr/th/text()').extract_first()
-            # print(year)
-            for classHtml in yearTable.xpath('tr/td//a'):
-                classInfo = Class(
-                    course_id = response.meta['course_id'],
-                    year = int(yearTable.xpath('tr/th/text()').extract_first()[0]) if classHtml.xpath('text()').extract_first()[0].isdigit() else 0,
-                    acronym = classHtml.xpath('text()').extract_first(),
-                    url = response.urljoin(classHtml.xpath('@href').extract_first()))
-                # print(classInfo)
-                yield classInfo
+    def extractCourseUnits(self, response):
+        print(response.css("#conteudoinner > div > div.paginar-paginas > div > div.paginar-paginas-posteriores > span:last-child > a"))
+
             
            
