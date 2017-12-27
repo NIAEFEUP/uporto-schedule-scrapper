@@ -106,7 +106,7 @@ CREATE TABLE `schedule` (
 --
 ALTER TABLE `class`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `acronym` (`acronym`,`course_id`),
+  ADD UNIQUE KEY `acronym` (`acronym`,`course_id`) USING BTREE,
   ADD KEY `course_id` (`course_id`);
 
 --

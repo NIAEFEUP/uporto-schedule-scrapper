@@ -117,7 +117,7 @@ class SchedulePipeline(MySQLPipeline):
         sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
         columns = ", ".join(item.keys())
         values = "', '".join(str(x) for x in item.values())
-        prepared = sql.format('class', columns, values)
+        prepared = sql.format('schedule', columns, values)
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(prepared)
