@@ -1,8 +1,9 @@
-import scrapy
 import getpass
-from ..items import Class
+import scrapy
 from scrapy.http import Request, FormRequest
+
 from ..con_info import ConInfo
+
 
 class ClassSpider(scrapy.Spider):
     name = "schedules"
@@ -67,7 +68,7 @@ class ClassSpider(scrapy.Spider):
                 url=clazz[1],
                 meta={'class_id': clazz[0]},
                 callback=self.extractSchedule)
-    
+
     def extractSchedule(self, response):
         for schedule in response.xpath('//table[@class="horario"]'):
             # This array represents the rowspans left in the current row
@@ -75,9 +76,22 @@ class ClassSpider(scrapy.Spider):
             # will seem to be missing a column and can cause out of sync errors
             # between the HTML table and its memory representation
             rowspans = [0, 0, 0, 0, 0, 0]
+            hour = 8
+            print(hour)
             for row in schedule.xpath('./tr[not(th)]'):
+                cur_index = 0
                 for col in row.xpath('./td[not(contains(@class, "k"))]'):
-                        print(col)
+                    # If there is a class in the current column, then just
+                    # skip it
+                    if rowspans[cur_index] > 0:
+                        rowspans[cur_index] -= 1
+                        cur_index += 1
+                        continue
 
+                    a = col.xpath('@rowspan').extract_first()
+                    if a is not None:
+                        rowspans[cur_index] = int(a)
+                        print("Day: {}\tStart: {}\tEnd: {}".format(cur_index, hour, hour + int(a)/2))
 
-           
+                    cur_index += 1
+                hour += 0.5
