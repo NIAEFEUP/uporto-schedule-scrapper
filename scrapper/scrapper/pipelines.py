@@ -8,9 +8,11 @@ import json
 import pymysql
 from . import items
 
+
 class ScrapperPipeline(object):
     def process_item(self, item, spider):
         return item
+
 
 class JsonWriterPipeline(object):
 
@@ -25,12 +27,14 @@ class JsonWriterPipeline(object):
         self.file.write(line)
         return item
 
+
 class MySQLPipeline(object):
     def __init__(self):
         self.connection = pymysql.connect(host='mysql', port=3306, user='root', passwd='root', db='tts')
 
     def process_item(self, item, spider):
         return item
+
 
 class FacultyPipeline(MySQLPipeline):
     def __init__(self):
@@ -46,7 +50,8 @@ class FacultyPipeline(MySQLPipeline):
                 cursor.execute(prepared)
                 self.connection.commit()
         finally:
-        	return item
+            return item
+
 
 class CoursePipeline(MySQLPipeline):
     def __init__(self):
@@ -64,7 +69,8 @@ class CoursePipeline(MySQLPipeline):
                 cursor.execute(prepared)
                 self.connection.commit()
         finally:
-        	return item
+            return item
+
 
 class ClassPipeline(MySQLPipeline):
     def __init__(self):
@@ -82,7 +88,8 @@ class ClassPipeline(MySQLPipeline):
                 cursor.execute(prepared)
                 self.connection.commit()
         finally:
-        	return item
+            return item
+
 
 class SchedulePipeline(MySQLPipeline):
     def __init__(self):
@@ -91,13 +98,13 @@ class SchedulePipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Class):
             return item
-        #sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
-        #columns = ", ".join(item.keys())
-        #values = "', '".join(str(x) for x in item.values())
-        #prepared = sql.format('class', columns, values)
-        #try:
-                #with self.connection.cursor() as cursor:
-                #cursor.execute(prepared)
-                #self.connection.commit()
-        #finally:
-        return item
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        columns = ", ".join(item.keys())
+        values = "', '".join(str(x) for x in item.values())
+        prepared = sql.format('class', columns, values)
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(prepared)
+                # self.connection.commit() ## Uncomment when working
+        finally:
+            return item
