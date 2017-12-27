@@ -103,4 +103,7 @@ uporto-timetable-scrapper/
 
 #databse
 *.db
+mysql/data
 
+#vscode
+.vscode

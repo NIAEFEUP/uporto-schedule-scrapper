@@ -7,6 +7,7 @@
 import json
 import pymysql
 from . import items
+from .con_info import ConInfo
 
 
 class ScrapperPipeline(object):
@@ -27,11 +28,7 @@ class JsonWriterPipeline(object):
         self.file.write(line)
         return item
 
-
-class MySQLPipeline(object):
-    def __init__(self):
-        self.connection = pymysql.connect(host='mysql', port=3306, user='root', passwd='root', db='tts')
-
+class MySQLPipeline(ConInfo):
     def process_item(self, item, spider):
         return item
 
