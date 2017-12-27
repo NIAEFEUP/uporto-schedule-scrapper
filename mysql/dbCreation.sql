@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.7
+-- version 4.7.5
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 27, 2017 at 05:28 PM
+-- Generation Time: Dec 27, 2017 at 07:57 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -11,6 +11,12 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `tts`
@@ -55,21 +61,6 @@ CREATE TABLE `course` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `courseUnit`
---
-
-DROP TABLE IF EXISTS `courseUnit`;
-CREATE TABLE `courseUnit` (
-  `id` int(11) NOT NULL,
-  `courseUnit_id` int(11) NOT NULL,
-  `name` varchar(200) NOT NULL,
-  `acronym` varchar(10) NOT NULL,
-  `course_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `faculty`
 --
 
@@ -78,23 +69,6 @@ CREATE TABLE `faculty` (
   `id` int(11) NOT NULL,
   `acronym` varchar(10) DEFAULT NULL,
   `name` text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `schedule`
---
-
-DROP TABLE IF EXISTS `schedule`;
-CREATE TABLE `schedule` (
-  `id` int(11) NOT NULL,
-  `day` int(11) NOT NULL,
-  `duration` double NOT NULL,
-  `location` varchar(10) NOT NULL,
-  `lesson_type` varchar(3) NOT NULL,
-  `teacher_acronym` varchar(10) NOT NULL,
-  `courseUnit_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -106,7 +80,7 @@ CREATE TABLE `schedule` (
 --
 ALTER TABLE `class`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `acronym` (`acronym`,`course_id`),
+  ADD UNIQUE KEY `acronym_course_uniqueness` (`acronym`,`course_id`) USING BTREE,
   ADD KEY `course_id` (`course_id`);
 
 --
@@ -118,25 +92,11 @@ ALTER TABLE `course`
   ADD KEY `faculty_id` (`faculty_id`);
 
 --
--- Indexes for table `courseUnit`
---
-ALTER TABLE `courseUnit`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `course_id` (`course_id`);
-
---
 -- Indexes for table `faculty`
 --
 ALTER TABLE `faculty`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `acronym` (`acronym`);
-
---
--- Indexes for table `schedule`
---
-ALTER TABLE `schedule`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `courseUnit_id` (`courseUnit_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -155,21 +115,9 @@ ALTER TABLE `course`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `courseUnit`
---
-ALTER TABLE `courseUnit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `faculty`
 --
 ALTER TABLE `faculty`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `schedule`
---
-ALTER TABLE `schedule`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -187,16 +135,8 @@ ALTER TABLE `class`
 --
 ALTER TABLE `course`
   ADD CONSTRAINT `course_ibfk_1` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `courseUnit`
---
-ALTER TABLE `courseUnit`
-  ADD CONSTRAINT `courseUnit_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `schedule`
---
-ALTER TABLE `schedule`
-  ADD CONSTRAINT `schedule_ibfk_1` FOREIGN KEY (`courseUnit_id`) REFERENCES `courseUnit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

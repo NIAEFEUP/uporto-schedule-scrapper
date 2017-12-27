@@ -23,7 +23,9 @@ class ScheduleSpider(scrapy.Spider):
             p_user : username -> This is the username used to login
             p_pass : password -> This is the password used to login
         """
+
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
+
         return FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
