@@ -77,21 +77,32 @@ class ClassSpider(scrapy.Spider):
             # between the HTML table and its memory representation
             rowspans = [0, 0, 0, 0, 0, 0]
             hour = 8
-            print(hour)
             for row in schedule.xpath('./tr[not(th)]'):
-                cur_index = 0
-                for col in row.xpath('./td[not(contains(@class, "k"))]'):
+                cols = row.xpath('./td[not(contains(@class, "k"))]')
+                cols_iter = iter(cols)
+
+                for cur_day in range(0, 6):
+                    if rowspans[cur_day] > 0:
+                        rowspans[cur_day] -= 1
+
                     # If there is a class in the current column, then just
                     # skip it
-                    if rowspans[cur_index] > 0:
-                        rowspans[cur_index] -= 1
-                        cur_index += 1
+                    if rowspans[cur_day] > 0:
                         continue
 
-                    a = col.xpath('@rowspan').extract_first()
-                    if a is not None:
-                        rowspans[cur_index] = int(a)
-                        print("Day: {}\tStart: {}\tEnd: {}".format(cur_index, hour, hour + int(a)/2))
+                    cur_col = next(cols_iter)
+                    class_duration = cur_col.xpath('@rowspan').extract_first()
+                    if class_duration is not None:
+                        rowspans[cur_day] = int(class_duration)
+                        print("Day: {}\tStart: {}\tEnd: {}".format(cur_day, hour, hour + int(class_duration) / 2))
+                        self.extractClass(cur_col)
 
-                    cur_index += 1
                 hour += 0.5
+
+    def extractClass(self, html):
+        acronym_tag = html.xpath('b/acronym')
+        acronym = acronym_tag.xpath('a/text()').extract_first()
+        name = acronym_tag.xpath('@title').extract_first()
+        print(acronym)
+        print(name)
+        return
