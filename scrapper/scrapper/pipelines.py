@@ -69,6 +69,25 @@ class CoursePipeline(MySQLPipeline):
             return item
 
 
+class CourseUnitPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+
+    def process_item(self, item, spider):
+        if not isinstance(item, items.CourseUnit):
+            return item
+        sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
+        columns = ", ".join(item.keys())
+        values = "', '".join(str(x) for x in item.values())
+        prepared = sql.format('courseUnit', columns, values)
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(prepared)
+                self.connection.commit()
+        finally:
+            return item
+
+
 class ClassPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
