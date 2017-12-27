@@ -43,8 +43,7 @@ class CourseUnit(scrapy.Item):
     course_id = scrapy.Field()
     
 class Schedule(scrapy.Item):
-    class_id = scrapy.Field()
-    lesson_id = scrapy.Field()
+    courseUnit_id = scrapy.Field()
     lesson_type = scrapy.Field()  # T, TP, PL, etc.
     day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
     duration = scrapy.Field()  # In hours: 0.5 hours is half an hour

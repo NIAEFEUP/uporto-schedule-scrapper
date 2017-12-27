@@ -73,14 +73,13 @@ class CourseUnitSpider(scrapy.Spider):
                 callback=self.extractSearchPages)
     
     def extractSearchPages(self, response):
-        other_pages = response.css("#conteudoinner > div > div.paginar-paginas > div > div.paginar-paginas-posteriores > span > a")
-        for other_page in other_pages:
-            page_url = other_page.css("::attr(href)").extract_first()
+        last_page_url = response.css(".paginar-saltar-barra-posicao > div:last-child > a::attr(href)").extract_first()
+        last_page = int(parse_qs(urlparse(last_page_url).query)['pv_num_pag'][0]) if last_page_url is not None else 1
+        for x in range(1, last_page):
             yield scrapy.http.Request(
-                url=response.urljoin(page_url),
+                url=response.url + "&pv_num_pag={}".format(x),
                 meta=response.meta,
                 callback=self.extractCourseUnits)
-        return self.extractCourseUnits(response)
 
     def extractCourseUnits(self, response):
         course_units_table = response.css("table.dados .d")
@@ -95,6 +94,6 @@ class CourseUnitSpider(scrapy.Spider):
                 callback=self.extractAcronym)
 
     def extractAcronym(self, response):
-        acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:last-child::text").extract_first()
+        acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         response.meta['course_unit']['acronym'] = acronym
         yield response.meta['course_unit']
