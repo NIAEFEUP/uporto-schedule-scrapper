@@ -59,7 +59,7 @@ class ScheduleSpider(scrapy.Spider):
     def classRequests(self):
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT id, url FROM `class`"
+            sql = "SELECT url, course_id FROM `class`"
             cursor.execute(sql)
             self.classes = cursor.fetchall()
 
@@ -67,8 +67,8 @@ class ScheduleSpider(scrapy.Spider):
             sql = "SELECT `id`, `courseUnit_id`, `course_id` FROM `courseUnit`"
             cursor.execute(sql)
             course_units = cursor.fetchall()
-            for course in course_units:
-                self.course_units[course[1]] = [course[0], course[2]]
+            for course_unit in course_units:
+                self.course_units[(course_unit[1], course_unit[2])] = course_unit[0]
 
         con_info.connection.close()
 
@@ -81,8 +81,8 @@ class ScheduleSpider(scrapy.Spider):
         self.log("Crawling {} classes".format(len(self.classes)))
         for clazz in self.classes:
             yield scrapy.http.FormRequest(
-                url=clazz[1],
-                meta={'class_id': clazz[0]},
+                url=clazz[0],
+                meta={'course_id': clazz[1]},
                 callback=self.extractSchedule)
 
     def extractSchedule(self, response):
@@ -111,11 +111,11 @@ class ScheduleSpider(scrapy.Spider):
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
                         return self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
-                                                        response.meta['class_id'])
+                                                        response.meta['course_id'])
 
                 hour += 0.5
 
-    def extractClassSchedule(self, html, day, duration, class_id):
+    def extractClassSchedule(self, html, day, duration, course_id):
         acronym_tag = html.xpath('b/acronym')
         table = html.xpath('table/tr/td')
 
@@ -125,7 +125,7 @@ class ScheduleSpider(scrapy.Spider):
         teacher = table.xpath('acronym/a/text()').extract_first()
 
         pv_ocorrencia_id = int(parse_qs(urlparse(acronym_tag.css("a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0])
-        courseUnit_id = self.course_units[pv_ocorrencia_id]
+        courseUnit_id = self.course_units[(pv_ocorrencia_id, course_id)]
 
         yield Schedule(
             courseUnit_id=courseUnit_id,

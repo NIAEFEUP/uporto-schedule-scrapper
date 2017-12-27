@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 27, 2017 at 05:28 PM
+-- Generation Time: Dec 27, 2017 at 11:32 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -122,6 +122,7 @@ ALTER TABLE `course`
 --
 ALTER TABLE `courseUnit`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `courseUnit_id` (`courseUnit_id`,`course_id`),
   ADD KEY `course_id` (`course_id`);
 
 --
