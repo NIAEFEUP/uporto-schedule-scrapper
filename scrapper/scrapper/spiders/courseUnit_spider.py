@@ -1,8 +1,10 @@
 import scrapy
 import getpass
-from ..items import Class
+from ..items import CourseUnit
 from scrapy.http import Request, FormRequest
+from urllib.parse import urlparse, parse_qs
 from ..con_info import ConInfo
+
 
 class CourseUnitSpider(scrapy.Spider):
     name = "courseUnits"
@@ -68,10 +70,30 @@ class CourseUnitSpider(scrapy.Spider):
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(course[3], course[1], course[2]),
                 meta={'course_id': course[0]},
-                callback=self.extractCourseUnits)
+                callback=self.extractSearchPages)
     
+    def extractSearchPages(self, response):
+        other_pages = response.css("#conteudoinner > div > div.paginar-paginas > div > div.paginar-paginas-posteriores > span > a")
+        for other_page in other_pages:
+            page_url = other_page.css("::attr(href)").extract_first()
+            yield scrapy.http.Request(
+                url=response.urljoin(page_url),
+                meta=response.meta,
+                callback=self.extractCourseUnits)
+        yield self.extractCourseUnits(response)
+
     def extractCourseUnits(self, response):
-        print(response.css("#conteudoinner > div > div.paginar-paginas > div > div.paginar-paginas-posteriores > span:last-child > a"))
+        course_units_table = response.css("table.dados .d")
+        for course_unit_row in course_units_table:
+            course_unit = CourseUnit(
+                name = course_unit_row.css(".t > a::text").extract_first(),
+                courseUnit_id = parse_qs(urlparse(course_unit_row.css(".t > a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0],
+                course_id = response.meta['course_id'],
+                acronym = "TEST")
+            print(course_unit)
+            
+
+
 
             
            
