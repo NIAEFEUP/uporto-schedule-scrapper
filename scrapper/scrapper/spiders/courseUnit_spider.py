@@ -80,7 +80,7 @@ class CourseUnitSpider(scrapy.Spider):
                 url=response.urljoin(page_url),
                 meta=response.meta,
                 callback=self.extractCourseUnits)
-        yield self.extractCourseUnits(response)
+        return self.extractCourseUnits(response)
 
     def extractCourseUnits(self, response):
         course_units_table = response.css("table.dados .d")
@@ -90,7 +90,7 @@ class CourseUnitSpider(scrapy.Spider):
                 courseUnit_id = parse_qs(urlparse(course_unit_row.css(".t > a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0],
                 course_id = response.meta['course_id'],
                 acronym = "TEST")
-            print(course_unit)
+            yield course_unit
             
 
 
