@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 27, 2017 at 05:22 PM
+-- Generation Time: Dec 27, 2017 at 05:28 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -90,7 +90,7 @@ DROP TABLE IF EXISTS `schedule`;
 CREATE TABLE `schedule` (
   `id` int(11) NOT NULL,
   `day` int(11) NOT NULL,
-  `duration` int(11) NOT NULL,
+  `duration` double NOT NULL,
   `location` varchar(10) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `teacher_acronym` varchar(10) NOT NULL,
