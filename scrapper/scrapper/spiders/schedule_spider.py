@@ -1,6 +1,7 @@
 import scrapy
 import getpass
 from scrapy.http import Request, FormRequest
+from urllib.parse import urlparse, parse_qs
 
 from ..con_info import ConInfo
 from ..items import Schedule
@@ -10,6 +11,7 @@ class ScheduleSpider(scrapy.Spider):
     name = "schedules"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
+    course_units = dict()
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -24,7 +26,7 @@ class ScheduleSpider(scrapy.Spider):
             p_pass : password -> This is the password used to login
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
-        return FormRequest.from_response(response,
+        yield FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
                                              'p_address': 'WEB_PAGE.INICIAL',
@@ -60,10 +62,21 @@ class ScheduleSpider(scrapy.Spider):
             sql = "SELECT id, url FROM `class`"
             cursor.execute(sql)
             self.classes = cursor.fetchall()
+
+        with con_info.connection.cursor() as cursor:
+            sql = "SELECT `id`, `courseUnit_id`, `course_id` FROM `courseUnit`"
+            cursor.execute(sql)
+            course_units = cursor.fetchall()
+            for course in course_units:
+                self.course_units[course[1]] = [course[0], course[2]]
+
         con_info.connection.close()
 
+        # print(self.course_units)
+        # return
+
         # SELECT ocorrencia_id, name FROM lessons;
-        self.lessons = {'MDIS': 399879, 'AST388': 205865}
+        # self.lessons = {'MDIS': 399879, 'AST388': 205865}
 
         self.log("Crawling {} classes".format(len(self.classes)))
         for clazz in self.classes:
@@ -97,7 +110,7 @@ class ScheduleSpider(scrapy.Spider):
                     class_duration = cur_col.xpath('@rowspan').extract_first()
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
-                        yield self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
+                        return self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
                                                         response.meta['class_id'])
 
                 hour += 0.5
@@ -111,11 +124,11 @@ class ScheduleSpider(scrapy.Spider):
         location = table.xpath('a/text()').extract_first()
         teacher = table.xpath('acronym/a/text()').extract_first()
 
-        lesson_id = self.lessons[lesson_acronym]
+        pv_ocorrencia_id = int(parse_qs(urlparse(acronym_tag.css("a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0])
+        courseUnit_id = self.course_units[pv_ocorrencia_id]
 
         yield Schedule(
-            class_id=class_id,
-            lesson_id=0,
+            courseUnit_id=courseUnit_id,
             lesson_type=lesson_type,
             day=day,
             duration=duration,
