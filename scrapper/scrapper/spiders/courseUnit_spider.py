@@ -10,7 +10,6 @@ class CourseUnitSpider(scrapy.Spider):
     name = "courseUnits"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
-    courses_dict = dict()
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -25,7 +24,7 @@ class CourseUnitSpider(scrapy.Spider):
             p_pass : password -> This is the password used to login
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
-        return FormRequest.from_response(response,
+        yield FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
                                              'p_address': 'WEB_PAGE.INICIAL',
@@ -67,11 +66,10 @@ class CourseUnitSpider(scrapy.Spider):
         # print(self.courses)
         # return
         for course in self.courses:
-            self.courses_dict[(course[3], course[2])] = course[0]
             # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(course[3], course[1], course[2]),
-                meta={'course_id': course[2]},
+                meta={'course_id': course[0]},
                 callback=self.extractSearchPages)
     
     def extractSearchPages(self, response):
@@ -86,17 +84,23 @@ class CourseUnitSpider(scrapy.Spider):
     def extractCourseUnits(self, response):
         course_units_table = response.css("table.dados .d")
         for course_unit_row in course_units_table:
-            course_unit = CourseUnit(
-                name = course_unit_row.css(".t > a::text").extract_first(),
-                courseUnit_id = int(parse_qs(urlparse(course_unit_row.css(".t > a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0]))
             yield scrapy.http.Request(
                 url=response.urljoin(course_unit_row.css(".t > a::attr(href)").extract_first()),
-                meta={'course_unit': course_unit, 'course_id': response.meta['course_id']},
-                callback=self.extractAcronym)
+                meta=response.meta,
+                callback=self.extractCourseUnitInfo)
 
-    def extractAcronym(self, response):
+    def extractCourseUnitInfo(self, response):
+        courseUnit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
+        name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
-        response.meta['course_unit']['acronym'] = acronym
-        faculty_acronym = urlparse(response.url).path.split("/")[1]
-        response.meta['course_unit']['course_id'] = self.courses_dict[(faculty_acronym, response.meta['course_id'])]
-        yield response.meta['course_unit']
+        url = response.url
+        schedule_url = response.css('a[title="Horário"]::attr(href)').extract_first()
+
+        yield CourseUnit(
+            courseUnit_id = courseUnit_id,
+            course_id = response.meta['course_id'],
+            name = name,
+            acronym = acronym,
+            url = url,
+            schedule_url = schedule_url
+        )

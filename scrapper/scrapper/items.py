@@ -41,6 +41,8 @@ class CourseUnit(scrapy.Item):
     name = scrapy.Field()
     acronym = scrapy.Field()
     course_id = scrapy.Field()
+    url = scrapy.Field()
+    schedule_url = scrapy.Field()
     
 class Schedule(scrapy.Item):
     courseUnit_id = scrapy.Field()
