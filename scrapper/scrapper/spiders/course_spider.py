@@ -31,6 +31,8 @@ class CourseSpider(scrapy.Spider):
 
     def parse(self, response):
         for courseHtml in response.css('body'):
+            if courseHtml.xpath('//*[@id="conteudoinner"]/div[1]/a').extract_first() is not None: # tests if this page points to another one
+                continue
             course = Course(
 		        course_id = int(parse_qs(urlparse(response.url).query)['pv_curso_id'][0]),
                 name = courseHtml.css('#conteudoinner h1:last-of-type::text').extract_first(),

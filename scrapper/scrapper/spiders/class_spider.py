@@ -22,7 +22,7 @@ class ClassSpider(scrapy.Spider):
             p_pass : password -> This is the password used to login
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
-        return FormRequest.from_response(response,
+        yield FormRequest.from_response(response,
                                          formdata={
                                              'p_app': '162', 'p_amo': '55',
                                              'p_address': 'WEB_PAGE.INICIAL',
