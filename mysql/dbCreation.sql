@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 27, 2017 at 11:32 PM
+-- Generation Time: Dec 28, 2017 at 03:13 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -62,9 +62,11 @@ DROP TABLE IF EXISTS `courseUnit`;
 CREATE TABLE `courseUnit` (
   `id` int(11) NOT NULL,
   `courseUnit_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
-  `course_id` int(11) NOT NULL
+  `url` varchar(2000) NOT NULL,
+  `schedule_url` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
