@@ -112,7 +112,7 @@ class SchedulePipeline(MySQLPipeline):
         MySQLPipeline.__init__(self)
 
     def process_item(self, item, spider):
-        if not isinstance(item, items.Class):
+        if not isinstance(item, items.Schedule):
             return item
         sql = "INSERT IGNORE INTO `{0}` ({1}) VALUES ('{2}')"
         columns = ", ".join(item.keys())
@@ -121,6 +121,6 @@ class SchedulePipeline(MySQLPipeline):
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(prepared)
-                # self.connection.commit() ## Uncomment when working
+                self.connection.commit() ## Uncomment when working
         finally:
             return item
