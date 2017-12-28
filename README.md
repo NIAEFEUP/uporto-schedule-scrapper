@@ -14,7 +14,7 @@ Python solution to extract the courses schedules from the different Faculties of
 ### Scrapper image
 - `scrapy crawl faculties`
 - `scrapy crawl courses`
-- `scrapy crawl classes -a user=xxx`
+- ~~`scrapy crawl classes -a user=xxx`~~
 - `scrapy crawl courseUnits -a user=xxx`
 - `scrapy crawl schedules -a user=xxx`
 

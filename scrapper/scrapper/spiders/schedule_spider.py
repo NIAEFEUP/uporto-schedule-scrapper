@@ -11,7 +11,6 @@ class ScheduleSpider(scrapy.Spider):
     name = "schedules"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
-    course_units = dict()
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -48,7 +47,7 @@ class ScheduleSpider(scrapy.Spider):
         if result == "Terminar sessão":
             self.log("Successfully logged in. Let's start crawling!")
             # Spider will now call the parse method with a request
-            return self.classRequests()
+            return self.classUnitRequests()
         elif result == "Iniciar sessão":
             print('Login failed. Please try again.')
             self.log('Login failed. Please try again.')
@@ -56,19 +55,12 @@ class ScheduleSpider(scrapy.Spider):
             print('Unexpected result. Website structure may have changed.')
             self.log('Unexpected result. Website structure may have changed.')
 
-    def classRequests(self):
+    def classUnitRequests(self):
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT url, course_id FROM `class`"
+            sql = "SELECT `id`, `schedule_url` FROM `courseUnit`"
             cursor.execute(sql)
-            self.classes = cursor.fetchall()
-
-        with con_info.connection.cursor() as cursor:
-            sql = "SELECT `id`, `courseUnit_id`, `course_id` FROM `courseUnit`"
-            cursor.execute(sql)
-            course_units = cursor.fetchall()
-            for course_unit in course_units:
-                self.course_units[(course_unit[1], course_unit[2])] = course_unit[0]
+            self.class_units = cursor.fetchall()
 
         con_info.connection.close()
 
@@ -78,11 +70,11 @@ class ScheduleSpider(scrapy.Spider):
         # SELECT ocorrencia_id, name FROM lessons;
         # self.lessons = {'MDIS': 399879, 'AST388': 205865}
 
-        self.log("Crawling {} classes".format(len(self.classes)))
-        for clazz in self.classes:
+        self.log("Crawling {} class units".format(len(self.class_units)))
+        for class_unit in self.class_units:
             yield scrapy.http.FormRequest(
-                url=clazz[0],
-                meta={'course_id': clazz[1]},
+                url=class_unit[1],
+                meta={'id': class_unit[0]},
                 callback=self.extractSchedule)
 
     def extractSchedule(self, response):
@@ -111,11 +103,11 @@ class ScheduleSpider(scrapy.Spider):
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
                         return self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
-                                                        response.meta['course_id'])
+                                                        response.meta['id'])
 
                 hour += 0.5
 
-    def extractClassSchedule(self, html, day, duration, course_id):
+    def extractClassSchedule(self, html, day, duration, id):
         acronym_tag = html.xpath('b/acronym')
         table = html.xpath('table/tr/td')
 
@@ -124,11 +116,8 @@ class ScheduleSpider(scrapy.Spider):
         location = table.xpath('a/text()').extract_first()
         teacher = table.xpath('acronym/a/text()').extract_first()
 
-        pv_ocorrencia_id = int(parse_qs(urlparse(acronym_tag.css("a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0])
-        courseUnit_id = self.course_units[(pv_ocorrencia_id, course_id)]
-
         yield Schedule(
-            courseUnit_id=courseUnit_id,
+            courseUnit_id=id,
             lesson_type=lesson_type,
             day=day,
             duration=duration,
