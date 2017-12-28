@@ -94,7 +94,7 @@ class CourseUnitSpider(scrapy.Spider):
         name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         url = response.url
-        schedule_url = response.css('a[title="Horário"]::attr(href)').extract_first()
+        schedule_url = response.urljoin(response.css('a[title="Horário"]::attr(href)').extract_first())
 
         yield CourseUnit(
             courseUnit_id = courseUnit_id,
