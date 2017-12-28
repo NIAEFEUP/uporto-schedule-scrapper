@@ -71,6 +71,7 @@ class CourseUnitSpider(scrapy.Spider):
             # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(course[3], course[1], course[2]),
+                meta={'course_id': course[2]},
                 callback=self.extractSearchPages)
     
     def extractSearchPages(self, response):
@@ -79,6 +80,7 @@ class CourseUnitSpider(scrapy.Spider):
         for x in range(1, last_page + 1):
             yield scrapy.http.Request(
                 url=response.url + "&pv_num_pag={}".format(x),
+                meta=response.meta,
                 callback=self.extractCourseUnits)
 
     def extractCourseUnits(self, response):
@@ -89,12 +91,12 @@ class CourseUnitSpider(scrapy.Spider):
                 courseUnit_id = int(parse_qs(urlparse(course_unit_row.css(".t > a::attr(href)").extract_first()).query)['pv_ocorrencia_id'][0]))
             yield scrapy.http.Request(
                 url=response.urljoin(course_unit_row.css(".t > a::attr(href)").extract_first()),
-                meta={'course_unit': course_unit},
+                meta={'course_unit': course_unit, 'course_id': response.meta['course_id']},
                 callback=self.extractAcronym)
 
     def extractAcronym(self, response):
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         response.meta['course_unit']['acronym'] = acronym
-        faculty_acronym = str() # TODO
-        response.meta['course_unit']['course_id'] = courses_dict[(faculty_acronym, response.meta['course_unit']['courseUnit_id'])]
+        faculty_acronym = urlparse(response.url).path.split("/")[1]
+        response.meta['course_unit']['course_id'] = self.courses_dict[(faculty_acronym, response.meta['course_id'])]
         yield response.meta['course_unit']
