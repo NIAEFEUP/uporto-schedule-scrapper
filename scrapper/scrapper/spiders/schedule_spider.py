@@ -1,7 +1,6 @@
-import scrapy
 import getpass
+import scrapy
 from scrapy.http import Request, FormRequest
-from urllib.parse import urlparse, parse_qs
 
 from ..con_info import ConInfo
 from ..items import Schedule
@@ -11,6 +10,7 @@ class ScheduleSpider(scrapy.Spider):
     name = "schedules"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
+    days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2, 'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -26,12 +26,12 @@ class ScheduleSpider(scrapy.Spider):
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
         yield FormRequest.from_response(response,
-                                         formdata={
-                                             'p_app': '162', 'p_amo': '55',
-                                             'p_address': 'WEB_PAGE.INICIAL',
-                                             'p_user': self.user,
-                                             'p_pass': self.passw},
-                                         callback=self.check_login_response)
+                                        formdata={
+                                            'p_app': '162', 'p_amo': '55',
+                                            'p_address': 'WEB_PAGE.INICIAL',
+                                            'p_user': self.user,
+                                            'p_pass': self.passw},
+                                        callback=self.check_login_response)
 
     def check_login_response(self, response):
         """Check the response returned by a login request to see if we are
@@ -64,20 +64,19 @@ class ScheduleSpider(scrapy.Spider):
 
         con_info.connection.close()
 
-        # print(self.course_units)
-        # return
-
-        # SELECT ocorrencia_id, name FROM lessons;
-        # self.lessons = {'MDIS': 399879, 'AST388': 205865}
-
         self.log("Crawling {} class units".format(len(self.class_units)))
         for class_unit in self.class_units:
-            yield scrapy.http.FormRequest(
+            yield Request(
                 url=class_unit[1],
                 meta={'id': class_unit[0]},
                 callback=self.extractSchedule)
 
     def extractSchedule(self, response):
+        # Check if there is no schedule available
+        if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
+            yield None
+
+        # Classes in timetable
         for schedule in response.xpath('//table[@class="horario"]'):
             # This array represents the rowspans left in the current row
             # It is used because when a row has rowspan > 1, the table
@@ -89,7 +88,7 @@ class ScheduleSpider(scrapy.Spider):
                 cols = row.xpath('./td[not(contains(@class, "k"))]')
                 cols_iter = iter(cols)
 
-                for cur_day in range(0, 6):
+                for cur_day in range(0, 6):  # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
                     if rowspans[cur_day] > 0:
                         rowspans[cur_day] -= 1
 
@@ -102,25 +101,98 @@ class ScheduleSpider(scrapy.Spider):
                     class_duration = cur_col.xpath('@rowspan').extract_first()
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
-                        return self.extractClassSchedule(cur_col, cur_day, int(class_duration) / 2,
+                        yield self.extractClassSchedule(cur_col, cur_day, hour, int(class_duration) / 2,
                                                         response.meta['id'])
 
                 hour += 0.5
 
-    def extractClassSchedule(self, html, day, duration, id):
-        acronym_tag = html.xpath('b/acronym')
+        # Overlapping classes
+        for row in response.xpath('//table[@class="dados"]/tr[not(th)]'):
+            yield self.extractOverlappingClassSchedule(response, row, response.meta['id'])
+
+    def extractClassSchedule(self, html, day, start_time, duration, id):
         table = html.xpath('table/tr/td')
 
-        lesson_acronym = acronym_tag.xpath('a/text()').extract_first()
         lesson_type = html.xpath('b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
         location = table.xpath('a/text()').extract_first()
         teacher = table.xpath('acronym/a/text()').extract_first()
 
-        yield Schedule(
+        return Schedule(
             courseUnit_id=id,
             lesson_type=lesson_type,
             day=day,
+            start_time=start_time,
             duration=duration,
             teacher_acronym=teacher,
             location=location
+        )
+
+    def extractOverlappingClassSchedule(self, response, row, id):
+        day_str = row.xpath('td[2]/text()').extract_first()
+        time_str = row.xpath('td[3]/text()').extract_first()
+
+        day = self.days[day_str]
+        hours, minutes = time_str.split(':')
+        start_time = int(hours)
+
+        if int(minutes) > 0:
+            start_time += int(minutes) / 60
+
+        lesson_type = row.xpath('td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
+        location = row.xpath('td[4]/a/text()').extract_first()
+        teacher = row.xpath('td[5]/a/text()').extract_first()
+
+        class_url = row.xpath('td[6]/a/@href').extract_first()
+
+        return response.follow(class_url,
+                               meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time,
+                                     'teacher_acronym': teacher, 'location': location, 'day': day},
+                               callback=self.extractDurationFromOverlappingClass)
+
+    def extractDurationFromOverlappingClass(self, response):
+        day = response.meta['day']
+        start_time = response.meta['start_time']
+        duration = None
+
+        # Classes in timetable
+        for schedule in response.xpath('//table[@class="horario"]'):
+            # This array represents the rowspans left in the current row
+            # It is used because when a row has rowspan > 1, the table
+            # will seem to be missing a column and can cause out of sync errors
+            # between the HTML table and its memory representation
+            rowspans = [0, 0, 0, 0, 0, 0]
+            hour = 8
+            for row in schedule.xpath('./tr[not(th)]'):
+                cols = row.xpath('./td[not(contains(@class, "k"))]')
+                cols_iter = iter(cols)
+
+                for cur_day in range(0, 6):  # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                    if rowspans[cur_day] > 0:
+                        rowspans[cur_day] -= 1
+
+                    # If there is a class in the current column, then just
+                    # skip it
+                    if rowspans[cur_day] > 0:
+                        continue
+
+                    cur_col = next(cols_iter)
+                    class_duration = cur_col.xpath('@rowspan').extract_first()
+                    if class_duration is not None:
+                        rowspans[cur_day] = int(class_duration)
+                        if cur_day == day and start_time == hour:
+                            duration = int(class_duration) / 2
+
+                hour += 0.5
+
+        if duration is None:
+            return None
+
+        yield Schedule(
+            courseUnit_id=response.meta['id'],
+            lesson_type=response.meta['lesson_type'],
+            day=day,
+            start_time=start_time,
+            duration=duration,
+            teacher_acronym=response.meta['teacher_acronym'],
+            location=response.meta['location']
         )

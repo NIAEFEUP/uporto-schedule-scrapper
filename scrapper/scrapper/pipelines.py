@@ -121,6 +121,6 @@ class SchedulePipeline(MySQLPipeline):
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(prepared)
-                self.connection.commit() ## Uncomment when working
+                self.connection.commit()
         finally:
             return item
