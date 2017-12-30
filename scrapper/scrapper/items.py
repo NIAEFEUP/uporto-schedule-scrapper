@@ -36,6 +36,7 @@ class Class(scrapy.Item):
     acronym = scrapy.Field()
     url = scrapy.Field()
 
+
 class CourseUnit(scrapy.Item):
     courseUnit_id = scrapy.Field()
     name = scrapy.Field()
@@ -43,11 +44,13 @@ class CourseUnit(scrapy.Item):
     course_id = scrapy.Field()
     url = scrapy.Field()
     schedule_url = scrapy.Field()
-    
+
+
 class Schedule(scrapy.Item):
     courseUnit_id = scrapy.Field()
     lesson_type = scrapy.Field()  # T, TP, PL, etc.
     day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
     duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
+    start_time = scrapy.Field()  # At what time the lesson starts
     teacher_acronym = scrapy.Field()  # JCF, GTD, etc.
     location = scrapy.Field()  # B001, B003, etc.

@@ -1,9 +1,10 @@
-import scrapy
 import getpass
-from ..items import CourseUnit
+import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs
+
 from ..con_info import ConInfo
+from ..items import CourseUnit
 
 
 class CourseUnitSpider(scrapy.Spider):
@@ -25,12 +26,12 @@ class CourseUnitSpider(scrapy.Spider):
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
         yield FormRequest.from_response(response,
-                                         formdata={
-                                             'p_app': '162', 'p_amo': '55',
-                                             'p_address': 'WEB_PAGE.INICIAL',
-                                             'p_user': self.user,
-                                             'p_pass': self.passw},
-                                         callback=self.check_login_response)
+                                        formdata={
+                                            'p_app': '162', 'p_amo': '55',
+                                            'p_address': 'WEB_PAGE.INICIAL',
+                                            'p_user': self.user,
+                                            'p_pass': self.passw},
+                                        callback=self.check_login_response)
 
     def check_login_response(self, response):
         """Check the response returned by a login request to see if we are
@@ -68,10 +69,11 @@ class CourseUnitSpider(scrapy.Spider):
         for course in self.courses:
             # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
             yield scrapy.http.Request(
-                url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(course[3], course[1], course[2]),
+                url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(
+                    course[3], course[1], course[2]),
                 meta={'course_id': course[0]},
                 callback=self.extractSearchPages)
-    
+
     def extractSearchPages(self, response):
         last_page_url = response.css(".paginar-saltar-barra-posicao > div:last-child > a::attr(href)").extract_first()
         last_page = int(parse_qs(urlparse(last_page_url).query)['pv_num_pag'][0]) if last_page_url is not None else 1
@@ -94,13 +96,19 @@ class CourseUnitSpider(scrapy.Spider):
         name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         url = response.url
-        schedule_url = response.urljoin(response.css('a[title="Horário"]::attr(href)').extract_first())
+        schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
+
+        # If there is no schedule for this course unit
+        if schedule_url is None:
+            return None
+
+        schedule_url = response.urljoin(schedule_url)
 
         yield CourseUnit(
-            courseUnit_id = courseUnit_id,
-            course_id = response.meta['course_id'],
-            name = name,
-            acronym = acronym,
-            url = url,
-            schedule_url = schedule_url
+            courseUnit_id=courseUnit_id,
+            course_id=response.meta['course_id'],
+            name=name,
+            acronym=acronym,
+            url=url,
+            schedule_url=schedule_url
         )
