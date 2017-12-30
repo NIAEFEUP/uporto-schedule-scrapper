@@ -2,13 +2,14 @@ import getpass
 import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs
+from datetime import datetime
 
 from ..con_info import ConInfo
 from ..items import CourseUnit
 
 
 class CourseUnitSpider(scrapy.Spider):
-    name = "courseUnits"
+    name = "course_units"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
 
@@ -64,10 +65,9 @@ class CourseUnitSpider(scrapy.Spider):
             self.courses = cursor.fetchall()
         con_info.connection.close()
         self.log("Crawling {} courses".format(len(self.courses)))
-        # print(self.courses)
-        # return
+
         for course in self.courses:
-            # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
+
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(
                     course[3], course[1], course[2]),
@@ -92,23 +92,22 @@ class CourseUnitSpider(scrapy.Spider):
                 callback=self.extractCourseUnitInfo)
 
     def extractCourseUnitInfo(self, response):
-        courseUnit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
+        course_unit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
         name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         url = response.url
         schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
 
         # If there is no schedule for this course unit
-        if schedule_url is None:
-            return None
-
-        schedule_url = response.urljoin(schedule_url)
+        if schedule_url is not None:
+            schedule_url = response.urljoin(schedule_url)
 
         yield CourseUnit(
-            courseUnit_id=courseUnit_id,
+            course_unit_id=course_unit_id,
             course_id=response.meta['course_id'],
             name=name,
             acronym=acronym,
             url=url,
-            schedule_url=schedule_url
+            schedule_url=schedule_url,
+            last_updated=datetime.now()
         )

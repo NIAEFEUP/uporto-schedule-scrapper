@@ -1,8 +1,11 @@
-import scrapy
 import getpass
-from ..items import Class
+import scrapy
 from scrapy.http import Request, FormRequest
+from datetime import datetime
+
 from ..con_info import ConInfo
+from ..items import Class
+
 
 class ClassSpider(scrapy.Spider):
     name = "classes"
@@ -23,12 +26,12 @@ class ClassSpider(scrapy.Spider):
         """
         self.passw = getpass.getpass(prompt='Password: ', stream=None)
         yield FormRequest.from_response(response,
-                                         formdata={
-                                             'p_app': '162', 'p_amo': '55',
-                                             'p_address': 'WEB_PAGE.INICIAL',
-                                             'p_user': self.user,
-                                             'p_pass': self.passw},
-                                         callback=self.check_login_response)
+                                        formdata={
+                                            'p_app': '162', 'p_amo': '55',
+                                            'p_address': 'WEB_PAGE.INICIAL',
+                                            'p_user': self.user,
+                                            'p_pass': self.passw},
+                                        callback=self.check_login_response)
 
     def check_login_response(self, response):
         """Check the response returned by a login request to see if we are
@@ -61,28 +64,24 @@ class ClassSpider(scrapy.Spider):
             self.courses = cursor.fetchall()
         con_info.connection.close()
         self.log("Crawling {} courses".format(len(self.courses)))
-        # print(self.courses)
-        # return
+
         for course in self.courses:
-            # print({'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)})
+
             yield scrapy.http.FormRequest(
                 url='https://sigarra.up.pt/{}/pt/hor_geral.lista_turmas_curso'.format(course[3]),
-                formdata = {'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)},
+                formdata={'pv_curso_id': str(course[2]), 'pv_ano_lectivo': str(course[1]), 'pv_periodos': str(1)},
                 meta={'course_id': course[0]},
                 callback=self.extractClasses)
-    
+
     def extractClasses(self, response):
         for yearTable in response.xpath('//*[@id="conteudoinner"]/h2[text()="Turmas"]/following-sibling::table//table'):
-            # print('--------')
-            # year = yearTable.xpath('tr/th/text()').extract_first()
-            # print(year)
+
             for classHtml in yearTable.xpath('tr/td//a'):
-                classInfo = Class(
-                    course_id = response.meta['course_id'],
-                    year = int(yearTable.xpath('tr/th/text()').extract_first()[0]) if classHtml.xpath('text()').extract_first()[0].isdigit() else 0,
-                    acronym = classHtml.xpath('text()').extract_first(),
-                    url = response.urljoin(classHtml.xpath('@href').extract_first()))
-                # print(classInfo)
-                yield classInfo
-            
-           
+                yield Class(
+                    course_id=response.meta['course_id'],
+                    year=int(yearTable.xpath('tr/th/text()').extract_first()[0]) if
+                    classHtml.xpath('text()').extract_first()[0].isdigit() else 0,
+                    acronym=classHtml.xpath('text()').extract_first(),
+                    url=response.urljoin(classHtml.xpath('@href').extract_first()),
+                    last_updated=datetime.now()
+                )
