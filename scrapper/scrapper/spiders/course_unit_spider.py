@@ -12,6 +12,10 @@ class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
+    password = None
+
+    def __init__(self, category=None, *args, **kwargs):
+        super(CourseUnitSpider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -25,13 +29,16 @@ class CourseUnitSpider(scrapy.Spider):
             p_user : username -> This is the username used to login
             p_pass : password -> This is the password used to login
         """
-        self.passw = getpass.getpass(prompt='Password: ', stream=None)
+
+        if self.password is None:
+            self.password = getpass.getpass(prompt='Password: ', stream=None)
+
         yield FormRequest.from_response(response,
                                         formdata={
                                             'p_app': '162', 'p_amo': '55',
                                             'p_address': 'WEB_PAGE.INICIAL',
                                             'p_user': self.user,
-                                            'p_pass': self.passw},
+                                            'p_pass': self.password},
                                         callback=self.check_login_response)
 
     def check_login_response(self, response):
@@ -97,6 +104,9 @@ class CourseUnitSpider(scrapy.Spider):
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
         url = response.url
         schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
+
+        if acronym is None:
+            yield None
 
         # If there is no schedule for this course unit
         if schedule_url is not None:

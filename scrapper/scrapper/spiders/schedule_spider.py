@@ -12,6 +12,10 @@ class ScheduleSpider(scrapy.Spider):
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/'
     days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2, 'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
+    password = None
+
+    def __init__(self, category=None, *args, **kwargs):
+        super(ScheduleSpider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
         """This function is called before crawling starts."""
@@ -25,13 +29,16 @@ class ScheduleSpider(scrapy.Spider):
             p_user : username -> This is the username used to login
             p_pass : password -> This is the password used to login
         """
-        self.passw = getpass.getpass(prompt='Password: ', stream=None)
+
+        if self.password is None:
+            self.password = getpass.getpass(prompt='Password: ', stream=None)
+
         yield FormRequest.from_response(response,
                                         formdata={
                                             'p_app': '162', 'p_amo': '55',
                                             'p_address': 'WEB_PAGE.INICIAL',
                                             'p_user': self.user,
-                                            'p_pass': self.passw},
+                                            'p_pass': self.password},
                                         callback=self.check_login_response)
 
     def check_login_response(self, response):

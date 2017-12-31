@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 30, 2017 at 01:17 AM
+-- Generation Time: Dec 31, 2017 at 12:18 PM
 -- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
@@ -21,8 +21,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `tts`
 --
-CREATE DATABASE IF NOT EXISTS `tts` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `tts`;
 
 -- --------------------------------------------------------
 
@@ -35,7 +33,8 @@ CREATE TABLE `class` (
   `year` int(11) NOT NULL,
   `acronym` varchar(20) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `course_id` int(11) NOT NULL
+  `course_id` int(11) NOT NULL,
+  `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -53,23 +52,25 @@ CREATE TABLE `course` (
   `course_type` varchar(2) NOT NULL,
   `year` int(11) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `plan_url` varchar(2000) NOT NULL
+  `plan_url` varchar(2000) NOT NULL,
+  `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `courseUnit`
+-- Table structure for table `course_unit`
 --
 
-CREATE TABLE `courseUnit` (
+CREATE TABLE `course_unit` (
   `id` int(11) NOT NULL,
-  `courseUnit_id` int(11) NOT NULL,
+  `course_unit_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `schedule_url` varchar(2000) NOT NULL
+  `schedule_url` varchar(2000) DEFAULT NULL,
+  `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -81,7 +82,8 @@ CREATE TABLE `courseUnit` (
 CREATE TABLE `faculty` (
   `id` int(11) NOT NULL,
   `acronym` varchar(10) DEFAULT NULL,
-  `name` text
+  `name` text,
+  `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -92,13 +94,16 @@ CREATE TABLE `faculty` (
 
 CREATE TABLE `schedule` (
   `id` int(11) NOT NULL,
-  `day` int(11) NOT NULL,
-  `duration` double NOT NULL,
-  `start_time` double UNSIGNED NOT NULL,
-  `location` varchar(10) NOT NULL,
+  `day` tinyint(3) UNSIGNED NOT NULL,
+  `duration` decimal(3,1) UNSIGNED NOT NULL,
+  `start_time` decimal(3,1) UNSIGNED NOT NULL,
+  `location` varchar(16) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
-  `teacher_acronym` varchar(10) NOT NULL,
-  `courseUnit_id` int(11) NOT NULL
+  `teacher_acronym` varchar(16) NOT NULL,
+  `course_unit_id` int(11) NOT NULL,
+  `last_updated` datetime NOT NULL,
+  `class_name` varchar(16) NOT NULL,
+  `composed_class_name` varchar(16) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -122,11 +127,11 @@ ALTER TABLE `course`
   ADD KEY `faculty_id` (`faculty_id`);
 
 --
--- Indexes for table `courseUnit`
+-- Indexes for table `course_unit`
 --
-ALTER TABLE `courseUnit`
+ALTER TABLE `course_unit`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `courseUnit_id` (`courseUnit_id`,`course_id`),
+  ADD UNIQUE KEY `courseUnit_id` (`course_unit_id`,`course_id`),
   ADD KEY `course_id` (`course_id`);
 
 --
@@ -141,7 +146,7 @@ ALTER TABLE `faculty`
 --
 ALTER TABLE `schedule`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `courseUnit_id` (`courseUnit_id`);
+  ADD KEY `course_unit_id` (`course_unit_id`) USING BTREE;
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -151,25 +156,25 @@ ALTER TABLE `schedule`
 -- AUTO_INCREMENT for table `class`
 --
 ALTER TABLE `class`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=280;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `course`
 --
 ALTER TABLE `course`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=341;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `courseUnit`
+-- AUTO_INCREMENT for table `course_unit`
 --
-ALTER TABLE `courseUnit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5482;
+ALTER TABLE `course_unit`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `faculty`
 --
 ALTER TABLE `faculty`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `schedule`
@@ -194,16 +199,16 @@ ALTER TABLE `course`
   ADD CONSTRAINT `course_ibfk_1` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `courseUnit`
+-- Constraints for table `course_unit`
 --
-ALTER TABLE `courseUnit`
-  ADD CONSTRAINT `courseUnit_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `course_unit`
+  ADD CONSTRAINT `course_unit_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `schedule`
 --
 ALTER TABLE `schedule`
-  ADD CONSTRAINT `schedule_ibfk_1` FOREIGN KEY (`courseUnit_id`) REFERENCES `courseUnit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `schedule_ibfk_1` FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
