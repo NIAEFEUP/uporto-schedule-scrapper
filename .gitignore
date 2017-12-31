@@ -104,3 +104,4 @@ uporto-timetable-scrapper/
 #databse
 *.db
 
+node_modules/
