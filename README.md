@@ -14,8 +14,8 @@ Python solution to extract the courses schedules from the different Faculties of
 ### Scrapper image
 - `scrapy crawl faculties`
 - `scrapy crawl courses`
-- `scrapy crawl course_units -a user=upxxxxxxxxxx`
-- `scrapy crawl schedules -a user=upxxxxxxxxxx`
+- `scrapy crawl course_units -a user=up123456789`
+- `scrapy crawl schedules -a user=up123456789`
 
 To inspect the scrapy engine, use `scrapy shell "url"`
 

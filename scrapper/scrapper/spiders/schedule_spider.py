@@ -128,7 +128,7 @@ class ScheduleSpider(scrapy.Spider):
             return response.follow(class_url,
                                    meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time,
                                          'teacher_acronym': teacher, 'location': location, 'day': day,
-                                         'composed_class_name': class_name},
+                                         'composed_class_name': class_name, 'duration': duration},
                                    callback=self.extractComposedClasses)
 
         return Schedule(
@@ -144,7 +144,7 @@ class ScheduleSpider(scrapy.Spider):
         )
 
     def extractComposedClasses(self, response):
-        class_names = response.xpath('div[@id="conteudoinner"]/li/a/text()').extract()
+        class_names = response.xpath('//div[@id="conteudoinner"]/li/a/text()').extract()
 
         for class_name in class_names:
             yield Schedule(
@@ -153,7 +153,7 @@ class ScheduleSpider(scrapy.Spider):
                 day=response.meta['day'],
                 start_time=response.meta['start_time'],
                 duration=response.meta['duration'],
-                teacher_acronym=response.meta['teacher'],
+                teacher_acronym=response.meta['teacher_acronym'],
                 location=response.meta['location'],
                 composed_class_name=response.meta['composed_class_name'],
                 class_name=class_name,
