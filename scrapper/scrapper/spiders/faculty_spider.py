@@ -1,5 +1,8 @@
 import scrapy
+
 from ..items import Faculty
+from datetime import datetime
+
 
 class FacultySpider(scrapy.Spider):
     name = "faculties"
@@ -9,11 +12,9 @@ class FacultySpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        # filename = "faculdades.txt"
-        # with open(filename, 'wb') as f:
-        #     f.write(response.body)
         for facHtml in response.css('.menu-nivel-3 > a'):
-            fac = Faculty(
-                acronym = facHtml.css('::attr(href)').extract_first()[2:],
-                name = facHtml.css('::attr(title)').extract_first())
-            yield fac
+            yield Faculty(
+                acronym=facHtml.css('::attr(href)').extract_first()[2:],
+                name=facHtml.css('::attr(title)').extract_first(),
+                last_updated=datetime.now()
+            )
