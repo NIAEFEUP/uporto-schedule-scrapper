@@ -105,8 +105,12 @@ uporto-timetable-scrapper/
 *.db
 mysql/data
 
+
+node_modules/
+
 #vscode
 .vscode
 
 # Intellij
 .idea
+
