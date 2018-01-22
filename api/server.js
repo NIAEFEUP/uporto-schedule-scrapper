@@ -16,5 +16,11 @@ router.get('/faculties', (req, res) => {
   });
 });
 
+router.get('/courses', (req, res) => {
+  models.course.findAll().then((courses) => {
+    res.send(courses);
+  });
+});
+
 app.use('/', router);
 app.listen(port);
