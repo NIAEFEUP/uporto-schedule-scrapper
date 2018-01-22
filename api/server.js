@@ -18,7 +18,13 @@ router.get('/faculties', (req, res) => {
 
 router.get('/course-units', (req, res) => {
   models.courseUnit.findAll().then((courseUnits) => {
-    res.send(courseUnits);
+    res.send(courseUnits); 
+  });
+});
+
+router.get('/courses', (req, res) => {
+  models.course.findAll().then((courses) => {
+    res.send(courses);
   });
 });
 
