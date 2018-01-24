@@ -10,9 +10,15 @@ const router = express.Router();
 
 app.use(bodyParser.json());
 
-router.get('/faculties', (req, res) => {
-  models.faculty.findAll().then((faculties) => {
-    res.send(faculties);
+router.get('/classes', (req, res) => {
+  models.class.findAll().then((classes) => {
+    res.send(classes);
+  });
+});
+
+router.get('/courses', (req, res) => {
+  models.course.findAll().then((courses) => {
+    res.send(courses);
   });
 });
 
@@ -22,9 +28,15 @@ router.get('/course-units', (req, res) => {
   });
 });
 
-router.get('/courses', (req, res) => {
-  models.course.findAll().then((courses) => {
-    res.send(courses);
+router.get('/faculties', (req, res) => {
+  models.faculty.findAll().then((faculties) => {
+    res.send(faculties);
+  });
+});
+
+router.get('/schedules', (req, res) => {
+  models.schedule.findAll().then((schedules) => {
+    res.send(schedules);
   });
 });
 
