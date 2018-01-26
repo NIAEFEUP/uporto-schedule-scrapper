@@ -24,13 +24,23 @@ router.get('/courses', (req, res) => {
 
 router.get('/course-units', (req, res) => {
   models.courseUnit.findAll().then((courseUnits) => {
-    res.send(courseUnits); 
+    res.send(courseUnits);
   });
 });
 
 router.get('/faculties', (req, res) => {
   models.faculty.findAll().then((faculties) => {
     res.send(faculties);
+  });
+});
+
+router.get('/faculties/:facultyId/courses', (req, res) => {
+  models.course.findAll({
+    where: {
+      faculty_id: req.params.facultyId
+    }
+  }).then((result) => {
+    res.send(result);
   });
 });
 
