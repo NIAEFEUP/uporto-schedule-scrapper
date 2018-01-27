@@ -22,9 +22,29 @@ router.get('/courses', (req, res) => {
   });
 });
 
+router.get('/courses/:courseId/units', (req, res) => {
+  models.courseUnit.findAll({
+    where: {
+      course_id: req.params.courseId
+    }
+  }).then((result) => {
+    res.send(result);
+  });
+});
+
 router.get('/course-units', (req, res) => {
   models.courseUnit.findAll().then((courseUnits) => {
     res.send(courseUnits);
+  });
+});
+
+router.get('/course-units/:unitId/schedules', (req, res) => {
+  models.schedule.findAll({
+    where: {
+      course_unit_id: req.params.unitId
+    }
+  }).then((result) => {
+    res.send(result);
   });
 });
 
