@@ -66,7 +66,7 @@ class ScheduleSpider(scrapy.Spider):
     def classUnitRequests(self):
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
-            sql = "SELECT `id`, `schedule_url` FROM `course_unit` WHERE schedule_url IS NOT NULL AND course_id = 209"
+            sql = "SELECT `id`, `schedule_url` FROM `course_unit` WHERE schedule_url IS NOT NULL"
             cursor.execute(sql)
             self.class_units = cursor.fetchall()
 
