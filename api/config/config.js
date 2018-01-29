@@ -5,7 +5,7 @@ module.exports = {
     database: 'tts',
     host: 'mysql',
     dialect: 'mysql',
-    port: 3306,
+    port: process.env.DB_PORT,
   },
   production: {
     username: 'root',
@@ -13,6 +13,6 @@ module.exports = {
     database: 'tts',
     host: 'mysql',
     dialect: 'mysql',
-    port: 3306,
+    port: process.env.DB_PORT,
   },
 };
