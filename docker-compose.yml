@@ -5,3 +5,31 @@ services:
     build: ./scrapper
     volumes:
       - ./scrapper:/scrapper
+    depends_on:
+      - mysql
+    links:
+      - mysql
+  mysql:
+    build: ./mysql
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    ports:
+      - 3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tts
+  phpmyadmin:
+    build: ./phpmyadmin
+    ports:
+      - 4000:80
+    links:
+      - mysql:db
+  api:
+    build: ./api
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
