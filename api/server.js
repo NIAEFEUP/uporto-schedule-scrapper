@@ -105,10 +105,11 @@ router.get('/courses/:courseId/schedules', (req, res) => {
       model: models.schedule,
     }],
     where: {
-      course_id: req.params.courseId
-    }
-  }).then((result) => {
-    res.send(result);
+      course_id: req.params.courseId,
+    },
+    order: [['course_year', 'DESC']]
+  }).then((schedules) => {
+    res.send(schedules)
   });
 });
 
