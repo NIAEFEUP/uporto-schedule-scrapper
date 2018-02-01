@@ -18,10 +18,12 @@ module.exports = (sequelize, DataTypes) => {
         schedule_url: {
             type: DataTypes.STRING(2000)
         },
+        course_year: {
+            type: DataTypes.INTEGER
+        }
     }, {
         tableName: 'course_unit',
         underscored: true,
         timestamps: false,
-
     });
 }
