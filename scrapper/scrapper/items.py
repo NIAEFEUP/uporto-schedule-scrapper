@@ -46,6 +46,7 @@ class CourseUnit(scrapy.Item):
     acronym = scrapy.Field()
     course_id = scrapy.Field()
     url = scrapy.Field()
+    course_year = scrapy.Field()
     schedule_url = scrapy.Field()
     last_updated = scrapy.Field()
 
