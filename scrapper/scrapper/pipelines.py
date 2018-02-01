@@ -115,7 +115,7 @@ class SchedulePipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Schedule):
             return item
-        sql = "INSERT IGNORE INTO `{0}` (`{1}`) VALUES ({2})"
+        sql = "INSERT INTO `{0}` (`{1}`) VALUES ({2})"
         columns = "`, `".join(item.keys())
         values = ", ".join("%s" for _ in item.values())
         prepared = sql.format('schedule', columns, values)
