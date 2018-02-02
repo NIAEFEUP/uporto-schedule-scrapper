@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('schedule', {
+    var schedule = sequelize.define('schedule', {
         day: {
             type: DataTypes.INTEGER(3)
         },
@@ -32,4 +32,10 @@ module.exports = (sequelize, DataTypes) => {
         underscored: true,
         timestamps: false,
     });
+
+    schedule.associate = function(models){
+        models.schedule.belongsTo(models.courseUnit);
+    }
+
+    return schedule;
 }
