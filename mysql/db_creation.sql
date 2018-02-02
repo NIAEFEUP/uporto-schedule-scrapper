@@ -1,10 +1,10 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.5
+-- version 4.7.7
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 31, 2017 at 12:18 PM
--- Server version: 5.7.20
+-- Generation Time: Feb 01, 2018 at 10:13 AM
+-- Server version: 5.7.21
 -- PHP Version: 7.1.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -69,6 +69,7 @@ CREATE TABLE `course_unit` (
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
+  `course_year` tinyint(4) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
