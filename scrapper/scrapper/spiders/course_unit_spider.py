@@ -102,6 +102,7 @@ class CourseUnitSpider(scrapy.Spider):
         course_unit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
         name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
+        course_year = response.css("#conteudoinner > table:nth-child(10) > tr.d > td:nth-child(4)::text").extract_first()
         url = response.url
         schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
 
@@ -118,6 +119,7 @@ class CourseUnitSpider(scrapy.Spider):
             name=name,
             acronym=acronym,
             url=url,
+            course_year=course_year,
             schedule_url=schedule_url,
             last_updated=datetime.now()
         )
