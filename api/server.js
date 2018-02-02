@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
+const cors = require('cors');
 
 const models = require('./models');
 
@@ -9,6 +10,7 @@ const app = express();
 
 const router = express.Router();
 
+app.use(cors());
 app.use(bodyParser.json());
 
 /*
