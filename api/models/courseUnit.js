@@ -20,6 +20,12 @@ module.exports = (sequelize, DataTypes) => {
         },
         course_year: {
             type: DataTypes.INTEGER
+        },
+        semester: {
+            type: DataTypes.INTEGER
+        },
+        year: {
+            type: DataTypes.INTEGER
         }
     }, {
         tableName: 'course_unit',
@@ -27,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: false,
     });
 
-    courseUnit.associate = function(models){
+    courseUnit.associate = function (models) {
         models.courseUnit.belongsTo(models.course);
         models.courseUnit.hasMany(models.schedule);
     }
