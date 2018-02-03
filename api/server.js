@@ -32,7 +32,23 @@ router.get('/courses', (req, res) => {
 });
 
 /*
- * Gett all course units from a course
+ * Get all course units from a course taught on a given year and semester
+ * Still need to implement the year in the database itself
+ */
+router.get('/courses/:courseId/:year/:semester/units', (req, res) => {
+  models.courseUnit.findAll({
+    where: {
+      course_id: req.params.courseId,
+      year: req.params.year,
+      semester: req.params.semester
+    }
+  }).then((result) => {
+    res.send(result);
+  });
+});
+
+/*
+ * Get all course units from a course
  */
 router.get('/courses/:courseId/units', (req, res) => {
   models.courseUnit.findAll({
@@ -109,7 +125,9 @@ router.get('/courses/:courseId/schedules', (req, res) => {
     where: {
       course_id: req.params.courseId,
     },
-    order: [['course_year', 'DESC']]
+    order: [
+      ['course_year', 'DESC']
+    ]
   }).then((schedules) => {
     res.send(schedules)
   });

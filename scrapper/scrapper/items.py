@@ -47,6 +47,8 @@ class CourseUnit(scrapy.Item):
     course_id = scrapy.Field()
     url = scrapy.Field()
     course_year = scrapy.Field()
+    semester = scrapy.Field()
+    year = scrapy.Field()
     schedule_url = scrapy.Field()
     last_updated = scrapy.Field()
 
