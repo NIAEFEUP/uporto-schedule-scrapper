@@ -99,27 +99,62 @@ class CourseUnitSpider(scrapy.Spider):
                 callback=self.extractCourseUnitInfo)
 
     def extractCourseUnitInfo(self, response):
+        name = response.xpath('//div[@id="conteudoinner"]/h1[2]/text()').extract_first().strip()
+
+        # Checks if the course unit page is valid. 
+        # If name == 'Sem Resultados', then it is not.
+        if name == 'Sem Resultados':
+            return None # Return None as yielding would continue the program and crash at the next assert
+
         course_unit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
-        name = response.css("#conteudoinner > h1:nth-child(3)::text").extract_first()
         acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
-        course_year = response.css("#conteudoinner > table:nth-child(10) > tr.d > td:nth-child(4)::text").extract_first()
+
         url = response.url
         schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
-
-        if acronym is None:
-            yield None
 
         # If there is no schedule for this course unit
         if schedule_url is not None:
             schedule_url = response.urljoin(schedule_url)
 
-        yield CourseUnit(
-            course_unit_id=course_unit_id,
-            course_id=response.meta['course_id'],
-            name=name,
-            acronym=acronym,
-            url=url,
-            course_year=course_year,
-            schedule_url=schedule_url,
-            last_updated=datetime.now()
+        course_year = int(response.xpath('//div[@id="conteudoinner"]/table[@class="dados"]//td[@class="l"]/text()').extract_first())
+
+        assert course_year > 0 and course_year < 10
+
+        # Occurrence has a string that contains both the year and the semester type
+        occurrence = response.css('#conteudoinner > h2::text').extract_first()
+
+        ## Possible types: '1', '2', 'A', 'SP'
+        # '1' and '2' represent a semester
+        # 'A' represents an annual course unit
+        # 'SP' represents a course unit without effect this year
+        semester = occurrence[24:26].strip()
+
+        # Represents the civil year. If the course unit is taught on the curricular year
+        # 2017/2018, then year is 2017.
+        year = int(occurrence[12:16])
+
+        assert semester == '1S' or semester == '2S' or semester == 'A' or semester == 'SP' or semester == '3T'
+        assert year > 2000
+
+        semesters = []
+
+        if semester == '1S':
+            semesters = [1]
+        elif semester == '2S' or semester == '3T':
+            semesters = [2]
+        elif semester == 'A':
+            semesters = [1, 2]
+
+        for semester in semesters:
+            yield CourseUnit(
+              course_unit_id=course_unit_id,
+              course_id=response.meta['course_id'],
+              name=name,
+              acronym=acronym,
+              url=url,
+              course_year=course_year,
+              schedule_url=schedule_url,
+              year=year,
+              semester=semester,
+              last_updated=datetime.now()
         )

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Feb 01, 2018 at 10:13 AM
+-- Generation Time: Feb 03, 2018 at 02:04 AM
 -- Server version: 5.7.21
 -- PHP Version: 7.1.9
 
@@ -70,6 +70,8 @@ CREATE TABLE `course_unit` (
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
   `course_year` tinyint(4) NOT NULL,
+  `semester` tinyint(4) NOT NULL,
+  `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -132,7 +134,7 @@ ALTER TABLE `course`
 --
 ALTER TABLE `course_unit`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `courseUnit_id` (`course_unit_id`,`course_id`),
+  ADD UNIQUE KEY `uniqueness` (`course_unit_id`,`course_id`,`year`,`semester`) USING BTREE,
   ADD KEY `course_id` (`course_id`);
 
 --
