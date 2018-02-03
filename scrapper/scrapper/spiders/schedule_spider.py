@@ -97,10 +97,12 @@ class ScheduleSpider(scrapy.Spider):
                 cols_iter = iter(cols)
 
                 for cur_day in range(0, 6):  # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                    if rowspans[cur_day] > 0:
+                        rowspans[cur_day] -= 1
+                    
                     # If there is a class in the current column, then just
                     # skip it
                     if rowspans[cur_day] > 0:
-                        rowspans[cur_day] -= 1
                         continue
 
                     cur_col = next(cols_iter)
