@@ -14,15 +14,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 /*
- * Get all classes
- */
-router.get('/classes', (req, res) => {
-  models.class.findAll().then((classes) => {
-    res.send(classes);
-  });
-});
-
-/*
  * Get all courses
  */
 router.get('/courses', (req, res) => {
