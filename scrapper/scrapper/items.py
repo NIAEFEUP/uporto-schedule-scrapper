@@ -7,13 +7,6 @@
 
 import scrapy
 
-
-class ScrapperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
-
-
 class Faculty(scrapy.Item):
     acronym = scrapy.Field()
     name = scrapy.Field()
@@ -29,14 +22,6 @@ class Course(scrapy.Item):
     url = scrapy.Field()
     year = scrapy.Field()
     plan_url = scrapy.Field()
-    last_updated = scrapy.Field()
-
-
-class Class(scrapy.Item):
-    course_id = scrapy.Field()
-    year = scrapy.Field()
-    acronym = scrapy.Field()
-    url = scrapy.Field()
     last_updated = scrapy.Field()
 
 
