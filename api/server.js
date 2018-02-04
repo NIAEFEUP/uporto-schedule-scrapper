@@ -133,5 +133,27 @@ router.get('/courses/:courseId/schedules', (req, res) => {
   });
 });
 
+/*
+ * Get all schedules all course units taught in the given year and semester
+ * from a specific course in a list divided by years
+ */
+router.get('/courses/:courseId/:year/:semester/schedules', (req, res) => {
+  models.courseUnit.findAll({
+    include: [{
+      model: models.schedule,
+    }],
+    where: {
+      course_id: req.params.courseId,
+      year: req.params.year,
+      semester: req.params.semester
+    },
+    order: [
+      ['course_year', 'DESC']
+    ]
+  }).then((schedules) => {
+    res.send(schedules)
+  });
+});
+
 app.use('/', router);
 app.listen(port);
