@@ -133,14 +133,17 @@ class CourseUnitSpider(scrapy.Spider):
         # 2017/2018, then year is 2017.
         year = int(occurrence[12:16])
 
-        assert semester == '1S' or semester == '2S' or semester == 'A' or semester == 'SP' or semester == '3T'
+        assert semester == '1S' or semester == '2S' or semester == 'A' or semester == 'SP' \
+            or semester == '1T' or semester == '2T' or semester == '3T' or semester == '4T'
+
         assert year > 2000
 
         semesters = []
 
-        if semester == '1S':
+        # FIXME: Find a better way to allocate trimestral course units
+        if semester == '1S' or semester == '1T' or semester == '2T':
             semesters = [1]
-        elif semester == '2S' or semester == '3T':
+        elif semester == '2S' or semester == '3T' or semester == '4T':
             semesters = [2]
         elif semester == 'A':
             semesters = [1, 2]

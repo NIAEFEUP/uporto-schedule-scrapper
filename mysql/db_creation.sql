@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Feb 03, 2018 at 02:04 AM
--- Server version: 5.7.21
+-- Generation Time: Feb 04, 2018 at 01:27 PM
+-- Server version: 5.7.20
 -- PHP Version: 7.1.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -21,21 +21,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `tts`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `class`
---
-
-CREATE TABLE `class` (
-  `id` int(11) NOT NULL,
-  `year` int(11) NOT NULL,
-  `acronym` varchar(20) NOT NULL,
-  `url` varchar(2000) NOT NULL,
-  `course_id` int(11) NOT NULL,
-  `last_updated` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -114,14 +99,6 @@ CREATE TABLE `schedule` (
 --
 
 --
--- Indexes for table `class`
---
-ALTER TABLE `class`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `acronym_course_uniqueness` (`acronym`,`course_id`) USING BTREE,
-  ADD KEY `course_id` (`course_id`);
-
---
 -- Indexes for table `course`
 --
 ALTER TABLE `course`
@@ -156,12 +133,6 @@ ALTER TABLE `schedule`
 --
 
 --
--- AUTO_INCREMENT for table `class`
---
-ALTER TABLE `class`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `course`
 --
 ALTER TABLE `course`
@@ -188,12 +159,6 @@ ALTER TABLE `schedule`
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `class`
---
-ALTER TABLE `class`
-  ADD CONSTRAINT `class_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `course`
