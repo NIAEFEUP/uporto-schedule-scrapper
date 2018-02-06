@@ -65,10 +65,8 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 128
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    # 'scrapper.pipelines.JsonWriterPipeline': 300,
     'scrapper.pipelines.FacultyPipeline': 0,
     'scrapper.pipelines.CoursePipeline': 0,
-    'scrapper.pipelines.ClassPipeline': 0,
     'scrapper.pipelines.CourseUnitPipeline': 0,
     'scrapper.pipelines.SchedulePipeline': 0
 }
