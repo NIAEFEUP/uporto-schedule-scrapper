@@ -1,6 +1,7 @@
 import scrapy
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
+import os # For environment variables
 
 from ..con_info import ConInfo
 from ..items import Course
@@ -14,6 +15,11 @@ class CourseSpider(scrapy.Spider):
     start_url = "https://sigarra.up.pt/{0}/pt/cur_geral.cur_tipo_curso_view?pv_tipo_sigla={1}&pv_ano_lectivo={2}"
 
     def start_requests(self):
+        if 'YEAR' not in os.environ:
+            raise Exception('YEAR environment variable not specified for parsing!')
+            
+        year = os.environ.get('YEAR')
+
         con_info = ConInfo()
         with con_info.connection.cursor() as cursor:
             sql = "SELECT `id`, `acronym` FROM `faculty`;"
@@ -22,7 +28,6 @@ class CourseSpider(scrapy.Spider):
 
         con_info.connection.close()
         course_types = ['L', 'MI', 'M', 'D']
-        year = 2017
         for faculty in self.faculties:
             for course_type in course_types:
                 url = self.start_url.format(faculty[1], course_type, year)

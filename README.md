@@ -13,6 +13,7 @@ Python solution to extract the courses schedules from the different Faculties of
 - `docker-compose run scrapper bash`
 ### Scrapper image
 - `scrapy crawl faculties`
+- `export YEAR=2019` (Replace 2019 here with the lowest value in the two-year bound - for example, 2019-2020 is 2019)
 - `scrapy crawl courses`
 - `scrapy crawl course_units -a user=up123456789`
 - `scrapy crawl schedules -a user=up123456789`
