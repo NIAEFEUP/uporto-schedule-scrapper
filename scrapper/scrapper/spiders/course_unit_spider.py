@@ -107,7 +107,7 @@ class CourseUnitSpider(scrapy.Spider):
             return None # Return None as yielding would continue the program and crash at the next assert
 
         course_unit_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
-        acronym = response.css("#conteudoinner > table:nth-child(4) > tr > td:nth-child(5)::text").extract_first()
+        acronym = response.xpath('//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
 
         url = response.url
         schedule_url = response.xpath('//a[text()="Horário"]/@href').extract_first()
