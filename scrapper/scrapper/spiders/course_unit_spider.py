@@ -11,7 +11,7 @@ from ..items import CourseUnit
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     allowed_domains = ['sigarra.up.pt']
-    login_page_spider = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
+    login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
 
     def __init__(self, category=None, *args, **kwargs):
