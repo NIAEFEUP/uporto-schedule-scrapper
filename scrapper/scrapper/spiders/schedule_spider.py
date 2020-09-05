@@ -2,6 +2,7 @@ import getpass
 import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
+import urllib.parse
 
 from ..con_info import ConInfo
 from ..items import Schedule
@@ -10,58 +11,41 @@ from ..items import Schedule
 class ScheduleSpider(scrapy.Spider):
     name = "schedules"
     allowed_domains = ['sigarra.up.pt']
-    login_page = 'https://sigarra.up.pt/'
-    days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2, 'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
+    login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
+    days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2,
+            'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
     password = None
 
     def __init__(self, category=None, *args, **kwargs):
         super(ScheduleSpider, self).__init__(*args, **kwargs)
 
+    def format_login_url(self):
+        return '{}?{}'.format(self.login_page_base, urllib.parse.urlencode({
+            'pv_login': self.user,
+            'pv_password': self.password
+        }))
+
     def start_requests(self):
         """This function is called before crawling starts."""
-        yield Request(url=self.login_page, callback=self.login)
-
-    def login(self, response):
-        """Generate a login request. The login form needs the following parameters:
-            p_app : 162 -> This is always 162
-            p_amo : 55 -> This is always 55
-            p_address : WEB_PAGE.INICIAL -> This is always 'WEB_PAGE.INICIAL'
-            p_user : username -> This is the username used to login
-            p_pass : password -> This is the password used to login
-        """
 
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
 
-        yield FormRequest.from_response(response,
-                                        formdata={
-                                            'p_app': '162', 'p_amo': '55',
-                                            'p_address': 'WEB_PAGE.INICIAL',
-                                            'p_user': self.user,
-                                            'p_pass': self.password},
-                                        callback=self.check_login_response)
+        yield Request(url=self.format_login_url(), callback=self.check_login_response)
 
     def check_login_response(self, response):
         """Check the response returned by a login request to see if we are
-        successfully logged in. It is done by checking if a button's value is
-        'Terminar sessão', that translates to 'Sign out', meaning the login was successful.
-        It also verifies if the login failed due to incorrect credentials, in case the button's
-        value equals 'Iniciar sessão', that translates to 'Sign in',
-        meaning the credentials were wrong or due to a change in website structure.
+        successfully logged in. Since we used the mobile login API endpoint,
+        we can just check the status code.
         """
-        result = response.xpath(
-            '//div[@id="caixa-validacao-conteudo"]/button[@type="submit"]/@value').extract_first()
 
-        if result == "Terminar sessão":
+        if response.status == 200:
             self.log("Successfully logged in. Let's start crawling!")
             # Spider will now call the parse method with a request
             return self.classUnitRequests()
-        elif result == "Iniciar sessão":
+        else:
             print('Login failed. Please try again.')
             self.log('Login failed. Please try again.')
-        else:
-            print('Unexpected result. Website structure may have changed.')
-            self.log('Unexpected result. Website structure may have changed.')
 
     def classUnitRequests(self):
         con_info = ConInfo()
@@ -96,10 +80,11 @@ class ScheduleSpider(scrapy.Spider):
                 cols = row.xpath('./td[not(contains(@class, "k"))]')
                 cols_iter = iter(cols)
 
-                for cur_day in range(0, 6):  # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                for cur_day in range(0, 6):
                     if rowspans[cur_day] > 0:
                         rowspans[cur_day] -= 1
-                    
+
                     # If there is a class in the current column, then just
                     # skip it
                     if rowspans[cur_day] > 0:
@@ -119,7 +104,8 @@ class ScheduleSpider(scrapy.Spider):
             yield self.extractOverlappingClassSchedule(response, row, response.meta['id'])
 
     def extractClassSchedule(self, response, cell, day, start_time, duration, id):
-        lesson_type = cell.xpath('b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
+        lesson_type = cell.xpath(
+            'b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
 
         table = cell.xpath('table/tr')
         location = table.xpath('td/a/text()').extract_first()
@@ -152,7 +138,8 @@ class ScheduleSpider(scrapy.Spider):
         )
 
     def extractComposedClasses(self, response):
-        class_names = response.xpath('//div[@id="conteudoinner"]/li/a/text()').extract()
+        class_names = response.xpath(
+            '//div[@id="conteudoinner"]/li/a/text()').extract()
 
         for class_name in class_names:
             yield Schedule(
@@ -179,7 +166,8 @@ class ScheduleSpider(scrapy.Spider):
         if int(minutes) > 0:
             start_time += int(minutes) / 60
 
-        lesson_type = row.xpath('td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
+        lesson_type = row.xpath(
+            'td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
         location = row.xpath('td[4]/a/text()').extract_first()
         teacher = row.xpath('td[5]/a/text()').extract_first()
 
@@ -212,16 +200,16 @@ class ScheduleSpider(scrapy.Spider):
             class_url = clazz.xpath('@href').extract_first()
 
             yield response.follow(class_url,
-                                    dont_filter=True,
-                                    meta={
-                                        'id': response.meta['id'], 'lesson_type': response.meta['lesson_type'], 
-                                        'start_time': response.meta['start_time'], 'teacher_acronym': response.meta['teacher_acronym'],
-                                        'location': response.meta['location'], 'day': response.meta['day'], 
-                                        'composed_class_name': response.meta['composed_class_name'], 'class_name': class_name
-                                        },
-                                    callback=self.extractDurationFromOverlappingClass)
+                                  dont_filter=True,
+                                  meta={
+                                      'id': response.meta['id'], 'lesson_type': response.meta['lesson_type'],
+                                      'start_time': response.meta['start_time'], 'teacher_acronym': response.meta['teacher_acronym'],
+                                      'location': response.meta['location'], 'day': response.meta['day'],
+                                      'composed_class_name': response.meta['composed_class_name'], 'class_name': class_name
+                                  },
+                                  callback=self.extractDurationFromOverlappingClass)
 
-    def extractDurationFromOverlappingClass(self, response): 
+    def extractDurationFromOverlappingClass(self, response):
         day = response.meta['day']
         start_time = response.meta['start_time']
         duration = None
@@ -238,7 +226,8 @@ class ScheduleSpider(scrapy.Spider):
                 cols = row.xpath('./td[not(contains(@class, "k"))]')
                 cols_iter = iter(cols)
 
-                for cur_day in range(0, 6):  # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
+                for cur_day in range(0, 6):
                     if rowspans[cur_day] > 0:
                         rowspans[cur_day] -= 1
 
@@ -269,5 +258,5 @@ class ScheduleSpider(scrapy.Spider):
             location=response.meta['location'],
             class_name=response.meta['class_name'],
             last_updated=datetime.now(),
-            composed_class_name = response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None
+            composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None
         )
