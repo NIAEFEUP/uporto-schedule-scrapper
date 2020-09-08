@@ -3,6 +3,7 @@ import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
 import urllib.parse
+import json
 
 from ..con_info import ConInfo
 from ..items import Schedule
@@ -40,12 +41,18 @@ class ScheduleSpider(scrapy.Spider):
         """
 
         if response.status == 200:
-            self.log("Successfully logged in. Let's start crawling!")
-            # Spider will now call the parse method with a request
-            return self.classUnitRequests()
+            response_body = json.loads(response.body)
+            if response_body['authenticated']:
+                self.log("Successfully logged in. Let's start crawling!")
+                return self.classUnitRequests()
+            else:
+                message = 'Login failed. SIGARRA\'s response: error type "{}";\nerror message "{}"'.format(
+                    response_body.erro, response_body.erro_msg)
+                print(message, flush=True)
+                self.log(message)
         else:
-            print('Login failed. Please try again.')
-            self.log('Login failed. Please try again.')
+            print('Login Failed. HTTP Error {}'.format(response.status), flush=True)
+            self.log('Login Failed. HTTP Error {}'.format(response.status))
 
     def classUnitRequests(self):
         con_info = ConInfo()
