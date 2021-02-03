@@ -104,6 +104,9 @@ class CourseUnitSpider(scrapy.Spider):
         acronym = response.xpath(
             '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
 
+        if acronym is not None:
+            acronym = acronym.replace(".", "_")
+
         url = response.url
         schedule_url = response.xpath(
             '//a[text()="Horário"]/@href').extract_first()
