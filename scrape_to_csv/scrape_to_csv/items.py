@@ -21,8 +21,10 @@ class Course:
     acronym: str
     url: str # Not sure that this is useful
     plan_url: str
+    plan_id: int # Helpful for making less requests (just need to consider the course_id -> plan_id mapping)
     faculty: str
     year: int
+    plan_id: int
 
 @dataclass
 class CourseUnit:
