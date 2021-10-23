@@ -7,14 +7,28 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+LOG_LEVEL = 'WARNING'
 BOT_NAME = 'scrape_to_csv'
 
 SPIDER_MODULES = ['scrape_to_csv.spiders']
 NEWSPIDER_MODULE = 'scrape_to_csv.spiders'
 
+# Output the CSV to a different file for each spider
+# See: https://stackoverflow.com/a/43290988/5437511
+# These were used for older versions of scrapy
+# FEED_FORMAT = 'csv'
+# FEED_URI = 'output2/%(name)s.csv'
+# The newer equivalent:
+FEEDS = {
+    'output/%(name)s.csv': {
+        'format': 'csv',
+        'overwrite': False, # Not sure about this one
+    },
+}
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'scrape_to_csv (+http://www.yourdomain.com)'
+USER_AGENT = 'NIAEFEUP TTS Scraper (https://ni.fe.up.pt/tts)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
