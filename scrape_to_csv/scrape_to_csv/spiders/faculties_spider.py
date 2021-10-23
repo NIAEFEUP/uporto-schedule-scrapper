@@ -1,5 +1,7 @@
 import scrapy
 
+from ..items import Faculty
+
 class FacultiesSpider(scrapy.Spider):
     name = "faculties"
     allowed_domains = ["sigarra.up.pt"]
@@ -14,7 +16,7 @@ class FacultiesSpider(scrapy.Spider):
             name = faculty.css("::text").get()
             # self.logger.debug("{} - {}".format(acronym, name))
 
-            yield {
-                "acronym": acronym,
-                "name": name,
-            }
+            yield Faculty(
+                name=name,
+                acronym=acronym,
+            )

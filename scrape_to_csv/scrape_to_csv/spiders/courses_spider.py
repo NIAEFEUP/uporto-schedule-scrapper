@@ -3,7 +3,9 @@ import csv
 from operator import itemgetter
 from urllib.parse import urlparse, parse_qs
 
-FACULTIES_CSV_FILE_PATH = "output2/faculties.csv"
+from ..items import Course
+
+FACULTIES_CSV_FILE_PATH = "output/faculties.csv"
 
 class CoursesSpider(scrapy.Spider):
     name = "courses"
@@ -61,16 +63,15 @@ class CoursesSpider(scrapy.Spider):
         # Previous selector was response.css("body").xpath("//*[@id='conteudoinner']/div[1]/a").get()
         # This was a true positive for https://sigarra.up.pt/fcup/pt/cur_geral.cur_view?pv_ano_lectivo=2021&pv_origem=CUR&pv_tipo_cur_sigla=D&pv_curso_id=21901
         # But a false positive for https://sigarra.up.pt/faup/pt/cur_geral.cur_view?pv_ano_lectivo=2021&pv_origem=CUR&pv_tipo_cur_sigla=D&pv_curso_id=45
-        # TODO: Decide if we just ignore the specific page (the one that points to another) since the data would be duplicate; if we scrape the page since the data is hidden but still there, or if we try to follow the link
-        # TODO: Regardless of the above, we have to find a selector that works for one but not the other. Just checking "first div child of div#conteudoinner that has a <a>" will work for both...
-        #TODO: Check if the "test if this page points to another one" is necessary...
-
+        # Let's just ignore this, since it is duplicate data anyway. (The page is found for the other faculty anyway, and the data is scraped all the same)
+        # Not parsing this would probably remove some data for when these selectors are false positives, so we must scrape it and then "de-duplicate" it later.
         courseHtml = response.css("body")
         if courseHtml.xpath("//*[@id='conteudoinner']/div[1]/a").get() is not None:
             parsed_url = urlparse(response.url)
             queryparams = parse_qs(parsed_url.query)
             course_id = queryparams['pv_curso_id'][0]
-            self.logger.warn("Found a possible pointer to another page for course with id={} at {} (url is {})".format(course_id, response.meta["faculty_acronym"], response.url))
+            # This can most likely be ignored, but can be checked just in case (see above comments)
+            self.logger.info("Found a possible pointer to another page for course with id={} at {} (url is {})".format(course_id, response.meta["faculty_acronym"], response.url))
         # end this check
 
         # Get the data forwarded using response.meta
@@ -84,15 +85,20 @@ class CoursesSpider(scrapy.Spider):
 
         # In the "Planos de Estudos" section, get the first link in the div box
         relative_plan_url = response.xpath("//h3[contains(., 'Planos de Estudos')]/following-sibling::div[1]//a[1]/@href").get()
+        # Parsing this is helpful for de-duplicating requests later
+        parsed_rel_plan_url = urlparse(relative_plan_url)
+        plan_url_queryparams = parse_qs(parsed_rel_plan_url.query)
+        course_plan_id = plan_url_queryparams['pv_plano_id'][0]
 
-        yield {
-                "id": course_id,
-                "name": response.xpath("//h1[2]/text()").get(), # Second h1 in page
-                "type": course_type,
-                "acronym": response.xpath("//td[preceding-sibling::td[contains(., 'Sigla:')]]/text()").get(),
-                "url": response.url, # not sure how this is useful
-                "plan_url": response.urljoin(relative_plan_url),
+        yield Course(
+            course_id=course_id,
+            name=response.xpath("//h1[2]/text()").get(), # Second h1 in page
+            course_type=course_type,
+            acronym=response.xpath("//td[preceding-sibling::td[contains(., 'Sigla:')]]/text()").get(),
+            url=response.url, # not sure how this is useful
+            plan_url=response.urljoin(relative_plan_url),
+            plan_id=course_plan_id,
 
-                "faculty": faculty_acronym,
-                "year": school_year,
-        }
+            faculty=faculty_acronym,
+            year=school_year,
+        )
