@@ -1,6 +1,6 @@
 # Python environment
 env_scrapper/**
-csv_to_sql/sqlparser/**
+csv_to_sql/sql_parser/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

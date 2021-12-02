@@ -1,20 +1,16 @@
 import csv
-import os
-from utils import mysql, paths
+from utils import paths, utils
 
 TABLE_NAME = "faculties"
 
 # Reading files
-f = open(paths.get_input_filepath(TABLE_NAME) , "r")
+f = open(paths.get_input_filepath(TABLE_NAME) , "r") 
 f_sql = open(paths.get_output_filepath(TABLE_NAME), "w")
 f_reader = csv.reader(f)
 
-# Type 
-head = next(f_reader, None)
-types = ["VARCHAR(20)", "VARCHAR(100)"]
-f_sql.write(mysql.get_create_table(TABLE_NAME, head, types))
 
-for row in f_reader: 
-    f_sql.write("\n")
-    f_sql.write(mysql.get_insert_values(TABLE_NAME, head, row)) 
+col_names = ','.join(list(map(utils.add_brackets_cols, ['id'] + next(f_reader))))    # Names for each column   
 
+for faculty_id, row in enumerate(f_reader):  
+    values = ','.join([str(faculty_id)] + list(map(utils.add_brackets_vals, row)))
+    f_sql.write(f"INSERT INTO `faculty`({col_names}) VALUES ({values});\n") 
