@@ -10,22 +10,23 @@ CREATE TABLE `faculty` (
 );
 
 
-CREATE TABLE `courses` (
-    `id` int (11) PRIMARY KEY, 
-    `acronym` varchar(10) NOT NULL UNIQUE KEY, 
+CREATE TABLE `course` (
+    `id` int (11) PRIMARY KEY,   
+    `course_id` int (11) NOT NULL UNIQUE,
+    `acronym` varchar(10) NOT NULL, 
     `name` varchar(200) NOT NULL,
-    `course_type` varchar(2) NOT NULL, 
-    `plan_id` int (11) NOT NULL,
-    `plan_url` varchar(2000) NOT NULL,
+    `course_type` varchar(2) NOT NULL,  
     `url` varchar(2000) NOT NULL,
-    `year` int(11) NOT NULL 
+    `plan_url` varchar(2000) NOT NULL,  
+    `plan_id` int (11) NOT NULL,
+    `year` int(12) NOT NULL 
 ); 
 
 
-CREATE TABLE `courses_faculty` (
+CREATE TABLE `course_faculty` (
     `faculty_id` int(11) NOT NULL, 
     `course_id` int(11) NOT NULL,
-    CONSTRAINT fk_course FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE ON UPDATE CASCADE, 
+    CONSTRAINT fk_course FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE, 
     CONSTRAINT fk_faculty FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`id`) ON DELETE CASCADE ON UPDATE CASCADE 
 ); 
 
