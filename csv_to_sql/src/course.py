@@ -1,4 +1,3 @@
-from re import A
 from .parser import Parser 
 import configparser as cp
 
@@ -16,7 +15,7 @@ class Course(Parser):
 
         # Drop faculties col. 
         del cols_list[faculties_index]
-        cols = self.get_cols()  
+        cols = self.get_cols(cols_list)  
 
         # Generate inserts 
         for course_id, row in enumerate(self.f_reader): 
