@@ -9,7 +9,7 @@ class Parser:
         self.csv_name = csv_name 
 
         # Creating sql.
-        self.f_sql = open(self.get_output_filepath(), "w")    
+        self.f_sql = open(self.get_output_filepath(), "w", encoding="utf-8")    
 
         # Reading csv. 
         if csv_name is not None: 
