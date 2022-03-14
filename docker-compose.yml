@@ -14,10 +14,9 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
     expose: 
-      - 3306
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=tts
+      - 3306 
+    env_file: 
+      - mysql/.env 
   phpmyadmin:
     build: ./phpmyadmin
     ports:
