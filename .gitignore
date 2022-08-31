@@ -114,3 +114,5 @@ node_modules/
 # Intellij
 .idea
 
+
+scrapper/data/
