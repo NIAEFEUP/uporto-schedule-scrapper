@@ -1,4 +1,4 @@
-import getpass
+""" import getpass
 import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
@@ -27,7 +27,7 @@ class ScheduleSpider(scrapy.Spider):
         }))
 
     def start_requests(self):
-        """This function is called before crawling starts."""
+        "This function is called before crawling starts."
 
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
@@ -35,10 +35,10 @@ class ScheduleSpider(scrapy.Spider):
         yield Request(url=self.format_login_url(), callback=self.check_login_response)
 
     def check_login_response(self, response):
-        """Check the response returned by a login request to see if we are
+        "Check the response returned by a login request to see if we are
         successfully logged in. Since we used the mobile login API endpoint,
         we can just check the status code.
-        """
+        "
 
         if response.status == 200:
             response_body = json.loads(response.body)
@@ -267,3 +267,4 @@ class ScheduleSpider(scrapy.Spider):
             last_updated=datetime.now(),
             composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None
         )
+ """
