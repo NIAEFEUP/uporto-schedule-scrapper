@@ -1,3 +1,4 @@
+"""
 import scrapy
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
@@ -56,3 +57,4 @@ class CourseSpider(scrapy.Spider):
                 last_updated=datetime.now()
             )
             yield course
+ """

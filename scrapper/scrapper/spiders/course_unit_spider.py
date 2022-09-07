@@ -1,4 +1,4 @@
-import getpass
+""" import getpass
 import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
@@ -25,7 +25,7 @@ class CourseUnitSpider(scrapy.Spider):
         }))
 
     def start_requests(self):
-        """This function is called before crawling starts."""
+        "This function is called before crawling starts."
 
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
@@ -33,10 +33,10 @@ class CourseUnitSpider(scrapy.Spider):
         yield Request(url=self.format_login_url(), callback=self.check_login_response)
 
     def check_login_response(self, response):
-        """Check the response returned by a login request to see if we are
+        "Check the response returned by a login request to see if we are
         successfully logged in. Since we used the mobile login API endpoint,
         we can just check the status code.
-        """
+        "
 
         if response.status == 200:
             response_body = json.loads(response.body)
@@ -161,3 +161,4 @@ class CourseUnitSpider(scrapy.Spider):
                 semester=semester,
                 last_updated=datetime.now()
             )
+ """

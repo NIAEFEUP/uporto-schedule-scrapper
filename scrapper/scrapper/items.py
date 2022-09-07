@@ -12,7 +12,7 @@ class Faculty(scrapy.Item):
     name = scrapy.Field()
     last_updated = scrapy.Field()
 
-
+"""
 class Course(scrapy.Item):
     course_id = scrapy.Field()
     name = scrapy.Field()
@@ -49,3 +49,4 @@ class Schedule(scrapy.Item):
     class_name = scrapy.Field()  # 1MIEIC01
     composed_class_name = scrapy.Field()  # None or COMP_372
     last_updated = scrapy.Field()
+"""
