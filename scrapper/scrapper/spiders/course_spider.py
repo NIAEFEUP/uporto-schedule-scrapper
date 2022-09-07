@@ -17,17 +17,19 @@ class CourseSpider(scrapy.Spider):
     def start_requests(self):
 
         db= Database()
+        # TODO: uncomment
         #if 'YEAR' not in os.environ:
         #    raise Exception('YEAR environment variable not specified for parsing!')
         
         #year = os.environ.get('YEAR')
         year = 2022
 
+        # TODO: reorganize this block in the Database class. 
         sql = "SELECT `id`, `acronym` FROM `faculty`;"
         db.cursor.execute(sql)
         self.faculties = db.cursor.fetchall()
         db.connection.close() 
-        
+
         course_types = ['L', 'MI', 'M', 'D']
         for faculty in self.faculties:
             for course_type in course_types:

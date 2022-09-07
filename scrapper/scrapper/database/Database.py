@@ -52,7 +52,7 @@ class Database:
                 VALUES(?,?,?)
             """, values)
         except sqlite3.Error as e:
-            print("[ERR] - INSERT FACULTY :: %s", e)
+            print("[ERR] - INSERT FACULTY :: %s" %e)
 
     def insert_course(self, values): 
         try : 
@@ -62,7 +62,17 @@ class Database:
             """, values)
 
         except sqlite3.Error as e: 
-            print("[ERR] - INSERT COURSE :: %s", e)
+            print("[ERR] - INSERT COURSE :: %s" %e)
+
+
+    def insert_course_unit(self, values): 
+        try:
+            self.execute("""
+                INSERT INTO `course_unit` (`course_unit_id`, `course_id`, `name`, `acronym`, `url`, `course_year`, `schedule_url`, `year`, `semester`, `last_updated`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, values) 
+        except sqlite3.Error as e: 
+            print("[ERR] - INSERT COURSE UNITS :: %s" %e)
     # -------------------------------------------------------------------------
     # Get functions
     # ------------------------------------------------------------------------- 
