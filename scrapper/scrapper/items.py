@@ -12,7 +12,7 @@ class Faculty(scrapy.Item):
     name = scrapy.Field()
     last_updated = scrapy.Field()
 
-"""
+
 class Course(scrapy.Item):
     course_id = scrapy.Field()
     name = scrapy.Field()
@@ -23,7 +23,7 @@ class Course(scrapy.Item):
     year = scrapy.Field()
     plan_url = scrapy.Field()
     last_updated = scrapy.Field()
-
+"""
 
 class CourseUnit(scrapy.Item):
     course_unit_id = scrapy.Field()
