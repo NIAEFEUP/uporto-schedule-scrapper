@@ -8,7 +8,6 @@ import json
 from . import items
 from configparser import ConfigParser, ExtendedInterpolation
 from .database.Database import Database
-import datetime
 
 config_file = "./config.ini"
 config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -16,7 +15,7 @@ config.read(config_file)
 
 class MySQLPipeline():
     def __init__(self): 
-        self.db = Database() 
+        self.db = Database()
 
     def process_item(self, item, spider):
         return item 
@@ -59,24 +58,15 @@ class CourseUnitPipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if isinstance(item, items.CourseUnit):
             self.db.insert_course_unit(list(item.values()))
-            return item
+        return item
 
-"""
+
 class SchedulePipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
 
     def process_item(self, item, spider):
-        if not isinstance(item, items.Schedule):
-            return item
-        sql = "INSERT INTO `{0}` (`{1}`) VALUES ({2})"
-        columns = "`, `".join(item.keys())
-        values = ", ".join("%s" for _ in item.values())
-        prepared = sql.format('schedule', columns, values)
-        try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(prepared, tuple(item.values()))
-                self.connection.commit()
-        finally:
-            return item
-"""
+        if isinstance(item, items.Schedule):
+            self.db.insert_schedule(list(item.values()))
+        return item
+     

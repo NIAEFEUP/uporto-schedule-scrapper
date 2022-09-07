@@ -1,11 +1,11 @@
-""" import getpass
+import getpass
 import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
 import urllib.parse
 import json
 
-from ..con_info import ConInfo
+from ..database.Database import Database 
 from ..items import Schedule
 
 
@@ -27,7 +27,7 @@ class ScheduleSpider(scrapy.Spider):
         }))
 
     def start_requests(self):
-        "This function is called before crawling starts."
+        """This function is called before crawling starts."""
 
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
@@ -35,10 +35,10 @@ class ScheduleSpider(scrapy.Spider):
         yield Request(url=self.format_login_url(), callback=self.check_login_response)
 
     def check_login_response(self, response):
-        "Check the response returned by a login request to see if we are
+        """Check the response returned by a login request to see if we are
         successfully logged in. Since we used the mobile login API endpoint,
         we can just check the status code.
-        "
+        """
 
         if response.status == 200:
             response_body = json.loads(response.body)
@@ -55,13 +55,11 @@ class ScheduleSpider(scrapy.Spider):
             self.log('Login Failed. HTTP Error {}'.format(response.status))
 
     def classUnitRequests(self):
-        con_info = ConInfo()
-        with con_info.connection.cursor() as cursor:
-            sql = "SELECT `id`, `schedule_url` FROM `course_unit` WHERE schedule_url IS NOT NULL"
-            cursor.execute(sql)
-            self.class_units = cursor.fetchall()
-
-        con_info.connection.close()
+        db = Database()
+        sql = "SELECT `id`, `schedule_url` FROM `course_unit` WHERE schedule_url IS NOT NULL"
+        db.cursor.execute(sql)
+        self.class_units = db.cursor.fetchall()
+        db.connection.close()
 
         self.log("Crawling {} class units".format(len(self.class_units)))
         for class_unit in self.class_units:
@@ -140,6 +138,7 @@ class ScheduleSpider(scrapy.Spider):
             duration=duration,
             teacher_acronym=teacher,
             location=location,
+            composed_class_name=None,
             class_name=class_name,
             last_updated=datetime.now()
         )
@@ -263,8 +262,7 @@ class ScheduleSpider(scrapy.Spider):
             duration=duration,
             teacher_acronym=response.meta['teacher_acronym'],
             location=response.meta['location'],
+            composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None,
             class_name=response.meta['class_name'],
             last_updated=datetime.now(),
-            composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None
         )
- """

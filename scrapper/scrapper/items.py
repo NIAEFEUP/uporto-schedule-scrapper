@@ -36,8 +36,8 @@ class CourseUnit(scrapy.Item):
     year = scrapy.Field()
     schedule_url = scrapy.Field()
     last_updated = scrapy.Field()
-    
-""" 
+
+
 class Schedule(scrapy.Item):
     course_unit_id = scrapy.Field()
     lesson_type = scrapy.Field()  # T, TP, PL, etc.
@@ -49,4 +49,3 @@ class Schedule(scrapy.Item):
     class_name = scrapy.Field()  # 1MIEIC01
     composed_class_name = scrapy.Field()  # None or COMP_372
     last_updated = scrapy.Field()
-"""
