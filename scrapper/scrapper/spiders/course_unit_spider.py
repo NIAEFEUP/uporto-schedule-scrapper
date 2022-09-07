@@ -1,11 +1,10 @@
-""" import getpass
+import getpass
 import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from datetime import datetime
 import json
-
-from ..con_info import ConInfo
+from ..database.Database import Database
 from ..items import CourseUnit
 
 
@@ -33,10 +32,10 @@ class CourseUnitSpider(scrapy.Spider):
         yield Request(url=self.format_login_url(), callback=self.check_login_response)
 
     def check_login_response(self, response):
-        "Check the response returned by a login request to see if we are
+        """Check the response returned by a login request to see if we are
         successfully logged in. Since we used the mobile login API endpoint,
         we can just check the status code.
-        "
+        """ 
 
         if response.status == 200:
             response_body = json.loads(response.body)
@@ -54,16 +53,17 @@ class CourseUnitSpider(scrapy.Spider):
 
     def courseRequests(self):
         print("Gathering courses")
-        con_info = ConInfo()
-        with con_info.connection.cursor() as cursor:
-            sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
-            cursor.execute(sql)
-            self.courses = cursor.fetchall()
-        con_info.connection.close()
+        db = Database() 
+
+        # TODO: add this block to database class 
+        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
+        db.cursor.execute(sql)
+        self.courses = db.cursor.fetchall()
+        db.connection.close()
+
         self.log("Crawling {} courses".format(len(self.courses)))
 
         for course in self.courses:
-
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(
                     course[3], course[1], course[2]),
@@ -108,7 +108,6 @@ class CourseUnitSpider(scrapy.Spider):
         if acronym is None: 
             acronym = response.xpath(
                 '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Acronym:"]/following-sibling::td[1]/text()').extract_first()
-            print("new acronym: %s" %acronym)
 
         if acronym is not None:
             acronym = acronym.replace(".", "_")
@@ -167,4 +166,4 @@ class CourseUnitSpider(scrapy.Spider):
                 semester=semester,
                 last_updated=datetime.now()
             )
- """
+ 
