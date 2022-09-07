@@ -36,7 +36,6 @@ class MySQLPipeline():
 class FacultyPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
-        self.sql_file = open(config['files']['faculty'], 'a')
 
     def process_item(self, item, spider):
         if not isinstance(item, items.Faculty):
@@ -44,7 +43,7 @@ class FacultyPipeline(MySQLPipeline):
         self.db.insert_faculty(list(item.values()))
         return item 
 
-"""
+
 class CoursePipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
@@ -52,17 +51,9 @@ class CoursePipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if not isinstance(item, items.Course):
             return item
-        sql = "INSERT INTO `{0}` (`{1}`) VALUES ({2})"
-        columns = "`, `".join(item.keys())
-        values = ", ".join("%s" for _ in item.values())
-        prepared = sql.format('course', columns, values)
-        try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(prepared, tuple(item.values()))
-                self.connection.commit()
-        finally:
-            return item
-
+        self.db.insert_course(list(item.values()))
+        return item 
+"""
 
 class CourseUnitPipeline(MySQLPipeline):
     def __init__(self):

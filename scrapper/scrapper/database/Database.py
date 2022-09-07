@@ -17,7 +17,7 @@ class Database:
                 self.create_table()
 
         except Exception as e:
-            print("[ERR] - INIT DB :: %s", e)
+            print("[ERR] - INIT DB :: ?", e)
 
     def create_table(self): 
         try: 
@@ -27,7 +27,7 @@ class Database:
                 self.cursor.execute(command)    
                 self.connection.commit()     
         except Exception as e: 
-            print("[ERR] - CREATE DB :: %s", e) 
+            print("[ERR] - CREATE DB :: ?", e) 
 
     # -------------------------------------------------------------------------
     # SQL interaction
@@ -54,5 +54,15 @@ class Database:
         except sqlite3.Error as e:
             print("[ERR] - INSERT FACULTY :: %s", e)
 
+    def insert_course(self, values): 
+        try : 
+            self.execute("""
+                INSERT INTO `course` (`course_id`, `name`, `course_type`, `faculty_id`, `acronym`, `url`, `plan_url`, `year`, `last_updated`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, values)
 
-
+        except sqlite3.Error as e: 
+            print("[ERR] - INSERT COURSE :: %s", e)
+    # -------------------------------------------------------------------------
+    # Get functions
+    # ------------------------------------------------------------------------- 

@@ -114,3 +114,8 @@ node_modules/
 # Intellij
 .idea
 
+# Data
+scrapper/data/
+
+# Virtual Environment
+venv_scrapper/
