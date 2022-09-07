@@ -73,6 +73,16 @@ class Database:
             """, values) 
         except sqlite3.Error as e: 
             print("[ERR] - INSERT COURSE UNITS :: %s" %e)
+
+    def insert_schedule(self, values): 
+        try:
+            self.execute("""
+            INSERT INTO `schedule` (`course_unit_id`, `lesson_type`, `day`, `start_time`, `duration`, `teacher_acronym`, `location`, `composed_class_name`, `class_name`, `last_updated`) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, values)
+        except sqlite3.Error as e:
+            print(values)
+            print("[ERR] - INSERT SCHEDULE :: %s" %e)
     # -------------------------------------------------------------------------
     # Get functions
     # ------------------------------------------------------------------------- 
