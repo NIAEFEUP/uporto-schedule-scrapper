@@ -104,6 +104,12 @@ class CourseUnitSpider(scrapy.Spider):
         acronym = response.xpath(
             '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
 
+        # Some pages have Acronym: instead of Sigla:
+        if acronym is None: 
+            acronym = response.xpath(
+                '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Acronym:"]/following-sibling::td[1]/text()').extract_first()
+            print("new acronym: %s" %acronym)
+
         if acronym is not None:
             acronym = acronym.replace(".", "_")
 
