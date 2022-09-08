@@ -2,8 +2,10 @@ import getpass
 import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
+from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
 import json
+
 from ..database.Database import Database
 from ..items import CourseUnit
 
@@ -14,8 +16,19 @@ class CourseUnitSpider(scrapy.Spider):
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
 
+
+    def open_config(self):
+        """
+        Reads and saves the configuration file. 
+        """
+        config_file = "./config.ini"
+        self.config = ConfigParser(interpolation=ExtendedInterpolation())
+        self.config.read(config_file) 
+
     def __init__(self, category=None, *args, **kwargs):
         super(CourseUnitSpider, self).__init__(*args, **kwargs)
+        self.open_config()
+        self.user = self.config['default']['USER']
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
@@ -55,7 +68,6 @@ class CourseUnitSpider(scrapy.Spider):
         print("Gathering courses")
         db = Database() 
 
-        # TODO: add this block to database class 
         sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
