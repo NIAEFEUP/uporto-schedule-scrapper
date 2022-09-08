@@ -1,4 +1,4 @@
-FROM python:3.8.12
+FROM python:3.9
 RUN mkdir -p /scrapper
 ADD requirements.txt /scrapper/
 WORKDIR /scrapper
