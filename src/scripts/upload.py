@@ -11,13 +11,12 @@ def upload_files(config: configparser.ConfigParser):
     path = config["upload"]["path"]
     files = [f for f in listdir(path)]
     files.remove('.keep')
-    
+
     for f in files: 
         filepath = "{}/{}".format(path, f)
         files = {param_name: open(filepath, "rb")}
         r = requests.post(url, files=files)
         print(r.text)
-
 
 
 config = configparser.ConfigParser()
