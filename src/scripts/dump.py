@@ -31,9 +31,16 @@ class Dump:
         db_filepath = self.get_db_filepath()
         con = sqlite3.connect(db_filepath)
         f = open(dump_filepath, 'w')
-        for line in con.iterdump():
-            f.write('%s\n' % line)
+        self.dump_table("faculty", con, f)
+        self.dump_table("course", con, f)
+        self.dump_table("course_unit", con, f)
+        self.dump_table("schedule", con, f)
         f.close()
+
+    def dump_table(self, table, con, f): 
+        for line in con.iterdump():
+            if line.startswith("INSERT") and "\"{}\"".format(table) in line:
+                f.write('%s\n' % line)
 
 
 if __name__ == '__main__': 
