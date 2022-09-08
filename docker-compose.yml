@@ -2,7 +2,7 @@ version: "2.0"
 
 services:
   scrapper:
-    build: ./scrapper
+    build: ./src
     volumes:
-      - ./scrapper:/scrapper
+      - ./src:/scrapper
    

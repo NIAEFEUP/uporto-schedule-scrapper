@@ -45,44 +45,19 @@ class Database:
     # Insert functions
     # -------------------------------------------------------------------------
 
-    def insert_faculty(self, values): 
-        try: 
-            self.execute("""
-                INSERT INTO `faculty` (`acronym`, `name`, `last_updated`) 
-                VALUES(?,?,?)
-            """, values)
-        except sqlite3.Error as e:
-            print("[ERR] - INSERT FACULTY :: %s" %e)
-
-    def insert_course(self, values): 
-        try : 
-            self.execute("""
-                INSERT INTO `course` (`course_id`, `name`, `course_type`, `faculty_id`, `acronym`, `url`, `plan_url`, `year`, `last_updated`) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, values)
-
-        except sqlite3.Error as e: 
-            print("[ERR] - INSERT COURSE :: %s" %e)
-
-
-    def insert_course_unit(self, values): 
+    def insert(self, table_name, item): 
         try:
-            self.execute("""
-                INSERT INTO `course_unit` (`course_unit_id`, `course_id`, `name`, `acronym`, `url`, `course_year`, `schedule_url`, `year`, `semester`, `last_updated`) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, values) 
-        except sqlite3.Error as e: 
-            print("[ERR] - INSERT COURSE UNITS :: %s" %e)
 
-    def insert_schedule(self, values): 
-        try:
-            self.execute("""
-            INSERT INTO `schedule` (`course_unit_id`, `lesson_type`, `day`, `start_time`, `duration`, `teacher_acronym`, `location`, `composed_class_name`, `class_name`, `last_updated`) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, values)
-        except sqlite3.Error as e:
-            print(values)
-            print("[ERR] - INSERT SCHEDULE :: %s" %e)
+            sql = "INSERT INTO `{0}` (`{1}`) VALUES ({2})"
+            columns = "`, `".join(item.keys())
+            values = ", ".join("?" for _ in item.values())
+            prepare = sql.format(table_name, columns, values)
+            self.execute(prepare, list(item.values()))
+        except sqlite3.Error as e: 
+            print("[ERR] - INSERT {} :: {}".format(table_name.upper(), e))
+
+ 
+            
     # -------------------------------------------------------------------------
     # Get functions
     # ------------------------------------------------------------------------- 
