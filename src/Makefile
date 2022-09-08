@@ -9,10 +9,10 @@ courses:
 	scrapy crawl courses
 
 course_units:
-	scrapy crawl course_units -a user=up201800175
+	scrapy crawl course_units
 
 schedules:
-	scrapy crawl schedules -a user=up201800175
+	scrapy crawl schedules
 
 clean: 
 	@echo "Removing database.db"

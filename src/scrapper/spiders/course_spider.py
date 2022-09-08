@@ -2,7 +2,7 @@
 import scrapy
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
-import os # For environment variables
+from configparser import ConfigParser, ExtendedInterpolation
 
 from ..items import Course
 from ..database.Database import Database
@@ -14,15 +14,26 @@ class CourseSpider(scrapy.Spider):
 
     start_url = "https://sigarra.up.pt/{0}/pt/cur_geral.cur_tipo_curso_view?pv_tipo_sigla={1}&pv_ano_lectivo={2}"
 
+
+    def open_config(self):
+        """
+        Reads and saves the configuration file. 
+        """
+        config_file = "./config.ini"
+        self.config = ConfigParser(interpolation=ExtendedInterpolation())
+        self.config.read(config_file) 
+
+    def get_year(self):
+        year = self.config['default']['YEAR']
+        if not year:
+            raise Exception('YEAR variable not specified for parsing in configuration file!')
+        return int(year)   
+
     def start_requests(self):
 
         db= Database()
-        # TODO: uncomment
-        #if 'YEAR' not in os.environ:
-        #    raise Exception('YEAR environment variable not specified for parsing!')
-        
-        #year = os.environ.get('YEAR')
-        year = 2022
+        self.open_config()
+        year = self.get_year()
 
         # TODO: reorganize this block in the Database class. 
         sql = "SELECT `id`, `acronym` FROM `faculty`;"

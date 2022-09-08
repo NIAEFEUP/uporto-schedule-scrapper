@@ -3,6 +3,7 @@ import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
 import urllib.parse
+from configparser import ConfigParser, ExtendedInterpolation
 import json
 
 from ..database.Database import Database 
@@ -19,6 +20,17 @@ class ScheduleSpider(scrapy.Spider):
 
     def __init__(self, category=None, *args, **kwargs):
         super(ScheduleSpider, self).__init__(*args, **kwargs)
+        self.open_config()
+        self.user = self.config['default']['USER']
+
+    def open_config(self):
+        """
+        Reads and saves the configuration file. 
+        """
+        config_file = "./config.ini"
+        self.config = ConfigParser(interpolation=ExtendedInterpolation())
+        self.config.read(config_file) 
+
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urllib.parse.urlencode({
