@@ -71,12 +71,12 @@ CREATE TABLE `schedule` (
   `day` tinyint(3) NOT NULL,
   `duration` decimal(3,1) NOT NULL,
   `start_time` decimal(3,1) NOT NULL,
-  `location` varchar(16) NOT NULL,
+  `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `teacher_acronym` varchar(16) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
-  `class_name` varchar(16) NOT NULL,
+  `class_name` varchar(31) NOT NULL,
   `composed_class_name` varchar(16) DEFAULT NULL,
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
