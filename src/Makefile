@@ -23,7 +23,6 @@ upload:
 	@echo "Uploading files..."
 	@python ./scripts/upload.py
 
-
 clean: 
 	@echo "Removing database.db"
 	@rm ./scrapper/database/dbs/database.db
