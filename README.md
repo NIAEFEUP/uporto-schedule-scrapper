@@ -85,3 +85,4 @@ root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_g
 ![Image](./docs/schema.png)
 
 
+## :page_with_curl: More information 
