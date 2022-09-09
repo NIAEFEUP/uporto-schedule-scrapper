@@ -1,16 +1,17 @@
 from distutils.command.config import config
 import requests 
-import configparser 
+
+from configparser import ConfigParser, ExtendedInterpolation
+
 from os import listdir
 
 
-def upload_files(config: configparser.ConfigParser):
+def upload_files(config: ConfigParser):
     url = config["upload"]["url"]
 
     param_name = config["upload"]["param_name"]
     path = config["upload"]["path"]
     files = [f for f in listdir(path)]
-    files.remove('.keep')
 
     for f in files: 
         filepath = "{}/{}".format(path, f)
@@ -19,6 +20,6 @@ def upload_files(config: configparser.ConfigParser):
         print(r.text)
 
 
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read("./config.ini") 
 upload_files(config)
