@@ -86,3 +86,6 @@ root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_g
 
 
 ## :page_with_curl: More information 
+- This repository contains useful scripts. Check the  `./src/scripts` folder. 
+- For some information of how the `sqlite3` database is generated check the `./src/scrapper/database/dbs` folder. 
+- Configurations can be done in the `./src/config.ini` file. 
