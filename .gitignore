@@ -114,3 +114,13 @@ node_modules/
 # Intellij
 .idea
 
+# Data
+scrapper/data/
+
+# Virtual Environment
+venv_scrapper/
+src/scripts/dump/dump_mysql.sql
+
+src/scripts/dump/dump.sql
+
+src/scripts/dump/data/*.sql
