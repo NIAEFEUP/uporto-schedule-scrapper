@@ -17,6 +17,7 @@ class Dump:
 
     def get_dump_filepath(self): 
         file_path = self.config['dump']['path']
+        dump_filename = self.config['dump']['filename']
         return "{0}/{1}".format(file_path, dump_filename)
 
     def get_db_filepath(self): 
