@@ -1,22 +1,72 @@
-# University of Porto Timetable Scrapper - *UPTS*
+# University of Porto Scrapper - *UPS!*
 Python solution to extract the courses schedules from the different Faculties of University of Porto.
 
 ## Requirements
 - docker-ce
 - docker-compose
+**or** 
+- python >=3.8
+- make 
 
-## Run
-### Main computer
-- `docker-compose build`
-- `docker-compose up`
-- Wait for MySQL to initialize
-- `docker-compose run scrapper bash`
-### Scrapper image
-- `scrapy crawl faculties`
-- `export YEAR=2019` (Replace 2019 here with the lowest value in the two-year bound - for example, 2019-2020 is 2019)
-- `scrapy crawl courses`
-- `scrapy crawl course_units -a user=up123456789`
-- `scrapy crawl schedules -a user=up123456789`
+**If you don't have docker**, you can use python locally in your machine **or** create a virtual environment. In this case make sure python version is `>=3.8`. 
+
+### Local python 
+```bash
+pip install -r ./scr/requirements.txt   # Install dependencies
+```
+
+### Virtual environment
+```bash 
+python -m venv venv_scrapper            # Create virtual environment
+./venv_scrapper/Scripts/activate        # Activate virtual environment
+pip install -r ./scr/requirements.txt   # Install dependencies
+```
+
+
+## Quick start
+
+### :wrench: Configure
+Change the following fields in `./src/config.ini`: 
+- `USER`: replace with your `up` number (e.g `up201812345`): 
+- `YEAR`: replace with the year you want to scrap.
+
+```ini
+[default]
+YEAR=2022
+USER=up201800175
+```
+
+### :dash: Run
+- Gathering data: 
+```bash
+docker-compose run scrapper make
+# or 
+cd ./src && make
+```
+
+- Dumping data:
+```bash
+docker-compose run scrapper make dump
+# or 
+cd ./src && make dump
+```
+
+- Upload data to temporary online storage:
+```bash
+docker-compose run scrapper make upload
+# or 
+cd ./src && make upload
+```
+
+- Clean database: 
+```bash
+docker-compose run scrapper make clean
+# or
+cd ./src && make clean
+```
+
+
+## :mag: Inspect 
 
 To inspect the scrapy engine, use `scrapy shell "url"`
 
@@ -29,3 +79,13 @@ root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_g
 63480
 >>> response.xpath('//*[@id="anos_curr_div"]/div').extract()
 ```
+
+## :triangular_ruler: Database design 
+
+![Image](./docs/schema.png)
+
+
+## :page_with_curl: More information 
+- This repository contains useful scripts. Check the  `./src/scripts` folder. 
+- For some information of how the `sqlite3` database is generated check the `./src/scrapper/database/dbs` folder. 
+- Configurations can be done in the `./src/config.ini` file. 

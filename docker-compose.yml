@@ -2,34 +2,7 @@ version: "2.0"
 
 services:
   scrapper:
-    build: ./scrapper
+    build: ./src
     volumes:
-      - ./scrapper:/scrapper
-    depends_on:
-      - mysql
-    links:
-      - mysql
-  mysql:
-    build: ./mysql
-    volumes:
-      - ./mysql/data:/var/lib/mysql
-    expose: 
-      - 3306 
-    env_file: 
-      - mysql/.env 
-  phpmyadmin:
-    build: ./phpmyadmin
-    ports:
-      - 4000:80
-    links:
-      - mysql:db
-  api:
-    build: ./api
-    ports:
-      - 8080:8080
-    depends_on:
-      - mysql
-    environment:
-      - NODE_ENV=development
-      - PORT=8080
-      - DB_PORT=3306
+      - ./src:/scrapper
+   
