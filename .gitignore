@@ -123,4 +123,4 @@ src/scripts/dump/dump_mysql.sql
 
 src/scripts/dump/dump.sql
 
-src/scripts/dump/data/
+src/scripts/dump/data/*.sql
