@@ -38,12 +38,15 @@ class CourseUnitSpider(scrapy.Spider):
 
     def start_requests(self):
         "This function is called before crawling starts."
-
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
+            
+        yield Request(url=self.format_login_url(), callback=self.check_login_response, errback=self.login_response_err)
 
-        yield Request(url=self.format_login_url(), callback=self.check_login_response)
-
+    def login_response_err(self, failure):
+        print('Login failed. SIGARRA\'s response: error type 404;\nerror message "{}"'.format(failure))
+        print("Check your password")
+    
     def check_login_response(self, response):
         """Check the response returned by a login request to see if we are
         successfully logged in. Since we used the mobile login API endpoint,
@@ -55,14 +58,7 @@ class CourseUnitSpider(scrapy.Spider):
             if response_body['authenticated']:
                 self.log("Successfully logged in. Let's start crawling!")
                 return self.courseRequests()
-            else:
-                message = 'Login failed. SIGARRA\'s response: error type "{}";\nerror message "{}"'.format(
-                    response_body.erro, response_body.erro_msg)
-                print(message, flush=True)
-                self.log(message)
-        else:
-            print('Login Failed. HTTP Error {}'.format(response.status), flush=True)
-            self.log('Login Failed. HTTP Error {}'.format(response.status))
+           
 
     def courseRequests(self):
         print("Gathering courses")
