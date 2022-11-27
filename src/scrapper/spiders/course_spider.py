@@ -14,7 +14,8 @@ class CourseSpider(scrapy.Spider):
 
     bachelors_url = "https://www.up.pt/portal/en/study/bachelors-and-integrated-masters-degrees/courses/"
     masters_url = "https://www.up.pt/portal/en/study/masters-degrees/courses/"
-    start_urls = [bachelors_url, masters_url]
+    doctors_url = "https://www.up.pt/portal/en/study/doctorates/courses/"
+    start_urls = [bachelors_url, masters_url, doctors_url   ]
     
     def open_config(self):
         """
