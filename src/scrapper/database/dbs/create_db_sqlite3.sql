@@ -12,8 +12,7 @@
 --
 
 CREATE TABLE `faculty` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `acronym` varchar(10) DEFAULT NULL,
+  `acronym` varchar(10) PRIMARY KEY ,
   `name` text,
   `last_updated` datetime NOT NULL
 );
@@ -25,8 +24,8 @@ CREATE TABLE `faculty` (
 
 CREATE TABLE `course` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `faculty_acronym` varchar(10) NOT NULL, 
   `course_id` int(11) NOT NULL,
-  `faculty_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
   `course_type` varchar(2) NOT NULL,
@@ -34,7 +33,7 @@ CREATE TABLE `course` (
   `url` varchar(2000) NOT NULL,
   `plan_url` varchar(2000) NOT NULL,
   `last_updated` datetime NOT NULL,
-  FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (`faculty_acronym`) REFERENCES `faculty`(`acronym`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -90,8 +89,8 @@ CREATE TABLE `schedule` (
 --
 -- Indexes for table `course`
 --
-CREATE UNIQUE INDEX `course_course_id` ON `course` (`course_id`,`faculty_id`,`year`);
-CREATE INDEX `course_faculty_id` ON `course` (`faculty_id`); 
+CREATE UNIQUE INDEX `course_course_id` ON `course` (`course_id`,`faculty_acronym`,`year`);
+CREATE INDEX `course_faculty_acronym` ON `course` (`faculty_acronym`); 
 
 --
 -- Indexes for table `course_unit`
