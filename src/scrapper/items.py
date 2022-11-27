@@ -18,7 +18,7 @@ class Course(scrapy.Item):
     name = scrapy.Field()
     acronym = scrapy.Field()
     course_type = scrapy.Field()
-    faculty_id = scrapy.Field()
+    faculty_acronym = scrapy.Field()
     url = scrapy.Field()
     year = scrapy.Field()
     plan_url = scrapy.Field()
