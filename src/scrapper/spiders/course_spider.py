@@ -12,9 +12,11 @@ class CourseSpider(scrapy.Spider):
     allowed_domains = ['sigarra.up.pt']
     login_page = 'https://sigarra.up.pt/feup/pt/'
 
-    start_url = "https://sigarra.up.pt/{0}/pt/cur_geral.cur_tipo_curso_view?pv_tipo_sigla={1}&pv_ano_lectivo={2}"
-
-
+    bachelors_url = "https://www.up.pt/portal/en/study/bachelors-and-integrated-masters-degrees/courses/"
+    masters_url = "https://www.up.pt/portal/en/study/masters-degrees/courses/"
+    doctors_url = "https://www.up.pt/portal/en/study/doctorates/courses/"
+    start_urls = [bachelors_url, masters_url, doctors_url   ]
+    
     def open_config(self):
         """
         Reads and saves the configuration file. 
@@ -23,50 +25,43 @@ class CourseSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
+
     def get_year(self):
         year = self.config['default']['YEAR']
         if not year:
             raise Exception('YEAR variable not specified for parsing in configuration file!')
         return int(year)   
 
-    def start_requests(self):
-
-        db= Database()
-        self.open_config()
-        year = self.get_year()
-
-        # TODO: reorganize this block in the Database class. 
-        sql = "SELECT `id`, `acronym` FROM `faculty`;"
-        db.cursor.execute(sql)
-        self.faculties = db.cursor.fetchall()
-        db.connection.close() 
-
-        course_types = ['L', 'MI', 'M', 'D']
-        for faculty in self.faculties:
-            for course_type in course_types:
-                url = self.start_url.format(faculty[1], course_type, year)
-                yield scrapy.Request(url=url, meta={'faculty_id': faculty[0], 'course_type': course_type, 'year': year},
-                                     callback=self.parse_get_url)
-
-    def parse_get_url(self, response):
-        for a in response.css('#conteudoinner ul#{0}_a li a:first-child'.format(response.meta['course_type'])):
-            yield response.follow(a, meta=response.meta, callback=self.parse)
-
+    # Get's the first letter of the course type and set it to upper case. 
+    def get_course_type(self, url):
+        return url.split('/')[6][0].upper()
+    
     def parse(self, response):
+        self.open_config()
+        
+        hrefs = response.xpath('//*[@id="courseListComponent"]/div/dl/dd/ul/li/a/@href').extract()  
+        for faculty_html in hrefs: 
+            params = faculty_html.split("/")
+            url = f"https://sigarra.up.pt/{params[-3]}/en/cur_geral.cur_view?pv_ano_lectivo={self.get_year()}&pv_curso_id={params[-2]}"
+            yield scrapy.Request(url= url, callback=self.get_course, meta={'faculty_acronym': params[-3], 'course_type': self.get_course_type(response.url)})
+
+    def get_course(self, response):
         for courseHtml in response.css('body'):
             if courseHtml.xpath(
                     '//*[@id="conteudoinner"]/div[1]/a').extract_first() is not None:  # tests if this page points to another one
                 continue
+            
+            course_id = response.url.split('=')[-1]
             course = Course(
-                course_id=int(parse_qs(urlparse(response.url).query)['pv_curso_id'][0]),
-                name=courseHtml.css('#conteudoinner h1:last-of-type::text').extract_first(),
-                course_type=response.meta['course_type'],
-                faculty_id=response.meta['faculty_id'],
-                acronym=courseHtml.css('span.pagina-atual::text').extract_first()[3:],
-                url=response.url,
-                plan_url=response.urljoin(courseHtml.xpath(
-                    '(//h3[text()="Planos de Estudos"]/following-sibling::div[1]//a)[1]/@href').extract_first()),
-                year=response.meta['year'],
-                last_updated=datetime.now()
+                course_id = course_id,
+                name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
+                course_type = response.meta['course_type'],
+                plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={course_id}&pv_ano_lectivo={self.get_year()}",
+                faculty_acronym = response.meta['faculty_acronym'],    # New parameter 
+                acronym = response.xpath('//td[text()="Acronym: "]/following-sibling::td/text()').get(),
+                url = response.url,
+                last_updated=datetime.now(),
+                year = self.get_year(),
             )
+
             yield course
