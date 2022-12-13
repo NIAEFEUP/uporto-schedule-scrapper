@@ -64,7 +64,7 @@ class CourseUnitSpider(scrapy.Spider):
         print("Gathering courses")
         db = Database() 
 
-        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
+        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_acronym = faculty.acronym"
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()
@@ -97,6 +97,11 @@ class CourseUnitSpider(scrapy.Spider):
                     ".t > a::attr(href)").extract_first()),
                 meta=response.meta,
                 callback=self.extractCourseUnitInfo)
+
+    def extractCourseUnitByYears(self, response): 
+        study_cycles = response.xpath('//table[@class="dados"][2]/tr/td').getall()
+        while (i)
+        extractCourseUnitInfo 
 
     def extractCourseUnitInfo(self, response):
         name = response.xpath(
