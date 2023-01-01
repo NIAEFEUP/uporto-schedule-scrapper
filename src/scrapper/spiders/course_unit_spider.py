@@ -98,11 +98,6 @@ class CourseUnitSpider(scrapy.Spider):
                 meta=response.meta,
                 callback=self.extractCourseUnitInfo)
 
-    def extractCourseUnitByYears(self, response): 
-        study_cycles = response.xpath('//table[@class="dados"][2]/tr/td').getall()
-        while (i)
-        extractCourseUnitInfo 
-
     def extractCourseUnitInfo(self, response):
         name = response.xpath(
             '//div[@id="conteudoinner"]/h1[2]/text()').extract_first().strip()
