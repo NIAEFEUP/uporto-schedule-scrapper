@@ -61,7 +61,7 @@ class CourseUnitYearSpider(scrapy.Spider):
            
 
     def courseRequests(self):
-        print("Gathering courses")
+        print("Gathering course units years")
         db = Database() 
 
         sql = "SELECT id, url FROM course_unit"
@@ -78,25 +78,24 @@ class CourseUnitYearSpider(scrapy.Spider):
                 callback=self.extractCourseUnitByYears)
 
     def extractCourseUnitByYears(self, response): 
-        study_cycles = response.xpath('//table[@class="dados"][2]/tr/td').getall()
+        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]/tr/td').getall()
         i = 0
         study_cycles_len = len(study_cycles)
         course_units = {}
-
+        
         while (i < study_cycles_len):
-
-            acronym = re.search('>(\D*)<\/a>', study_cycles[i]).group(1)
-            course_units[acronym] = []
+            course_id = re.search('pv_curso_id=(\d*)', study_cycles[i]).group(1)
+            course_units[course_id] = []    
             num_rows = int(re.search('rowspan="(\d)"', study_cycles[i]).group(1))
             for j in range(7 + num_rows):
                 if (j == 3 or j >= 8):
-                    course_units[acronym].append(study_cycles[i][study_cycles[i].find('>')+1])
+                    course_units[course_id].append(study_cycles[i][study_cycles[i].find('>')+1])
                 i+=1
 
-        for (acronym, years) in course_units.items():
+        for (course_id, years) in course_units.items():
             for year in years:
                 yield CourseUnitYear(
-                        acronym = acronym,    
+                        course_id = course_id,    
                         course_unit_id=response.meta['course_unit_id'],
                         course_unit_year=year
                     )

@@ -38,7 +38,7 @@ class CourseUnit(scrapy.Item):
     last_updated = scrapy.Field()
 
 class CourseUnitYear(scrapy.Item):
-    acronym = scrapy.Field()
+    course_id = scrapy.Field()
     course_unit_id = scrapy.Field()
     course_unit_year = scrapy.Field()
 

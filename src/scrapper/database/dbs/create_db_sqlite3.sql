@@ -65,12 +65,12 @@ CREATE TABLE `course_unit` (
 --
 
 CREATE TABLE `course_unit_year` (
-  `acronym` varchar(10) NOT NULL,
+  `course_id` INTEGER NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,
-  PRIMARY KEY (`acronym`, `course_unit_id`, `course_unit_year`),
+  PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`),
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-  FOREIGN KEY (`acronym`) REFERENCES `course`(`acronym`) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 
