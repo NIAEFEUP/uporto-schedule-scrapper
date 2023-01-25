@@ -4,10 +4,9 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
-import re 
 from ..database.Database import Database
 from ..items import CourseUnitYear
-
+import pandas as pd
 
 
 class CourseUnitYearSpider(scrapy.Spider):
@@ -78,24 +77,13 @@ class CourseUnitYearSpider(scrapy.Spider):
                 callback=self.extractCourseUnitByYears)
 
     def extractCourseUnitByYears(self, response): 
-        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]/tr/td').getall()
-        i = 0
-        study_cycles_len = len(study_cycles)
-        course_units = {}
-        
-        while (i < study_cycles_len):
-            course_id = re.search('pv_curso_id=(\d*)', study_cycles[i]).group(1)
-            course_units[course_id] = []    
-            num_rows = int(re.search('rowspan="(\d)"', study_cycles[i]).group(1))
-            for j in range(7 + num_rows):
-                if (j == 3 or j >= 8):
-                    course_units[course_id].append(study_cycles[i][study_cycles[i].find('>')+1])
-                i+=1
+        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
+        df = pd.read_html(study_cycles)[0]
 
-        for (course_id, years) in course_units.items():
-            for year in years:
-                yield CourseUnitYear(
-                        course_id = course_id,    
-                        course_unit_id=response.meta['course_unit_id'],
-                        course_unit_year=year
-                    )
+        for (_, row) in df.iterrows():
+            yield CourseUnitYear(
+                    course_id = row[df.columns[0]],
+                    course_unit_id=response.meta['course_unit_id'],
+                    course_unit_year=row['Anos Curriculares']
+                )
+ 
