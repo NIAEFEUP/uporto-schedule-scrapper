@@ -52,7 +52,7 @@ fastjsonschema==2.16.2
 filelock==3.8.0
 fonttools==4.29.1
 fs==2.4.12
-future==0.18.2
+future==0.18.3
 gast==0.5.2
 gyp==0.1
 h2==4.1.0
