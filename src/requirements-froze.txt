@@ -142,7 +142,7 @@ ply==3.11
 prometheus-client==0.15.0
 prompt-toolkit==3.0.28
 Protego==0.2.1
-protobuf==3.12.4
+protobuf==3.18.3
 psutil==5.9.0
 ptyprocess==0.7.0
 py==1.10.0
