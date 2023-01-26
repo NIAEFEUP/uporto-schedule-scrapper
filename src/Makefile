@@ -11,6 +11,9 @@ courses:
 course_units:
 	scrapy crawl course_units
 
+course_units_year:
+	scrapy crawl course_units_year
+	
 schedules:
 	scrapy crawl schedules
 

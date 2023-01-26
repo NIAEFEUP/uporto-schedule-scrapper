@@ -64,7 +64,7 @@ class CourseUnitSpider(scrapy.Spider):
         print("Gathering courses")
         db = Database() 
 
-        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id = faculty.id"
+        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_acronym = faculty.acronym"
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()

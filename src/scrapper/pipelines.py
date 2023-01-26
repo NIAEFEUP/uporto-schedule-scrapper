@@ -108,6 +108,17 @@ class CourseUnitPipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item 
 
+class CourseUnitYearPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_course_units_year'])
+        self.table_name = 'course_unit_year'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.CourseUnitYear):
+            super().process_item(item, spider)
+        return item 
+
 
 class SchedulePipeline(MySQLPipeline):
     def __init__(self):
