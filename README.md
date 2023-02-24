@@ -18,8 +18,8 @@ pip install -r ./scr/requirements.txt   # Install dependencies
 ### Virtual environment
 ```bash 
 python -m venv venv_scrapper            # Create virtual environment
-./venv_scrapper/Scripts/activate        # Activate virtual environment
-pip install -r ./scr/requirements.txt   # Install dependencies
+source ./venv_scrapper/bin/activate        # Activate virtual environment
+pip install -r ./src/requirements.txt   # Install dependencies
 ```
 
 
@@ -27,8 +27,8 @@ pip install -r ./scr/requirements.txt   # Install dependencies
 
 ### :wrench: Configure
 Change the following fields in `./src/config.ini`: 
-- `USER`: replace with your `up` number (e.g `up201812345`): 
-- `YEAR`: replace with the year you want to scrap.
+- `USER`: replace with your `up` number (e.g `up201812345`).
+- `YEAR`: replace with the year you want to scrap (e.g. 2022 is for the 2022/2023 school year).
 
 ```ini
 [default]
