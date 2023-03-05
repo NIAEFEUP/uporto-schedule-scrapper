@@ -126,7 +126,12 @@ class ScheduleSpider(scrapy.Spider):
 
         table = cell.xpath('table/tr')
         location = table.xpath('td/a/text()').extract_first()
-        teacher = table.xpath('td[@class="textod"]//a/text()').extract_first()
+        professor_id = table.xpath('td[@class="textod"]/acronym/a/@href').extract()[0].split('=')[1]
+        # professor_id = urllib.parse.parse_qs(
+        #     urllib.parse.urlparse(table.xpath('td[@class="textod"]/acronym/a/@href')).query
+        # )['p_codigo'][0]
+        # teacher_name = table.xpath('td[@class="textod"]/acronym/@title').extract_first()
+        # teacher_acronym = table.xpath('td[@class="textod"]//a/text()').extract_first()
 
         clazz = cell.xpath('span/a')
         class_name = clazz.xpath('text()').extract_first()
@@ -138,7 +143,7 @@ class ScheduleSpider(scrapy.Spider):
             return response.follow(class_url,
                                    dont_filter=True,
                                    meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time,
-                                         'teacher_acronym': teacher, 'location': location, 'day': day,
+                                         'professor_id': professor_id, 'location': location, 'day': day,
                                          'composed_class_name': class_name, 'duration': duration},
                                    callback=self.extractComposedClasses)
 
@@ -148,7 +153,7 @@ class ScheduleSpider(scrapy.Spider):
             day=day,
             start_time=start_time,
             duration=duration,
-            teacher_acronym=teacher,
+            professor_id=professor_id,
             location=location,
             composed_class_name=None,
             class_name=class_name,
@@ -166,7 +171,7 @@ class ScheduleSpider(scrapy.Spider):
                 day=response.meta['day'],
                 start_time=response.meta['start_time'],
                 duration=response.meta['duration'],
-                teacher_acronym=response.meta['teacher_acronym'],
+                professor_id=response.meta['professor_id'],
                 location=response.meta['location'],
                 composed_class_name=response.meta['composed_class_name'],
                 class_name=class_name,
@@ -187,7 +192,10 @@ class ScheduleSpider(scrapy.Spider):
         lesson_type = row.xpath(
             'td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
         location = row.xpath('td[4]/a/text()').extract_first()
-        teacher = row.xpath('td[5]/a/text()').extract_first()
+        professor_id = row.xpath('td[@headers="t5"]/a/@href').extract()[0].split('=')[1]
+        # professor_id = urllib.parse.parse_qs(
+        #     urllib.parse.urlparse(row.xpath('td[@headers="t5"]/a/@href')).query
+        # )['p_codigo'][0]
 
         clazz = row.xpath('td[6]/a')
         class_url = clazz.xpath('@href').extract_first()
@@ -199,14 +207,14 @@ class ScheduleSpider(scrapy.Spider):
             return response.follow(class_url,
                                    dont_filter=True,
                                    meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time,
-                                         'teacher_acronym': teacher, 'location': location, 'day': day,
+                                         'professor_id': professor_id, 'location': location, 'day': day,
                                          'composed_class_name': class_name},
                                    callback=self.extractDurationFromComposedOverlappingClasses)
 
         return response.follow(class_url,
                                dont_filter=True,
                                meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time,
-                                     'teacher_acronym': teacher, 'location': location, 'day': day,
+                                     'professor_id': professor_id, 'location': location, 'day': day,
                                      'class_name': class_name},
                                callback=self.extractDurationFromOverlappingClass)
 
@@ -221,7 +229,7 @@ class ScheduleSpider(scrapy.Spider):
                                   dont_filter=True,
                                   meta={
                                       'id': response.meta['id'], 'lesson_type': response.meta['lesson_type'],
-                                      'start_time': response.meta['start_time'], 'teacher_acronym': response.meta['teacher_acronym'],
+                                      'start_time': response.meta['start_time'], 'professor_id': response.meta['professor_id'],
                                       'location': response.meta['location'], 'day': response.meta['day'],
                                       'composed_class_name': response.meta['composed_class_name'], 'class_name': class_name
                                   },
@@ -272,7 +280,7 @@ class ScheduleSpider(scrapy.Spider):
             day=day,
             start_time=start_time,
             duration=duration,
-            teacher_acronym=response.meta['teacher_acronym'],
+            professor_id=response.meta['professor_id'],
             location=response.meta['location'],
             composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None,
             class_name=response.meta['class_name'],
