@@ -48,8 +48,13 @@ class Schedule(scrapy.Item):
     day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
     duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
     start_time = scrapy.Field()  # At what time the lesson starts
-    teacher_acronym = scrapy.Field()  # JCF, GTD, etc.
+    professor_id = scrapy.Field()
     location = scrapy.Field()  # B001, B003, etc.
     class_name = scrapy.Field()  # 1MIEIC01
     composed_class_name = scrapy.Field()  # None or COMP_372
     last_updated = scrapy.Field()
+    
+class Professor(scrapy.Item):
+    professor_id = scrapy.Field()
+    professor_acronym = scrapy.Field()
+    professor_name = scrapy.Field()

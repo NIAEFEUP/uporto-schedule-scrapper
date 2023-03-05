@@ -130,3 +130,14 @@ class SchedulePipeline(MySQLPipeline):
         if isinstance(item, items.Schedule):
             super().process_item(item, spider)
         return item 
+    
+class ProfessorPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_professors'])
+        self.table_name = 'professor'
+    
+    def process_item(self, item, spider):
+        if isinstance(item, items.Schedule):
+            super().process_item(item, spider)
+        return item 

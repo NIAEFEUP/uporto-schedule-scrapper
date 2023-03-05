@@ -74,7 +74,6 @@ CREATE TABLE `course_unit_year` (
 );
 
 
-
 -- --------------------------------------------------------
 
 --
@@ -88,12 +87,25 @@ CREATE TABLE `schedule` (
   `start_time` decimal(3,1) NOT NULL,
   `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
-  `teacher_acronym` varchar(16) NOT NULL,
+  `professor_id` int (11),
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
   `composed_class_name` varchar(16) DEFAULT NULL,
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (`professor_id`) REFERENCES `professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- -------------------------------------------------------- 
+
+--
+-- Table structure for table `professor`
+--
+
+CREATE TABLE `professor` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `professor_acronym` varchar(16) NOT NULL,
+  `professor_name` varchar(50) NOT NULL
 );
 
 -- -------------------------------------------------------- 
