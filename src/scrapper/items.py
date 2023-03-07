@@ -41,6 +41,7 @@ class CourseUnitYear(scrapy.Item):
     course_id = scrapy.Field()
     course_unit_id = scrapy.Field()
     course_unit_year = scrapy.Field()
+    ects = scrapy.Field()
 
 class Schedule(scrapy.Item):
     course_unit_id = scrapy.Field()
