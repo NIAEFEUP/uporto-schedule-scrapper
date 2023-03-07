@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class ProfessorSpider(scrapy.Spider):
-    name = "professor"
+    name = "professors"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
@@ -77,12 +77,12 @@ class ProfessorSpider(scrapy.Spider):
                 callback=self.extractProfessors)
 
     def extractProfessors(self, response): 
-        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
-        acronym = response.xpath("//table[@class='tabelasz']/tbody/tr[2]/td[2]/b").get()
-        name = response.xpath("//table[@class='tabelasz']/tbody/tr[1]/td[2]/b").get()
+        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').extract_first()
+        acronym = response.xpath("//table[@class='tabelasz']/tbody/tr[2]/td[2]/b").extract_first()
+        name = response.xpath("//table[@class='tabelasz']/tbody/tr[1]/td[2]/b").extract_first()
         
         return Professor(
-            professor_id = response.meta['professor_id'],
+            id = response.meta['professor_id'],
             professor_acronym = acronym,
             professor_name = name
         )

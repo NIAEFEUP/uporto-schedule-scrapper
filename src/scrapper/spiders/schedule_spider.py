@@ -126,7 +126,8 @@ class ScheduleSpider(scrapy.Spider):
 
         table = cell.xpath('table/tr')
         location = table.xpath('td/a/text()').extract_first()
-        professor_id = table.xpath('td[@class="textod"]/acronym/a/@href').extract()[0].split('=')[1]
+        professor_link = table.xpath('td[@class="textod"]/acronym/a/@href').extract_first()
+        professor_id = professor_link.split('=')[1] if professor_link else None
         # professor_id = urllib.parse.parse_qs(
         #     urllib.parse.urlparse(table.xpath('td[@class="textod"]/acronym/a/@href')).query
         # )['p_codigo'][0]
@@ -192,7 +193,8 @@ class ScheduleSpider(scrapy.Spider):
         lesson_type = row.xpath(
             'td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
         location = row.xpath('td[4]/a/text()').extract_first()
-        professor_id = row.xpath('td[@headers="t5"]/a/@href').extract()[0].split('=')[1]
+        professor_link = row.xpath('td[@headers="t5"]/a/@href').extract_first()
+        professor_id = professor_link.split('=')[1] if professor_link else None
         # professor_id = urllib.parse.parse_qs(
         #     urllib.parse.urlparse(row.xpath('td[@headers="t5"]/a/@href')).query
         # )['p_codigo'][0]
