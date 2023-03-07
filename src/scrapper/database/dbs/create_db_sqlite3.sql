@@ -104,8 +104,8 @@ CREATE TABLE `schedule` (
 
 CREATE TABLE `professor` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `professor_acronym` varchar(16) NOT NULL,
-  `professor_name` varchar(50) NOT NULL
+  `professor_acronym` varchar(16),
+  `professor_name` varchar(50)
 );
 
 -- -------------------------------------------------------- 

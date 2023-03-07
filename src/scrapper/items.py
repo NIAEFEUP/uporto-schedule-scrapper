@@ -55,6 +55,6 @@ class Schedule(scrapy.Item):
     last_updated = scrapy.Field()
     
 class Professor(scrapy.Item):
-    professor_id = scrapy.Field()
+    id = scrapy.Field()
     professor_acronym = scrapy.Field()
     professor_name = scrapy.Field()
