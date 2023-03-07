@@ -75,15 +75,16 @@ class CourseUnitYearSpider(scrapy.Spider):
                 url=course_unit[1],
                 meta={'course_unit_id': course_unit[0]},
                 callback=self.extractCourseUnitByYears)
-
+    
     def extractCourseUnitByYears(self, response): 
         study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
-        df = pd.read_html(study_cycles)[0]
+        df = pd.read_html(study_cycles, decimal=',', thousands='.')[0]
 
         for (_, row) in df.iterrows():
+            
             yield CourseUnitYear(
                     course_id = row[df.columns[0]],
-                    course_unit_id=response.meta['course_unit_id'],
-                    course_unit_year=row['Anos Curriculares']
+                    course_unit_id = response.meta['course_unit_id'],
+                    course_unit_year = row['Anos Curriculares'],
+                    ects = row[5]
                 )
- 
