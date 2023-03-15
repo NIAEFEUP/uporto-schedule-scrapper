@@ -63,23 +63,24 @@ class ProfessorSpider(scrapy.Spider):
         print("Gathering professors")
         db = Database() 
 
-        sql = "SELECT professor_id FROM schedule"
+        sql = "SELECT professor_id, url FROM course_unit JOIN schedule ON course_unit.id = schedule.course_unit_id"
         db.cursor.execute(sql)
-        self.schedules = db.cursor.fetchall()
+        self.prof_info = db.cursor.fetchall()
         db.connection.close()
 
-        self.log("Crawling {} schedules".format(len(self.schedules)))
+        self.log("Crawling {} schedules".format(len(self.prof_info)))
 
-        for schedule in self.schedules:
+
+        for (id, url) in self.prof_info:
+            faculty = url.split('/')[3]
             yield scrapy.http.Request(
-                url="https://sigarra.up.pt/feup/pt/func_geral.FormView?p_codigo={}".format(schedule[0]),
-                meta={'professor_id': schedule[0]},
+                url="https://sigarra.up.pt/{}/pt/func_geral.FormView?p_codigo={}".format(faculty, id),
+                meta={'professor_id': id},
                 callback=self.extractProfessors)
 
     def extractProfessors(self, response): 
-        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').extract_first()
-        acronym = response.xpath("//table[@class='tabelasz']/tbody/tr[2]/td[2]/b").extract_first()
-        name = response.xpath("//table[@class='tabelasz']/tbody/tr[1]/td[2]/b").extract_first()
+        name = response.xpath('//table[@class="tabelasz"]/tr[1]/td[2]/b/text()').extract_first()
+        acronym = response.xpath('//table[@class="tabelasz"]/tr[2]/td[2]/b/text()').extract_first()
         
         return Professor(
             id = response.meta['professor_id'],
