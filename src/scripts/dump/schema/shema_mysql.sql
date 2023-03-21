@@ -30,7 +30,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `course` (
   `id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
+  `sigarra_course_id` int(11) NOT NULL,
   `faculty_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
@@ -49,12 +49,11 @@ CREATE TABLE `course` (
 
 CREATE TABLE `course_unit` (
   `id` int(11) NOT NULL,
-  `course_unit_id` int(11) NOT NULL,
+  `sigarra_course_unit_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `course_year` tinyint(4) NOT NULL,
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
@@ -103,7 +102,7 @@ CREATE TABLE `schedule` (
 --
 ALTER TABLE `course`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `course_id` (`course_id`,`faculty_id`,`year`),
+  ADD UNIQUE KEY `course_id` (`sigarra_course_id`,`faculty_id`,`year`),
   ADD KEY `faculty_id` (`faculty_id`);
 
 --
@@ -111,7 +110,7 @@ ALTER TABLE `course`
 --
 ALTER TABLE `course_unit`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniqueness` (`course_unit_id`,`course_id`,`year`,`semester`) USING BTREE,
+  ADD UNIQUE KEY `uniqueness` (`sigarra_course_unit_id`,`course_id`,`year`,`semester`) USING BTREE,
   ADD KEY `course_id` (`course_id`);
 
 --
