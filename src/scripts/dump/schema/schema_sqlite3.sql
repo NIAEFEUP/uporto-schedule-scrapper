@@ -25,7 +25,7 @@ CREATE TABLE `faculty` (
 
 CREATE TABLE `course` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `course_id` int(11) NOT NULL,
+  `sigarra_course_id` int(11) NOT NULL,
   `faculty_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
@@ -45,12 +45,11 @@ CREATE TABLE `course` (
 
 CREATE TABLE `course_unit` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `course_unit_id` int(11) NOT NULL,
+  `sigarra_course_unit_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `course_year` tinyint(4) NOT NULL,
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
@@ -90,13 +89,13 @@ CREATE TABLE `schedule` (
 --
 -- Indexes for table `course`
 --
-CREATE UNIQUE INDEX `course_course_id` ON `course` (`course_id`,`faculty_id`,`year`);
+CREATE UNIQUE INDEX `course_course_id` ON `course` (`sigarra_course_id`,`faculty_id`,`year`);
 CREATE INDEX `course_faculty_id` ON `course` (`faculty_id`); 
 
 --
 -- Indexes for table `course_unit`
 --
-CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`course_unit_id`,`course_id`,`year`,`semester`); 
+CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`sigarra_course_unit_id`,`course_id`,`year`,`semester`); 
 CREATE INDEX `course_unit_course_id` ON `course_unit` (`course_id`);
 
 --
