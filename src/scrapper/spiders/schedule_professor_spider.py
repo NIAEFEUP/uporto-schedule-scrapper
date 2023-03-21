@@ -58,7 +58,7 @@ class ScheduleProfessorSpider(scrapy.Spider):
            
 
     def scheduleRequests(self):
-        print("[INSERT MESSAGE HERE]")
+        print("Gathering professors' metadata")
         db = Database() 
 
         sql = "SELECT url, is_composed, schedule_professor_id, schedule.id schedule_id FROM course_unit JOIN schedule ON course_unit.id = schedule.course_unit_id"
@@ -72,13 +72,11 @@ class ScheduleProfessorSpider(scrapy.Spider):
             faculty = url.split('/')[3]
 
             if is_composed:
-                # print("https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, schedule_professor_id))
                 yield scrapy.http.Request(
                     url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, schedule_professor_id),
                     meta={'schedule_id': schedule_id},
                     callback=self.extractCompoundProfessors)
             else:
-                # print(schedule_id, " ", schedule_professor_id)
                 yield ScheduleProfessor(
                     schedule_id=schedule_id,
                     professor_id=schedule_professor_id,
@@ -88,7 +86,6 @@ class ScheduleProfessorSpider(scrapy.Spider):
         professors = response.xpath('//*[@id="conteudoinner"]/li/a/@href').extract()
 
         for professor_link in professors:
-            # print(response.meta['schedule_id'], " ", professor_link.split('=')[1])
             yield ScheduleProfessor(
                 schedule_id=response.meta['schedule_id'],
                 professor_id=professor_link.split('=')[1],
