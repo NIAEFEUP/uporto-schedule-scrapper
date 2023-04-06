@@ -61,10 +61,10 @@ CREATE TABLE `course_unit` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `course_unit_year`
+-- Table structure for table `course_metadata`
 --
 
-CREATE TABLE `course_unit_year` (
+CREATE TABLE `course_metadata` (
   `course_id` INTEGER NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,

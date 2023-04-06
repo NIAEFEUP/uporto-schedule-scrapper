@@ -37,7 +37,7 @@ class CourseUnit(scrapy.Item):
     schedule_url = scrapy.Field()
     last_updated = scrapy.Field()
 
-class CourseUnitYear(scrapy.Item):
+class CourseMetadata(scrapy.Item):
     course_id = scrapy.Field()
     course_unit_id = scrapy.Field()
     course_unit_year = scrapy.Field()

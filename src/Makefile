@@ -11,8 +11,8 @@ courses:
 course_units:
 	scrapy crawl course_units
 
-course_units_year:
-	scrapy crawl course_units_year
+course_metadata:
+	scrapy crawl course_metadata
 	
 schedules:
 	scrapy crawl schedules
