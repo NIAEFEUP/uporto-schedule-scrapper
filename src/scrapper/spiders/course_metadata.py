@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class CourseMetadataSpider(scrapy.Spider):
-    name = "course_units_year"
+    name = "course_metadata"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
