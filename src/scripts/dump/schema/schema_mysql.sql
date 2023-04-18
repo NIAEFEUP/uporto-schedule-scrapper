@@ -22,6 +22,13 @@ SET time_zone = "+00:00";
 -- Database: `tts`
 --
 
+CREATE TABLE `faculty` (
+  `acronym` varchar(10) DEFAULT NULL,
+  `name` text,
+  `last_updated` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
 -- --------------------------------------------------------
 
 --
@@ -30,8 +37,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `course` (
   `id` int(11) NOT NULL,
+  `faculty_acronym` varchar(10) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `faculty_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
   `course_type` varchar(2) NOT NULL,
@@ -63,19 +70,18 @@ CREATE TABLE `course_unit` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `faculty`
---
 
-CREATE TABLE `faculty` (
-  `id` int(11) NOT NULL,
-  `acronym` varchar(10) DEFAULT NULL,
-  `name` text,
-  `last_updated` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+--
+-- Table structure for table `course_unit_year`
+-- 
+CREATE TABLE `course_unit_year` (
+  `course_id` INTEGER NOT NULL,
+  `course_unit_id` int(11) NOT NULL, 
+  `course_unit_year` tinyint(4) NOT NULL
+);
+
 
 -- --------------------------------------------------------
-
 --
 -- Table structure for table `schedule`
 --
@@ -94,6 +100,26 @@ CREATE TABLE `schedule` (
   `composed_class_name` varchar(16) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+
+-- Add primary keys 
+alter TABLE faculty ADD PRIMARY KEY (`acronym`);
+
+alter TABLE course ADD PRIMARY KEY (`id`);
+alter TABLE course ADD FOREIGN KEY (faculty_acronym) REFERENCES faculty(acronym) on DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE course_unit ADD PRIMARY KEY (`id`);
+alter TABLE course_unit ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE course_unit_year ADD PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`);
+alter TABLE course_unit_year ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+alter TABLE course_unit_year ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE schedule ADD PRIMARY KEY (`id`);
+alter TABLE schedule ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- Create index 
+
 --
 -- Indexes for dumped tables
 --
@@ -101,83 +127,25 @@ CREATE TABLE `schedule` (
 --
 -- Indexes for table `course`
 --
-ALTER TABLE `course`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `course_id` (`course_id`,`faculty_id`,`year`),
-  ADD KEY `faculty_id` (`faculty_id`);
+CREATE UNIQUE INDEX `course_course_id` ON `course` (`course_id`,`faculty_acronym`,`year`);
+CREATE INDEX `course_faculty_acronym` ON `course` (`faculty_acronym`); 
 
 --
 -- Indexes for table `course_unit`
 --
-ALTER TABLE `course_unit`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniqueness` (`course_unit_id`,`course_id`,`year`,`semester`) USING BTREE,
-  ADD KEY `course_id` (`course_id`);
+CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`course_unit_id`,`course_id`,`year`,`semester`); 
+CREATE INDEX `course_unit_course_id` ON `course_unit` (`course_id`);
 
 --
 -- Indexes for table `faculty`
 --
-ALTER TABLE `faculty`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `acronym` (`acronym`);
+CREATE UNIQUE INDEX `faculty_acronym` ON `faculty`(`acronym`);
 
 --
 -- Indexes for table `schedule`
 --
-ALTER TABLE `schedule`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `course_unit_id` (`course_unit_id`) USING BTREE;
+CREATE INDEX `schedule_course_unit_id` ON `schedule`(`course_unit_id`);
 
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `course`
---
-ALTER TABLE `course`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `course_unit`
---
-ALTER TABLE `course_unit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `faculty`
---
-ALTER TABLE `faculty`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `schedule`
---
-ALTER TABLE `schedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `course`
---
-ALTER TABLE `course`
-  ADD CONSTRAINT `course_ibfk_1` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `course_unit`
---
-ALTER TABLE `course_unit`
-  ADD CONSTRAINT `course_unit_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `schedule`
---
-ALTER TABLE `schedule`
-  ADD CONSTRAINT `schedule_ibfk_1` FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

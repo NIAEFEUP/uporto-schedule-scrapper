@@ -1,6 +1,7 @@
 .PHONY: all clean
 
-all: faculties courses course_units course_metadata schedules
+all: faculties courses course_units course_metadata schedules schedule_professor professors
+
 
 faculties: 
 	scrapy crawl faculties 
@@ -16,6 +17,12 @@ course_metadata:
 	
 schedules:
 	scrapy crawl schedules
+
+schedule_professor:
+	scrapy crawl schedule_professor
+
+professors:
+	scrapy crawl professors
 
 dump:
 	@echo "Dumping files..."
