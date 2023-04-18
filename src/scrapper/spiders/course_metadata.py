@@ -5,12 +5,12 @@ from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
 from ..database.Database import Database
-from ..items import CourseUnitYear
+from ..items import CourseMetadata
 import pandas as pd
 
 
-class CourseUnitYearSpider(scrapy.Spider):
-    name = "course_units_year"
+class CourseMetadataSpider(scrapy.Spider):
+    name = "course_metadata"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
@@ -25,7 +25,7 @@ class CourseUnitYearSpider(scrapy.Spider):
         self.config.read(config_file) 
 
     def __init__(self, category=None, *args, **kwargs):
-        super(CourseUnitYearSpider, self).__init__(*args, **kwargs)
+        super(CourseMetadataSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = self.config['default']['USER']
 
@@ -60,7 +60,7 @@ class CourseUnitYearSpider(scrapy.Spider):
            
 
     def courseRequests(self):
-        print("Gathering course units years")
+        print("Gathering course metadata...")
         db = Database() 
 
         sql = "SELECT id, url FROM course_unit"
@@ -75,15 +75,16 @@ class CourseUnitYearSpider(scrapy.Spider):
                 url=course_unit[1],
                 meta={'course_unit_id': course_unit[0]},
                 callback=self.extractCourseUnitByYears)
-
+    
     def extractCourseUnitByYears(self, response): 
         study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
-        df = pd.read_html(study_cycles)[0]
+        df = pd.read_html(study_cycles, decimal=',', thousands='.')[0]
 
         for (_, row) in df.iterrows():
-            yield CourseUnitYear(
+            
+            yield CourseMetadata(
                     course_id = row[df.columns[0]],
-                    course_unit_id=response.meta['course_unit_id'],
-                    course_unit_year=row['Anos Curriculares']
+                    course_unit_id = response.meta['course_unit_id'],
+                    course_unit_year = row['Anos Curriculares'],
+                    ects = row[5]
                 )
- 

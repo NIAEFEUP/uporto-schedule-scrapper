@@ -61,13 +61,14 @@ CREATE TABLE `course_unit` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `course_unit_year`
+-- Table structure for table `course_metadata`
 --
 
-CREATE TABLE `course_unit_year` (
+CREATE TABLE `course_metadata` (
   `course_id` INTEGER NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,
+  `ects` float(4) NOT NULL,
   PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`),
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
