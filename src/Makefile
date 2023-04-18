@@ -1,6 +1,7 @@
 .PHONY: all clean
 
-all: faculties courses course_units schedules schedule_professor professors
+all: faculties courses course_units course_metadata schedules schedule_professor professors
+
 
 faculties: 
 	scrapy crawl faculties 
@@ -11,8 +12,8 @@ courses:
 course_units:
 	scrapy crawl course_units
 
-course_units_year:
-	scrapy crawl course_units_year
+course_metadata:
+	scrapy crawl course_metadata
 	
 schedules:
 	scrapy crawl schedules
