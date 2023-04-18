@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: faculties courses course_units schedules
+all: faculties courses course_units course_metadata schedules
 
 faculties: 
 	scrapy crawl faculties 
