@@ -64,7 +64,7 @@ class CourseUnitSpider(scrapy.Spider):
         print("Gathering courses")
         db = Database() 
 
-        sql = "SELECT course.id, year, course.course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_acronym = faculty.acronym"
+        sql = "SELECT course.id, year, course.sigarra_course_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id= faculty.acronym"
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()
@@ -128,10 +128,9 @@ class CourseUnitSpider(scrapy.Spider):
         if schedule_url is not None:
             schedule_url = response.urljoin(schedule_url)
 
-        course_year = int(response.xpath(
-            '//div[@id="conteudoinner"]/table[@class="dados"]//td[@class="l"]/text()').extract_first())
+        # course_year = int(response.xpath('//div[@id="conteudoinner"]/table[@class="dados"]//td[@class="l"]/text()').extract_first())
 
-        assert course_year > 0 and course_year < 10
+        # assert course_year > 0 and course_year < 10
 
         # Occurrence has a string that contains both the year and the semester type
         occurrence = response.css('#conteudoinner > h2::text').extract_first()
@@ -163,12 +162,11 @@ class CourseUnitSpider(scrapy.Spider):
 
         for semester in semesters:
             yield CourseUnit(
-                course_unit_id=course_unit_id,
+                sigarra_course_unit_id=course_unit_id,
                 course_id=response.meta['course_id'],
                 name=name,
                 acronym=acronym,
                 url=url,
-                course_year=course_year,
                 schedule_url=schedule_url,
                 year=year,
                 semester=semester,

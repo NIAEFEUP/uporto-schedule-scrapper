@@ -57,17 +57,17 @@ class CourseSpider(scrapy.Spider):
                     '//*[@id="conteudoinner"]/div[1]/a').extract_first() is not None:  # tests if this page points to another one
                 continue
             
-            course_id = response.url.split('=')[-1]
+            sigarra_course_id = response.url.split('=')[-1]
             course = Course(
-                course_id = course_id,
+                faculty_id = response.meta['faculty_acronym'],    # New parameter 
+                sigarra_course_id = sigarra_course_id,
                 name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
-                course_type = response.meta['course_type'],
-                plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={course_id}&pv_ano_lectivo={self.get_year()}",
-                faculty_acronym = response.meta['faculty_acronym'],    # New parameter 
                 acronym = self.get_acronym(response),
-                url = response.url,
-                last_updated=datetime.now(),
+                course_type = response.meta['course_type'],
                 year = self.get_year(),
+                url = response.url,
+                plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={sigarra_course_id}&pv_ano_lectivo={self.get_year()}",
+                last_updated=datetime.now(),
             )
 
             yield course
