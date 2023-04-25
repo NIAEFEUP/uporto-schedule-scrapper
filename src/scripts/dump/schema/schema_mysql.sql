@@ -1,40 +1,42 @@
+-- phpMyAdmin SQL Dump
+-- version 4.7.7
+
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
 
 --
--- Database: `tts` FOR SQLITE 3 
+-- Database: `tts`
 --
 
-
-
--- --------------------------------------------------------
-
---
--- Table structure for table `faculty`
---
 
 CREATE TABLE `faculty` (
-  `acronym` varchar(10) PRIMARY KEY ,
+  `acronym` varchar(10) DEFAULT NULL,
   `name` text,
   `last_updated` datetime NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 
 -- --------------------------------------------------------
+
 --
 -- Table structure for table `course`
 --
 
 CREATE TABLE `course` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `faculty_id` varchar(10) NOT NULL,
+  `id` int(11) NOT NULL,
   `sigarra_course_id` int(11) NOT NULL,
+  `faculty_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
-  `course_type` varchar(2) NOT NULL,
+  `course_type` varchar(2) NOT NULL,  
   `year` int(11) NOT NULL,
   `url` varchar(2000) NOT NULL,
   `plan_url` varchar(2000) NOT NULL,
-  `last_updated` datetime NOT NULL,
-  FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`acronym`) ON DELETE CASCADE ON UPDATE CASCADE
-);
+  `last_updated` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 -- --------------------------------------------------------
@@ -44,7 +46,7 @@ CREATE TABLE `course` (
 --
 
 CREATE TABLE `course_unit` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `id` int(11) NOT NULL,
   `sigarra_course_unit_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
@@ -53,9 +55,8 @@ CREATE TABLE `course_unit` (
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
-  `last_updated` datetime NOT NULL,
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-);
+  `last_updated` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -67,16 +68,13 @@ CREATE TABLE `course_metadata` (
   `course_id` INTEGER NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,
-  `ects` float(4) NOT NULL,
-  PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`),
-  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-);
+  `ects` float(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 
 
 
 -- --------------------------------------------------------
-
 --
 -- Table structure for table `schedule`
 --
@@ -94,9 +92,7 @@ CREATE TABLE `schedule` (
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
   `composed_class_name` varchar(16) DEFAULT NULL,
-  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`schedule_professor_id`) REFERENCES `schedule_professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- -------------------------------------------------------- 
 
@@ -110,7 +106,7 @@ CREATE TABLE `schedule_professor` (
   FOREIGN KEY (`schedule_id`) REFERENCES `schedule` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`professor_id`) REFERENCES `professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   PRIMARY KEY (`schedule_id`, `professor_id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- -------------------------------------------------------- 
 
@@ -124,17 +120,41 @@ CREATE TABLE `professor` (
   `professor_name` varchar(50)
 );
 
--- -------------------------------------------------------- 
 
---
--- Indexes for dumped tables
---
+
+-- Add primary keys 
+alter TABLE faculty ADD PRIMARY KEY (`acronym`);
+
+alter TABLE course ADD PRIMARY KEY (`id`);
+alter TABLE course ADD FOREIGN KEY (`faculty_id`) REFERENCES faculty(`acronym`) on DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE course_unit ADD PRIMARY KEY (`id`);
+alter TABLE course_unit ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE course_metadata ADD PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`);
+alter TABLE course_unit_year ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+alter TABLE course_unit_year ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE schedule ADD PRIMARY KEY (`id`);
+alter TABLE schedule ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+alter TABLE schedule ADD FOREIGN KEY (`schedule_professor_id`) REFERENCES `schedule_professor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE schedule_professor ADD PRIMARY KEY (`scheduel_id`, `professor_id`); 
+alter TABLE schedule_professor ADD FOREIGN KEY (`schedule_id`) REFERENCES `schedule`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+alter TABLE schedule_professor ADD FOREIGN KEY (`professor_id`) REFERENCES `professor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+alter TABLE professor ADD PRIMARY KEY (`id`);
+
+
+
+
+-- Create index 
 
 --
 -- Indexes for table `course`
 --
 CREATE UNIQUE INDEX `course_course_id` ON `course` (`sigarra_course_id`,`faculty_id`,`year`);
-CREATE INDEX `course_faculty_id` ON `course` (`faculty_id`); 
+CREATE INDEX `course_faculty_acronym` ON `course` (`faculty_id`); 
 
 --
 -- Indexes for table `course_unit`
@@ -153,11 +173,8 @@ CREATE UNIQUE INDEX `faculty_acronym` ON `faculty`(`acronym`);
 CREATE INDEX `schedule_course_unit_id` ON `schedule`(`course_unit_id`);
 
 --
--- Indexes for table `schedule_professors`
--- 
-CREATE INDEX `schedule_professor_schedule_id` ON `schedule_professor`(`schedule_id`);
-
---
 -- Indexes for table `course_metadata`
 -- 
-CREATE INDEX `course_metadata_index` ON `course_metadata`(`course_id`, `course_unit_id`, `course_unit_year`);
+CREATE INDEX `course_metadata_index` ON `course_metadata`(`course_id`, `course_unit_id`, `course_unit_year`); 
+
+
