@@ -108,14 +108,14 @@ class CourseUnitPipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item 
 
-class CourseUnitYearPipeline(MySQLPipeline):
+class CourseMetadataPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
-        self.expected_num = int(self.config['statistics']['num_course_units_year'])
-        self.table_name = 'course_unit_year'
+        self.expected_num = int(self.config['statistics']['num_course_metadata'])
+        self.table_name = 'course_metadata'
 
     def process_item(self, item, spider):
-        if isinstance(item, items.CourseUnitYear):
+        if isinstance(item, items.CourseMetadata):
             super().process_item(item, spider)
         return item 
 
@@ -128,5 +128,27 @@ class SchedulePipeline(MySQLPipeline):
     
     def process_item(self, item, spider):
         if isinstance(item, items.Schedule):
+            super().process_item(item, spider)
+        return item 
+    
+class ScheduleProfessorPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_schedule_professor'])
+        self.table_name = 'schedule_professor'
+    
+    def process_item(self, item, spider):
+        if isinstance(item, items.ScheduleProfessor):
+            super().process_item(item, spider)
+        return item 
+    
+class ProfessorsPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_professors'])
+        self.table_name = 'professor'
+    
+    def process_item(self, item, spider):
+        if isinstance(item, items.Professor):
             super().process_item(item, spider)
         return item 

@@ -15,7 +15,7 @@ class CourseSpider(scrapy.Spider):
     bachelors_url = "https://www.up.pt/portal/en/study/bachelors-and-integrated-masters-degrees/courses/"
     masters_url = "https://www.up.pt/portal/en/study/masters-degrees/courses/"
     doctors_url = "https://www.up.pt/portal/en/study/doctorates/courses/"
-    start_urls = [bachelors_url, masters_url, doctors_url   ]
+    start_urls = [bachelors_url, masters_url, doctors_url]
     
     def open_config(self):
         """
@@ -42,8 +42,14 @@ class CourseSpider(scrapy.Spider):
         hrefs = response.xpath('//*[@id="courseListComponent"]/div/dl/dd/ul/li/a/@href').extract()  
         for faculty_html in hrefs: 
             params = faculty_html.split("/")
-            url = f"https://sigarra.up.pt/{params[-3]}/en/cur_geral.cur_view?pv_ano_lectivo={self.get_year()}&pv_curso_id={params[-2]}"
+            url = f"https://sigarra.up.pt/{params[-3]}/pt/cur_geral.cur_view?pv_ano_lectivo={self.get_year()}&pv_curso_id={params[-2]}"
             yield scrapy.Request(url= url, callback=self.get_course, meta={'faculty_acronym': params[-3], 'course_type': self.get_course_type(response.url)})
+    
+    def get_acronym(self, response):
+        acronym = response.xpath('//td[text()="Sigla: "]/following-sibling::td/text()').get()
+        if not acronym:
+            acronym = response.xpath('//td[text()="Acronym: "]/following-sibling::td/text()').get()
+        return acronym
 
     def get_course(self, response):
         for courseHtml in response.css('body'):
@@ -53,15 +59,15 @@ class CourseSpider(scrapy.Spider):
             
             sigarra_course_id = response.url.split('=')[-1]
             course = Course(
+                faculty_id = response.meta['faculty_acronym'],    # New parameter 
                 sigarra_course_id = sigarra_course_id,
                 name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
+                acronym = self.get_acronym(response),
                 course_type = response.meta['course_type'],
-                plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={sigarra_course_id}&pv_ano_lectivo={self.get_year()}",
-                faculty_acronym = response.meta['faculty_acronym'],    # New parameter 
-                acronym = response.xpath('//td[text()="Acronym: "]/following-sibling::td/text()').get(),
-                url = response.url,
-                last_updated=datetime.now(),
                 year = self.get_year(),
+                url = response.url,
+                plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={sigarra_course_id}&pv_ano_lectivo={self.get_year()}",
+                last_updated=datetime.now(),
             )
 
             yield course

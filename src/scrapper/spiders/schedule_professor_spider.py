@@ -5,17 +5,15 @@ from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
 from ..database.Database import Database
-from ..items import CourseUnitYear
-import pandas as pd
+from ..items import ScheduleProfessor
 
 
-class CourseUnitYearSpider(scrapy.Spider):
-    name = "course_units_year"
+class ScheduleProfessorSpider(scrapy.Spider):
+    name = 'schedule_professor'
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
-
-
+    
     def open_config(self):
         """
         Reads and saves the configuration file. 
@@ -25,7 +23,7 @@ class CourseUnitYearSpider(scrapy.Spider):
         self.config.read(config_file) 
 
     def __init__(self, category=None, *args, **kwargs):
-        super(CourseUnitYearSpider, self).__init__(*args, **kwargs)
+        super(ScheduleProfessorSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = self.config['default']['USER']
 
@@ -41,7 +39,7 @@ class CourseUnitYearSpider(scrapy.Spider):
             self.password = getpass.getpass(prompt='Password: ', stream=None)
             
         yield Request(url=self.format_login_url(), callback=self.check_login_response, errback=self.login_response_err)
-
+        
     def login_response_err(self, failure):
         print('Login failed. SIGARRA\'s response: error type 404;\nerror message "{}"'.format(failure))
         print("Check your password")
@@ -56,34 +54,39 @@ class CourseUnitYearSpider(scrapy.Spider):
             response_body = json.loads(response.body)
             if response_body['authenticated']:
                 self.log("Successfully logged in. Let's start crawling!")
-                return self.courseRequests()
+                return self.scheduleRequests()
            
 
-    def courseRequests(self):
-        print("Gathering course units years")
+    def scheduleRequests(self):
+        print("Gathering professors' metadata")
         db = Database() 
 
-        sql = "SELECT id, url FROM course_unit"
+        sql = "SELECT url, is_composed, schedule_professor_id, schedule.id schedule_id FROM course_unit JOIN schedule ON course_unit.id = schedule.course_unit_id"
         db.cursor.execute(sql)
-        self.course_units = db.cursor.fetchall()
+        self.prof_info = db.cursor.fetchall()
         db.connection.close()
 
-        self.log("Crawling {} courses".format(len(self.course_units)))
+        self.log("Crawling {} schedules".format(len(self.prof_info)))
 
-        for course_unit in self.course_units:
-            yield scrapy.http.Request(
-                url=course_unit[1],
-                meta={'course_unit_id': course_unit[0]},
-                callback=self.extractCourseUnitByYears)
+        for (url, is_composed, schedule_professor_id, schedule_id) in self.prof_info:
+            faculty = url.split('/')[3]
 
-    def extractCourseUnitByYears(self, response): 
-        study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
-        df = pd.read_html(study_cycles)[0]
-
-        for (_, row) in df.iterrows():
-            yield CourseUnitYear(
-                    course_id = row[df.columns[0]],
-                    course_unit_id=response.meta['course_unit_id'],
-                    course_unit_year=row['Anos Curriculares']
+            if is_composed:
+                yield scrapy.http.Request(
+                    url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, schedule_professor_id),
+                    meta={'schedule_id': schedule_id},
+                    callback=self.extractCompoundProfessors)
+            else:
+                yield ScheduleProfessor(
+                    schedule_id=schedule_id,
+                    professor_id=schedule_professor_id,
                 )
  
+    def extractCompoundProfessors(self, response): 
+        professors = response.xpath('//*[@id="conteudoinner"]/li/a/@href').extract()
+
+        for professor_link in professors:
+            yield ScheduleProfessor(
+                schedule_id=response.meta['schedule_id'],
+                professor_id=professor_link.split('=')[1],
+            )
