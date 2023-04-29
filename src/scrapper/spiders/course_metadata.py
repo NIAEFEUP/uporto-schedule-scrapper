@@ -63,7 +63,7 @@ class CourseMetadataSpider(scrapy.Spider):
         print("Gathering course metadata...")
         db = Database() 
 
-        sql = "SELECT id, url FROM course_unit"
+        sql = "SELECT id, url, course_id FROM course_unit"
         db.cursor.execute(sql)
         self.course_units = db.cursor.fetchall()
         db.connection.close()
@@ -73,7 +73,7 @@ class CourseMetadataSpider(scrapy.Spider):
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url=course_unit[1],
-                meta={'course_unit_id': course_unit[0]},
+                meta={'course_unit_id': course_unit[0],'course_id': course_unit[2]},
                 callback=self.extractCourseUnitByYears)
     
     def extractCourseUnitByYears(self, response): 
@@ -83,7 +83,7 @@ class CourseMetadataSpider(scrapy.Spider):
         for (_, row) in df.iterrows():
             
             yield CourseMetadata(
-                    course_id = row[df.columns[0]],
+                    course_id = response.meta['course_id'],
                     course_unit_id = response.meta['course_unit_id'],
                     course_unit_year = row['Anos Curriculares'],
                     ects = row[5]
