@@ -64,7 +64,7 @@ CREATE TABLE `course_unit` (
 --
 
 CREATE TABLE `course_metadata` (
-  `course_id` INTEGER NOT NULL,
+  `course_id` int(11) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,
   `ects` float(4) NOT NULL,
@@ -89,13 +89,12 @@ CREATE TABLE `schedule` (
   `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `is_composed` boolean NOT NULL,
-  `schedule_professor_id` int (11),
+  `sigarra_schedule_professor_id` int (11),
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
   `composed_class_name` varchar(16) DEFAULT NULL,
-  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`schedule_professor_id`) REFERENCES `schedule_professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- -------------------------------------------------------- 
