@@ -49,7 +49,7 @@ class Schedule(scrapy.Item):
     duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
     start_time = scrapy.Field()  # At what time the lesson starts
     is_composed = scrapy.Field()
-    schedule_professor_id = scrapy.Field()
+    sigarra_schedule_professor_id = scrapy.Field()
     location = scrapy.Field()  # B001, B003, etc.
     class_name = scrapy.Field()  # 1MIEIC01
     composed_class_name = scrapy.Field()  # None or COMP_372
