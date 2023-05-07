@@ -132,7 +132,7 @@ class ScheduleSpider(scrapy.Spider):
         location = table.xpath('td/a/text()').extract_first()
         professor_link = table.xpath('td[@class="textod"]//a/@href').extract_first()
         is_composed = 'composto_doc' in professor_link
-        sigarra_schedule_professor_id = professor_link.split('=')[1]
+        sigarra_id = professor_link.split('=')[1]
 
         clazz = cell.xpath('span/a')
         class_name = clazz.xpath('text()').extract_first()
@@ -144,7 +144,7 @@ class ScheduleSpider(scrapy.Spider):
             return response.follow(class_url,
                                    dont_filter=True,
                                    meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                         'sigarra_schedule_professor_id': sigarra_schedule_professor_id, 'location': location, 'day': day,
+                                         'sigarra_id': sigarra_id, 'location': location, 'day': day,
                                          'composed_class_name': class_name, 'duration': duration},
                                    callback=self.extractComposedClasses)
 
@@ -155,7 +155,7 @@ class ScheduleSpider(scrapy.Spider):
             start_time=start_time,
             duration=duration,
             is_composed=is_composed,
-            sigarra_schedule_professor_id=sigarra_schedule_professor_id,
+            sigarra_id=sigarra_id,
             location=location,
             composed_class_name=None,
             class_name=class_name,
@@ -174,7 +174,7 @@ class ScheduleSpider(scrapy.Spider):
                 start_time=response.meta['start_time'],
                 duration=response.meta['duration'],
                 is_composed=response.meta['is_composed'],
-                sigarra_schedule_professor_id=response.meta['sigarra_schedule_professor_id'],
+                sigarra_id=response.meta['sigarra_id'],
                 location=response.meta['location'],
                 composed_class_name=response.meta['composed_class_name'],
                 class_name=class_name,
@@ -197,7 +197,7 @@ class ScheduleSpider(scrapy.Spider):
         location = row.xpath('td[4]/a/text()').extract_first()
         professor_link = row.xpath('td[@headers="t5"]/a/@href').extract_first()
         is_composed = 'composto_doc' in professor_link
-        sigarra_schedule_professor_id = professor_link.split('=')[1]
+        sigarra_id = professor_link.split('=')[1]
 
         clazz = row.xpath('td[6]/a')
         class_url = clazz.xpath('@href').extract_first()
@@ -209,14 +209,14 @@ class ScheduleSpider(scrapy.Spider):
             return response.follow(class_url,
                                    dont_filter=True,
                                    meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                         'sigarra_schedule_professor_id': sigarra_schedule_professor_id, 'location': location, 'day': day,
+                                         'sigarra_id': sigarra_id, 'location': location, 'day': day,
                                          'composed_class_name': class_name},
                                    callback=self.extractDurationFromComposedOverlappingClasses)
 
         return response.follow(class_url,
                                dont_filter=True,
                                meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                     'sigarra_schedule_professor_id': sigarra_schedule_professor_id, 'location': location, 'day': day,
+                                     'sigarra_id': sigarra_id, 'location': location, 'day': day,
                                      'class_name': class_name},
                                callback=self.extractDurationFromOverlappingClass)
 
@@ -231,7 +231,7 @@ class ScheduleSpider(scrapy.Spider):
                                   dont_filter=True,
                                   meta={
                                       'id': response.meta['id'], 'lesson_type': response.meta['lesson_type'], 'start_time': response.meta['start_time'],
-                                      'is_composed': response.meta['is_composed'], 'sigarra_schedule_professor_id': response.meta['sigarra_schedule_professor_id'],
+                                      'is_composed': response.meta['is_composed'], 'sigarra_id': response.meta['sigarra_id'],
                                       'location': response.meta['location'], 'day': response.meta['day'],
                                       'composed_class_name': response.meta['composed_class_name'], 'class_name': class_name
                                   },
@@ -283,7 +283,7 @@ class ScheduleSpider(scrapy.Spider):
             start_time=start_time,
             duration=duration,
             is_composed=response.meta['is_composed'],
-            sigarra_schedule_professor_id=response.meta['sigarra_schedule_professor_id'],
+            sigarra_id=response.meta['sigarra_id'],
             location=response.meta['location'],
             composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None,
             class_name=response.meta['class_name'],

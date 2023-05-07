@@ -61,25 +61,25 @@ class ScheduleProfessorSpider(scrapy.Spider):
         print("Gathering professors' metadata")
         db = Database() 
 
-        sql = "SELECT url, is_composed, sigarra_schedule_professor_id, schedule.id schedule_id FROM course_unit JOIN schedule ON course_unit.id = schedule.course_unit_id"
+        sql = "SELECT url, is_composed, c.sigarra_id as sigarra_id, s.id as schedule_id FROM course_unit c JOIN schedule s ON c.id = s.course_unit_id"
         db.cursor.execute(sql)
         self.prof_info = db.cursor.fetchall()
         db.connection.close()
 
         self.log("Crawling {} schedules".format(len(self.prof_info)))
 
-        for (url, is_composed, sigarra_schedule_professor_id, schedule_id) in self.prof_info:
+        for (url, is_composed, sigarra_id, schedule_id) in self.prof_info:
             faculty = url.split('/')[3]
 
             if is_composed:
                 yield scrapy.http.Request(
-                    url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, sigarra_schedule_professor_id),
+                    url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, sigarra_id),
                     meta={'schedule_id': schedule_id},
                     callback=self.extractCompoundProfessors)
             else:
                 yield ScheduleProfessor(
                     schedule_id=schedule_id,
-                    professor_id=sigarra_schedule_professor_id,
+                    professor_id=sigarra_id,
                 )
  
     def extractCompoundProfessors(self, response): 
