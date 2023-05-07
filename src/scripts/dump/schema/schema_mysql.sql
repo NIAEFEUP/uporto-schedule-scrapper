@@ -28,7 +28,7 @@ CREATE TABLE `faculty` (
 CREATE TABLE `course` (
   `id` int(11) NOT NULL,
   `faculty_id` varchar(10) NOT NULL,
-  `sigarra_course_id` int(11) NOT NULL,
+  `sigarra_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
   `course_type` varchar(2) NOT NULL,  
@@ -47,7 +47,7 @@ CREATE TABLE `course` (
 
 CREATE TABLE `course_unit` (
   `id` int(11) NOT NULL,
-  `sigarra_course_unit_id` int(11) NOT NULL,
+  `sigarra_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE `schedule` (
   `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `is_composed` boolean NOT NULL,
-  `sigarra_schedule_professor_id` INTEGER,
+  `sigarra_id` INTEGER,
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
@@ -151,13 +151,13 @@ alter TABLE schedule_professor ADD FOREIGN KEY (`professor_id`) REFERENCES `prof
 --
 -- Indexes for table `course`
 --
-CREATE UNIQUE INDEX `course_course_id` ON `course` (`sigarra_course_id`,`faculty_id`,`year`);
+CREATE UNIQUE INDEX `course_course_id` ON `course` (`sigarra_id`,`faculty_id`,`year`);
 CREATE INDEX `course_faculty_acronym` ON `course` (`faculty_id`); 
 
 --
 -- Indexes for table `course_unit`
 --
-CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`sigarra_course_unit_id`,`course_id`,`year`,`semester`); 
+CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`sigarra_id`,`course_id`,`year`,`semester`); 
 CREATE INDEX `course_unit_course_id` ON `course_unit` (`course_id`);
 
 --
