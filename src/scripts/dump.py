@@ -30,7 +30,7 @@ class Dump:
         dump_filepath = self.get_dump_filepath()
         db_filepath = self.get_db_filepath()
         con = sqlite3.connect(db_filepath)
-        f = open(dump_filepath, 'w')
+        f = open(dump_filepath, 'w', encoding="utf-8")
         self.dump_table("faculty", con, f)
         self.dump_table("course", con, f)
         self.dump_table("course_unit", con, f)
