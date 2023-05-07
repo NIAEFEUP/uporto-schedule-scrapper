@@ -62,8 +62,12 @@ class ProfessorSpider(scrapy.Spider):
     def scheduleRequests(self):
         print("Gathering professors")
         db = Database() 
-
-        sql = "SELECT professor_id, url FROM course_unit JOIN schedule JOIN schedule_professor ON course_unit.id = schedule.course_unit_id AND schedule.id = schedule_professor.schedule_id GROUP BY professor_id"
+        
+        sql = """SELECT sp.professor_sigarra_id as professor_sigarra_id, url 
+        FROM course_unit cu
+        JOIN schedule s
+        JOIN schedule_professor sp ON cu.id = s.course_unit_id AND s.id = sp.schedule_id 
+        GROUP BY sp.professor_sigarra_id"""
         db.cursor.execute(sql)
         self.prof_info = db.cursor.fetchall()
         db.connection.close()
@@ -75,15 +79,14 @@ class ProfessorSpider(scrapy.Spider):
             faculty = url.split('/')[3]
             yield scrapy.http.Request(
                 url="https://sigarra.up.pt/{}/pt/func_geral.FormView?p_codigo={}".format(faculty, id),
-                meta={'professor_id': id},
+                meta={'professor_sigarra_id': id},
                 callback=self.extractProfessors)
 
     def extractProfessors(self, response): 
         name = response.xpath('//table[@class="tabelasz"]/tr[1]/td[2]/b/text()').extract_first()
         acronym = response.xpath('//table[@class="tabelasz"]/tr[2]/td[2]/b/text()').extract_first()
-        
         return Professor(
-            id = response.meta['professor_id'],
+            sigarra_id = response.meta['professor_sigarra_id'],
             professor_acronym = acronym,
             professor_name = name
         )
