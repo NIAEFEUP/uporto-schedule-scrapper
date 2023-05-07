@@ -89,7 +89,7 @@ CREATE TABLE `schedule` (
   `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `is_composed` boolean NOT NULL,
-  `sigarra_id` int (11),
+  `professor_sigarra_id` int (11),
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
@@ -105,10 +105,9 @@ CREATE TABLE `schedule` (
 
 CREATE TABLE `schedule_professor` (
   `schedule_id` INTEGER NOT NULL,
-  `professor_id` INTEGER NOT NULL,
+  `professor_sigarra_id` INTEGER NOT NULL,
   FOREIGN KEY (`schedule_id`) REFERENCES `schedule` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`professor_id`) REFERENCES `professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  PRIMARY KEY (`schedule_id`, `professor_id`)
+  PRIMARY KEY (`schedule_id`, `professor_sigarra_id`)
 );
 
 -- -------------------------------------------------------- 
@@ -118,45 +117,9 @@ CREATE TABLE `schedule_professor` (
 --
 
 CREATE TABLE `professor` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `sigarra_id` INTEGER PRIMARY KEY,
   `professor_acronym` varchar(16),
   `professor_name` varchar(50)
 );
 
--- -------------------------------------------------------- 
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `course`
---
-CREATE UNIQUE INDEX `course_course_id` ON `course` (`sigarra_id`,`faculty_id`,`year`);
-CREATE INDEX `course_faculty_id` ON `course` (`faculty_id`); 
-
---
--- Indexes for table `course_unit`
---
-CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`sigarra_id`,`course_id`,`semester`); 
-CREATE INDEX `course_unit_course_id` ON `course_unit` (`course_id`);
-
---
--- Indexes for table `faculty`
---
-CREATE UNIQUE INDEX `faculty_acronym` ON `faculty`(`acronym`);
-
---
--- Indexes for table `schedule`
---
-CREATE INDEX `schedule_course_unit_id` ON `schedule`(`course_unit_id`);
-
---
--- Indexes for table `schedule_professors`
--- 
-CREATE INDEX `schedule_professor_schedule_id` ON `schedule_professor`(`schedule_id`);
-
---
--- Indexes for table `course_metadata`
--- 
-CREATE INDEX `course_metadata_index` ON `course_metadata`(`course_id`, `course_unit_id`, `course_unit_year`);
+-- --------------------------------------------------------
