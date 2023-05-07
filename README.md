@@ -82,7 +82,7 @@ root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_g
 
 ## :triangular_ruler: Database design 
 
-![Image](./docs/current_schema.png)
+![Image](./docs/schema.2.0.png)
 
 
 ## :page_with_curl: More information 
