@@ -78,6 +78,7 @@ class ScheduleProfessorSpider(scrapy.Spider):
                 yield scrapy.http.Request(
                     url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, professor_sigarra_id),
                     meta={'schedule_id': schedule_id},
+                    dont_filter=True,
                     callback=self.extractCompoundProfessors)
             else:
             # It is the sigarra's professor id. 
