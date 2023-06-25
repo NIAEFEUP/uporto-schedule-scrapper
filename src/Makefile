@@ -1,7 +1,8 @@
+PWD=
+
 .PHONY: all clean
 
 all: faculties courses course_units course_metadata schedules schedule_professor professors
-
 
 faculties: 
 	scrapy crawl faculties 
@@ -23,6 +24,13 @@ schedule_professor:
 
 professors:
 	scrapy crawl professors
+
+all_pwd: faculties courses
+	scrapy crawl course_units -a password="$(PWD)"
+	scrapy crawl course_metadata -a password="$(PWD)"
+	scrapy crawl schedules -a password="$(PWD)"
+	scrapy crawl schedule_professor -a password="$(PWD)"
+	scrapy crawl professors -a password="$(PWD)"
 
 dump:
 	@echo "Dumping files..."

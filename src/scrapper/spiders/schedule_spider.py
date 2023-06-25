@@ -16,12 +16,12 @@ class ScheduleSpider(scrapy.Spider):
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2,
             'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
-    password = None
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(ScheduleSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = self.config['default']['USER']
+        self.password = password
 
     def open_config(self):
         """

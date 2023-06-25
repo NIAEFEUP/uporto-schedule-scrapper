@@ -12,7 +12,6 @@ class ScheduleProfessorSpider(scrapy.Spider):
     name = 'schedule_professor'
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
-    password = None
     
     def open_config(self):
         """
@@ -22,10 +21,11 @@ class ScheduleProfessorSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(ScheduleProfessorSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = self.config['default']['USER']
+        self.password
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
