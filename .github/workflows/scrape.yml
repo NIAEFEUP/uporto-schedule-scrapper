@@ -1,0 +1,27 @@
+name: Create SQL from Scrapper
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  #schedule:
+  # * is a special character in YAML so you have to quote this string
+  #- cron:  '30 21 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create the scrapped mysql file
+        run: |
+          pip install -r ./src/requirements.txt
+          cd ./src && make all_pwd PWD="${{secrets.SIGARRA_PWD}}"
+          make dump
+          cd scripts/dump/data
+          mv dump_sqlite3.sql 01_data.sql
+          echo ${{secrets.KEY}} >> id_rsa
+          scp -i id_rsa 01_data.sql tts-be/src/scripts/dump/data
+          ssh -i id_rsa ${{secrets.SV_USER}}@${{secrets.SV_IP}} -p {{secrets.SV_PORT}} "cd tts-be && docker compose down && make clean && ./scripts/exec.sh"
