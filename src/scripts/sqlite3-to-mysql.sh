@@ -16,4 +16,5 @@ sed \
 -e 's/\(CREATE TABLE.*\)\(PRIMARY KEY\) \(AUTOINCREMENT\)\(.*\)\();\)/\1AUTO_INCREMENT\4, PRIMARY KEY(id)\5/' \
 -e "s/'t'/1/g" \
 -e "s/'f'/0/g" \
+-e "s/'\([0-9]\+\),\([0-9]\+\)'/\1\.\2/g" \
 $1
