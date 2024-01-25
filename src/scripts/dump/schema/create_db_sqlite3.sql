@@ -126,6 +126,7 @@ alter TABLE course ADD PRIMARY KEY (`id`);
 alter TABLE course ADD FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`acronym`) on DELETE CASCADE ON UPDATE CASCADE;
 
 alter TABLE course_unit ADD PRIMARY KEY (`id`);
+alter TABLE course_unit ADD UNIQUE (`sigarra_id`, `course_id`);
 alter TABLE course_unit ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 alter TABLE course_metadata ADD PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`);
