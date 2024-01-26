@@ -3,9 +3,9 @@ import scrapy
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from configparser import ConfigParser, ExtendedInterpolation
-
 from ..items import Course
 from ..database.Database import Database
+from dotenv import dotenv_values
 
 class CourseSpider(scrapy.Spider):
     name = "courses"
@@ -27,7 +27,7 @@ class CourseSpider(scrapy.Spider):
 
 
     def get_year(self):
-        year = self.config['default']['YEAR']
+        year = dotenv_values('.env')['YEAR']
         if not year:
             raise Exception('YEAR variable not specified for parsing in configuration file!')
         return int(year)   
