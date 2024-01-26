@@ -3,6 +3,7 @@ import scrapy
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
+from dotenv import dotenv_values
 import json
 from ..database.Database import Database
 from ..items import ScheduleProfessor
@@ -22,10 +23,11 @@ class ScheduleProfessorSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(ScheduleProfessorSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = self.config['default']['USER']
+        self.user = dotenv_values('.env')['USER']
+        self.password = dotenv_values('.env')['PASSWORD']
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({

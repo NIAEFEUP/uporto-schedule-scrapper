@@ -4,6 +4,7 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
+from dotenv import dotenv_values
 import logging
 import json
 
@@ -26,10 +27,11 @@ class CourseUnitSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(CourseUnitSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = self.config['default']['USER']
+        self.user = dotenv_values('.env')['USER']
+        self.password = dotenv_values('.env')['PASSWORD']
         logging.getLogger('scrapy').propagate = False
 
     def format_login_url(self):

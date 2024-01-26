@@ -126,3 +126,5 @@ src/scripts/dump/dump.sql
 src/scripts/dump/data/*.sql
 
 .DS_Store
+
+src/.env
