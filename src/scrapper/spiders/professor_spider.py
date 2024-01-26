@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
 from ..database.Database import Database
+from dotenv import dotenv_values
 from ..items import Professor
 import pandas as pd
 
@@ -24,10 +25,11 @@ class ProfessorSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(ProfessorSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = self.config['default']['USER']
+        self.user = dotenv_values('.env')['USER']
+        self.password = dotenv_values('.env')['PASSWORD']
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
