@@ -87,9 +87,11 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 128.0
 # Enable showing throttling stats for every response received:
 AUTOTHROTTLE_DEBUG = True
 
+REQUEST_FINGERPRINTER_CLASS = 'scrapper.dupefilter.RequestFingerprinter'
+
 # Enable and configure HTTP caching (disabled by default)
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-#HTTPCACHE_ENABLED = True
+#HTTPCACHE_ENABLED = False
 #HTTPCACHE_EXPIRATION_SECS = 0
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []

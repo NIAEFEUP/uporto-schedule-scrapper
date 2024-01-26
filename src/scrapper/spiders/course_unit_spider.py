@@ -5,6 +5,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
 from dotenv import dotenv_values
+import logging
 import json
 
 from ..database.Database import Database
@@ -31,6 +32,7 @@ class CourseUnitSpider(scrapy.Spider):
         self.open_config()
         self.user = dotenv_values('.env')['USER']
         self.password = dotenv_values('.env')['PASSWORD']
+        logging.getLogger('scrapy').propagate = False
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({

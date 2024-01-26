@@ -30,7 +30,6 @@ class CourseMetadataSpider(scrapy.Spider):
         self.open_config()
         self.user = dotenv_values(".env")['USER']
         self.password = dotenv_values('.env')['PASSWORD']
-        # self.user = self.config['default']['USER']
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
