@@ -4,6 +4,7 @@ from datetime import datetime
 from scrapy.http import Request, FormRequest
 import urllib.parse
 from configparser import ConfigParser, ExtendedInterpolation
+from dotenv import dotenv_values
 import json
 
 from ..database.Database import Database 
@@ -18,10 +19,11 @@ class ScheduleSpider(scrapy.Spider):
             'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
     password = None
 
-    def __init__(self, category=None, *args, **kwargs):
+    def __init__(self, password=None, category=None, *args, **kwargs):
         super(ScheduleSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = self.config['default']['USER']
+        self.user = dotenv_values('.env')['USER']
+        self.password = dotenv_values('.env')['PASSWORD']
 
     def open_config(self):
         """
