@@ -4,6 +4,7 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
+import logging
 import json
 
 from ..database.Database import Database
@@ -29,6 +30,7 @@ class CourseUnitSpider(scrapy.Spider):
         super(CourseUnitSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = self.config['default']['USER']
+        logging.getLogger('scrapy').propagate = False
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
