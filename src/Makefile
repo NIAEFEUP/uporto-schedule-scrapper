@@ -1,6 +1,7 @@
 .PHONY: all clean
-
-all: faculties courses course_units course_metadata schedules schedule_professor professors
+FILES = $(shell ls)
+        
+all: info faculties courses course_units course_metadata schedules schedule_professor professors
 
 
 faculties: 
@@ -23,6 +24,9 @@ schedule_professor:
 
 professors:
 	scrapy crawl professors
+
+info:
+	python ./scrapper/info.py
 
 dump:
 	@echo "Dumping files..."
