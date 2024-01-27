@@ -123,3 +123,13 @@ CREATE TABLE `professor` (
 );
 
 -- --------------------------------------------------------
+
+--
+-- Table structure for table `info`
+--
+
+CREATE TABLE `info` (
+  `date` DATETIME PRIMARY KEY
+);
+
+-- --------------------------------------------------------
