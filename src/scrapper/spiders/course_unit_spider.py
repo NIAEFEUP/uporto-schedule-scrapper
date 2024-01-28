@@ -8,6 +8,8 @@ from dotenv import dotenv_values
 import logging
 import json
 
+from scrapper.settings import CONFIG, PASSWORD, USERNAME
+
 from ..database.Database import Database
 from ..items import CourseUnit
 
@@ -30,8 +32,8 @@ class CourseUnitSpider(scrapy.Spider):
     def __init__(self, password=None, category=None, *args, **kwargs):
         super(CourseUnitSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = dotenv_values('.env')['USER']
-        self.password = dotenv_values('.env')['PASSWORD']
+        self.user = CONFIG[USERNAME]
+        self.password = CONFIG[PASSWORD]
         logging.getLogger('scrapy').propagate = False
 
     def format_login_url(self):

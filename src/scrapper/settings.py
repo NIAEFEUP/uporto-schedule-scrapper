@@ -8,6 +8,17 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
+import os
+from dotenv import dotenv_values
+
+CONFIG={
+    **dotenv_values(".env"),  # load variables
+    **os.environ,  # override loaded values with environment variables
+}
+
+YEAR='TTS_SCRAPY_YEAR'
+USERNAME='TTS_SCRAPY_USER'
+PASSWORD='TTS_SCRAPY_PASSWORD'
 
 BOT_NAME = 'scrapper'
 
