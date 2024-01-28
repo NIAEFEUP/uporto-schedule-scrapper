@@ -4,6 +4,8 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
+
+from scrapper.settings import CONFIG, PASSWORD, USERNAME
 from ..database.Database import Database
 from dotenv import dotenv_values
 from ..items import Professor
@@ -28,8 +30,8 @@ class ProfessorSpider(scrapy.Spider):
     def __init__(self, password=None, category=None, *args, **kwargs):
         super(ProfessorSpider, self).__init__(*args, **kwargs)
         self.open_config()
-        self.user = dotenv_values('.env')['USER']
-        self.password = dotenv_values('.env')['PASSWORD']
+        self.user = CONFIG[USERNAME]
+        self.password = CONFIG[PASSWORD]
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
