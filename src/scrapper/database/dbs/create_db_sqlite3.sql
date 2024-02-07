@@ -46,7 +46,6 @@ CREATE TABLE `course` (
 CREATE TABLE `course_unit` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `sigarra_id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
@@ -54,7 +53,7 @@ CREATE TABLE `course_unit` (
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL,
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE (`sigarra_id`, `semester`, `year`)
 );
 
 -- --------------------------------------------------------

@@ -77,19 +77,17 @@ class CourseMetadataSpider(scrapy.Spider):
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url=course_unit[1],
-                meta={'course_unit_id': course_unit[0],'course_id': course_unit[2], 'course_unit_sigarra_id': course_unit[3]},
+                meta={'course_unit_id': course_unit[0], 'course_unit_sigarra_id': course_unit[3]},
                 callback=self.extractCourseUnitByYears)
     
     def extractCourseUnitByYears(self, response): 
         study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
-        df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
+        df = pd.read_html(study_cycles, decimal=',', thousands='.')[0]
 
         for (_, row) in df.iterrows():
-            # NOTE(luisd & thePeras): We need to filter by the current course otherwise we would get duplicate entries
-            if  f'pv_curso_id={response.meta["course_unit_sigarra_id"]}' in str(row[0][1]):
-                yield CourseMetadata(
-                        course_id = response.meta['course_id'],
-                        course_unit_id = response.meta['course_unit_id'],
-                        course_unit_year = row[3][0],
-                        ects = row[5][0]
-                    )
+            yield CourseMetadata(
+                course_id = response.meta['course_id'],
+                course_unit_id = response.meta['course_unit_id'],
+                course_unit_year = row['Anos Curriculares'],
+                ects = row[5]
+            )
