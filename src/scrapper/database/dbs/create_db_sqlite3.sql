@@ -118,7 +118,7 @@ CREATE TABLE `schedule_professor` (
 CREATE TABLE `professor` (
   `sigarra_id` INTEGER PRIMARY KEY,
   `professor_acronym` varchar(16),
-  `professor_name` varchar(50)
+  `professor_name` varchar(100)
 );
 
 -- --------------------------------------------------------
