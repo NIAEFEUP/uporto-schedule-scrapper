@@ -32,6 +32,7 @@ class CourseMetadataSpider(scrapy.Spider):
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
+        self.course_metadatas = set()
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
@@ -64,30 +65,52 @@ class CourseMetadataSpider(scrapy.Spider):
            
 
     def courseRequests(self):
-        print("Gathering course metadata...")
+        print("Gathering courses...")
         db = Database() 
 
-        sql = "SELECT cu.id, cu.url, cu.course_id, c.sigarra_id FROM course_unit cu JOIN course c ON c.id=cu.course_id"
+        sql = "SELECT id, sigarra_id FROM course"
+        db.cursor.execute(sql)
+        self.courses = {sigarra_id: id for id, sigarra_id in db.cursor.fetchall()}
+
+        self.log("Crawling {} courses".format(len(self.courses)))
+
+        print("Gathering course units...")
+        sql = "SELECT id, url FROM course_unit"
         db.cursor.execute(sql)
         self.course_units = db.cursor.fetchall()
         db.connection.close()
 
-        self.log("Crawling {} courses".format(len(self.course_units)))
+        self.log("Crawling {} course units".format(len(self.course_units)))
 
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url=course_unit[1],
-                meta={'course_unit_id': course_unit[0], 'course_unit_sigarra_id': course_unit[3]},
+                meta={'course_unit_id': course_unit[0]},
                 callback=self.extractCourseUnitByYears)
     
     def extractCourseUnitByYears(self, response): 
         study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
+        if study_cycles is None:
+            return
         df = pd.read_html(study_cycles, decimal=',', thousands='.')[0]
 
         for (_, row) in df.iterrows():
+            course_unit_id = response.meta['course_unit_id']
+            course_acronym = row['Sigla' if 'Sigla' in row else 'Acronym']
+            course_url = response.xpath(f'//a[text()="{course_acronym}"]/@href').get()
+            if course_url is None:
+                continue
+            course_sigarra_id = int(course_url.split('=')[1].split('&')[0])
+            if course_sigarra_id not in self.courses:
+                continue
+            course_id = self.courses[course_sigarra_id]
+            course_unit_year = row['Anos Curriculares']
+            if (course_id, course_unit_id, course_unit_year) in self.course_metadatas:
+                continue
+            self.course_metadatas.add((course_id, course_unit_id, course_unit_year))
             yield CourseMetadata(
-                course_id = response.meta['course_id'],
-                course_unit_id = response.meta['course_unit_id'],
+                course_id = course_id,
+                course_unit_id = course_unit_id,
                 course_unit_year = row['Anos Curriculares'],
                 ects = row[5]
             )

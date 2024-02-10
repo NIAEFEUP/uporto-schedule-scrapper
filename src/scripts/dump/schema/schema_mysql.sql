@@ -51,7 +51,7 @@ CREATE TABLE `course_unit` (
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `semester` int(4) NOT NULL,
+  `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL
@@ -80,7 +80,7 @@ CREATE TABLE `course_metadata` (
 
 CREATE TABLE `schedule` (
   `id` INTEGER NOT NULL,
-  `day` int(3) NOT NULL,
+  `day` tinyint(3) NOT NULL,
   `duration` decimal(3,1) NOT NULL,
   `start_time` decimal(3,1) NOT NULL,
   `location` varchar(31) NOT NULL,

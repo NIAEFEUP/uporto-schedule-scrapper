@@ -84,9 +84,6 @@ class ScheduleSpider(scrapy.Spider):
                 meta={'id': class_unit[0]},
                 callback=self.extractSchedule,
                 errback=self.func)
-            
-    def func(self):
-        print("Error :(")
 
     def extractSchedule(self, response):
         # Check if there is no schedule available
