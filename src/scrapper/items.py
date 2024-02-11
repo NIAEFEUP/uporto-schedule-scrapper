@@ -27,7 +27,6 @@ class Course(scrapy.Item):
 
 class CourseUnit(scrapy.Item):
     sigarra_id = scrapy.Field()
-    course_id = scrapy.Field()
     name = scrapy.Field()
     acronym = scrapy.Field()
     url = scrapy.Field()

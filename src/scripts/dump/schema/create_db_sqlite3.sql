@@ -48,11 +48,10 @@ CREATE TABLE `course` (
 CREATE TABLE `course_unit` (
   `id` int(11) NOT NULL,
   `sigarra_id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `semester` int(4) NOT NULL,
+  `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL
@@ -67,7 +66,7 @@ CREATE TABLE `course_unit` (
 CREATE TABLE `course_metadata` (
   `course_id` int(11) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
-  `course_unit_year` int(4) NOT NULL,
+  `academic_year` int(4) NOT NULL,
   `ects` float(4) NOT NULL
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
@@ -81,7 +80,7 @@ CREATE TABLE `course_metadata` (
 
 CREATE TABLE `schedule` (
   `id` INTEGER NOT NULL,
-  `day` int(3) NOT NULL,
+  `day` tinyint(3) NOT NULL,
   `duration` decimal(3,1) NOT NULL,
   `start_time` decimal(3,1) NOT NULL,
   `location` varchar(31) NOT NULL,
@@ -126,8 +125,6 @@ alter TABLE course ADD PRIMARY KEY (`id`);
 alter TABLE course ADD FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`acronym`) on DELETE CASCADE ON UPDATE CASCADE;
 
 alter TABLE course_unit ADD PRIMARY KEY (`id`);
-alter TABLE course_unit ADD UNIQUE (`sigarra_id`, `course_id`);
-alter TABLE course_unit ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 alter TABLE course_metadata ADD PRIMARY KEY (`course_id`, `course_unit_id`, `course_unit_year`);
 alter TABLE course_metadata ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -156,8 +153,7 @@ CREATE INDEX `course_faculty_acronym` ON `course` (`faculty_id`);
 --
 -- Indexes for table `course_unit`
 --
-CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit`  (`sigarra_id`,`course_id`,`year`,`semester`); 
-CREATE INDEX `course_unit_course_id` ON `course_unit` (`course_id`);
+CREATE UNIQUE INDEX `course_unit_uniqueness` ON `course_unit` (`sigarra_id`,`year`,`semester`); 
 
 --
 -- Indexes for table `faculty`

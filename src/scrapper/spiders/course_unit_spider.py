@@ -34,6 +34,7 @@ class CourseUnitSpider(scrapy.Spider):
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
+        self.sigarra_ids = set()
         logging.getLogger('scrapy').propagate = False
 
     def format_login_url(self):
@@ -113,8 +114,11 @@ class CourseUnitSpider(scrapy.Spider):
         if name == 'Sem Resultados':
             return None  # Return None as yielding would continue the program and crash at the next assert
 
-        course_unit_id = parse_qs(urlparse(response.url).query)[
-            'pv_ocorrencia_id'][0]
+        sigarra_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
+        if sigarra_id in self.sigarra_ids:
+            return
+        self.sigarra_ids.add(sigarra_id)
+
         acronym = response.xpath(
             '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
 
@@ -164,8 +168,7 @@ class CourseUnitSpider(scrapy.Spider):
 
         for semester in semesters:
             yield CourseUnit(
-                sigarra_id=course_unit_id,
-                course_id=response.meta['course_id'],
+                sigarra_id=sigarra_id,
                 name=name,
                 acronym=acronym,
                 url=url,
@@ -174,4 +177,3 @@ class CourseUnitSpider(scrapy.Spider):
                 semester=semester,
                 last_updated=datetime.now()
             )
- 
