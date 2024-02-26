@@ -70,7 +70,7 @@ class CourseUnitSpider(scrapy.Spider):
         print("Gathering courses")
         db = Database() 
 
-        sql = "SELECT course.id, year, course.sigarra_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id= faculty.acronym"
+        sql = "SELECT course.id, year, course.id, faculty.acronym FROM course JOIN faculty ON course.faculty_id= faculty.acronym"
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()
@@ -164,7 +164,7 @@ class CourseUnitSpider(scrapy.Spider):
 
         for semester in semesters:
             yield CourseUnit(
-                sigarra_id=course_unit_id,
+                id=course_unit_id,
                 course_id=response.meta['course_id'],
                 name=name,
                 acronym=acronym,

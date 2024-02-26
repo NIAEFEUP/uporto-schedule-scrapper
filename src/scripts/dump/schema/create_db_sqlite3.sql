@@ -71,9 +71,6 @@ CREATE TABLE `course_metadata` (
   `ects` float(4) NOT NULL
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
-
-
-
 -- --------------------------------------------------------
 --
 -- Table structure for table `schedule`
@@ -117,6 +114,27 @@ CREATE TABLE `professor` (
   `professor_name` varchar(100)
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `info`
+--
+
+CREATE TABLE `info` (
+  `date` datetime
+) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
+
+-- --------------------------------------------------------
+
+-- Table structure for table `statistics`
+-- 
+
+CREATE TABLE `statistics` (
+  `course_unit_id` int(11) NOT NULL,
+  `acronym` varchar(10) NOT NULL,
+  `visited_times` int(11) NOT NULL,
+  `last_updated` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 -- Add primary keys 
@@ -136,16 +154,15 @@ alter TABLE course_metadata ADD FOREIGN KEY (`course_id`) REFERENCES `course`(`i
 alter TABLE schedule ADD PRIMARY KEY (`id`);
 alter TABLE schedule ADD FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+alter TABLE info ADD PRIMARY KEY (`date`);
+
+alter TABLE statistics ADD PRIMARY KEY (`course_unit_id`);
+
+alter TABLE professor ADD PRIMARY KEY (`sigarra_id`);
 
 alter TABLE schedule_professor ADD PRIMARY KEY (`schedule_id`, `professor_sigarra_id`); 
 alter TABLE schedule_professor ADD FOREIGN KEY (`schedule_id`) REFERENCES `schedule`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-
-alter TABLE professor ADD PRIMARY KEY (`sigarra_id`);
-
-
-
--- Create index 
 
 --
 -- Indexes for table `course`
@@ -170,7 +187,11 @@ CREATE UNIQUE INDEX `faculty_acronym` ON `faculty`(`acronym`);
 CREATE INDEX `schedule_course_unit_id` ON `schedule`(`course_unit_id`);
 
 --
+-- Indexes for table `schedule`
+--
+CREATE INDEX `statistics` ON `statistics`(`course_unit_id`);
+
+--
 -- Indexes for table `course_metadata`
 -- 
 CREATE INDEX `course_metadata_index` ON `course_metadata`(`course_id`, `course_unit_id`, `course_unit_year`); 
-
