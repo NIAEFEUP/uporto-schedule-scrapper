@@ -67,7 +67,7 @@ class CourseMetadataSpider(scrapy.Spider):
         print("Gathering course metadata...")
         db = Database() 
 
-        sql = "SELECT cu.id, cu.url, cu.course_id, c.sigarra_id FROM course_unit cu JOIN course c ON c.id=cu.course_id"
+        sql = "SELECT cu.id, cu.url, cu.course_id, c.id FROM course_unit cu JOIN course c ON c.id=cu.course_id"
         db.cursor.execute(sql)
         self.course_units = db.cursor.fetchall()
         db.connection.close()

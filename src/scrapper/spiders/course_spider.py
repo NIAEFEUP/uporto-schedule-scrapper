@@ -27,7 +27,6 @@ class CourseSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-
     def get_year(self):
         year = CONFIG[YEAR]
         if not year:
@@ -61,8 +60,8 @@ class CourseSpider(scrapy.Spider):
             
             sigarra_id = response.url.split('=')[-1]
             course = Course(
+                id = sigarra_id,
                 faculty_id = response.meta['faculty_acronym'],    # New parameter 
-                sigarra_id = sigarra_id,
                 name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
                 acronym = self.get_acronym(response),
                 course_type = response.meta['course_type'],

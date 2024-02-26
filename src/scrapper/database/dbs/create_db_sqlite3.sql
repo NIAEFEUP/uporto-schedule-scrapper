@@ -23,9 +23,8 @@ CREATE TABLE `faculty` (
 --
 
 CREATE TABLE `course` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `id` INTEGER PRIMARY KEY,
   `faculty_id` varchar(10) NOT NULL,
-  `sigarra_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
   `course_type` varchar(2) NOT NULL,
@@ -35,6 +34,20 @@ CREATE TABLE `course` (
   `last_updated` datetime NOT NULL,
   FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`acronym`) ON DELETE CASCADE ON UPDATE CASCADE
 );
+    
+-- CREATE TABLE `course` (
+--   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+--   `faculty_id` varchar(10) NOT NULL,
+--   `sigarra_id` int(11) NOT NULL,
+--   `name` varchar(200) NOT NULL,
+--   `acronym` varchar(10) NOT NULL,
+--   `course_type` varchar(2) NOT NULL,
+--   `year` int(11) NOT NULL,
+--   `url` varchar(2000) NOT NULL,
+--   `plan_url` varchar(2000) NOT NULL,
+--   `last_updated` datetime NOT NULL,
+--   FOREIGN KEY (`faculty_id`) REFERENCES `faculty`(`acronym`) ON DELETE CASCADE ON UPDATE CASCADE
+-- );
 
 
 -- --------------------------------------------------------
@@ -44,8 +57,7 @@ CREATE TABLE `course` (
 --
 
 CREATE TABLE `course_unit` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `sigarra_id` int(11) NOT NULL,
+  `id` INTEGER PRIMARY KEY,
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
@@ -56,6 +68,19 @@ CREATE TABLE `course_unit` (
   `last_updated` datetime NOT NULL,
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
+-- CREATE TABLE `course_unit` (
+--   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+--   `sigarra_id` int(11) NOT NULL,
+--   `course_id` int(11) NOT NULL,
+--   `name` varchar(200) NOT NULL,
+--   `acronym` varchar(16) NOT NULL,
+--   `url` varchar(2000) NOT NULL,
+--   `semester` tinyint(4) NOT NULL,
+--   `year` smallint(6) NOT NULL,
+--   `schedule_url` varchar(2000) DEFAULT NULL,
+--   `last_updated` datetime NOT NULL,
+--   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+-- );
 
 -- --------------------------------------------------------
 

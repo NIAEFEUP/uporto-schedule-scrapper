@@ -14,8 +14,8 @@ class Faculty(scrapy.Item):
 
 
 class Course(scrapy.Item):
+    id = scrapy.Field()
     faculty_id = scrapy.Field()
-    sigarra_id = scrapy.Field()
     name = scrapy.Field()
     acronym = scrapy.Field()
     course_type = scrapy.Field()
@@ -26,7 +26,7 @@ class Course(scrapy.Item):
 
 
 class CourseUnit(scrapy.Item):
-    sigarra_id = scrapy.Field()
+    id = scrapy.Field()
     course_id = scrapy.Field()
     name = scrapy.Field()
     acronym = scrapy.Field()
