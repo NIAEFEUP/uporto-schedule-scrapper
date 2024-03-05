@@ -12,7 +12,7 @@ Python solution to extract the courses schedules from the different Faculties of
 
 ### Local python 
 ```bash
-pip install -r ./scr/requirements.txt   # Install dependencies
+pip install -r ./src/requirements.txt   # Install dependencies
 ```
 
 ### Virtual environment
