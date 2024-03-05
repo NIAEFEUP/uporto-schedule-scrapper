@@ -4,25 +4,40 @@ from datetime import datetime
 from scrapy.http import Request, FormRequest
 import urllib.parse
 from configparser import ConfigParser, ExtendedInterpolation
-from dotenv import dotenv_values
 import json
 
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database 
-from ..items import Schedule
+from ..items import Slot
 
+def get_class_id(course_unit_id, class_name):
+    db = Database()
+    sql = """
+        SELECT class.id 
+        FROM course_unit JOIN class 
+        ON course_unit.id = class.course_unit_id 
+        WHERE course_unit.id = {} AND class.name = '{}'
+    """.format(course_unit_id, class_name)
 
-class ScheduleSpider(scrapy.Spider):
-    name = "schedules"
+    print("course unit: ", course_unit_id)
+    print("class name: ", class_name)
+    
+    db.cursor.execute(sql)
+    class_id = db.cursor.fetchone()
+    db.connection.close()
+    return class_id[0]
+
+class SlotSpider(scrapy.Spider):
+    name = "slots"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2,
             'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
-    password = None
+    # password = None
 
     def __init__(self, password=None, category=None, *args, **kwargs):
-        super(ScheduleSpider, self).__init__(*args, **kwargs)
+        super(SlotSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
@@ -71,22 +86,28 @@ class ScheduleSpider(scrapy.Spider):
             self.log('Login Failed. HTTP Error {}'.format(response.status))
 
     def classUnitRequests(self):
-        db = Database()
-        sql = "SELECT `id`, `schedule_url` FROM `course_unit` WHERE schedule_url IS NOT NULL"
+        db = Database()        
+        sql = """
+            SELECT course_unit.id, course_unit.schedule_url, course.faculty_id
+            FROM course_unit JOIN course
+            ON course_unit.course_id = course.id
+            WHERE schedule_url IS NOT NULL
+        """
         db.cursor.execute(sql)
-        self.class_units = db.cursor.fetchall()
+        self.course_units = db.cursor.fetchall()
         db.connection.close()
 
-        self.log("Crawling {} class units".format(len(self.class_units)))
-        for class_unit in self.class_units:
-            yield Request(
-                url=class_unit[1],
-                meta={'id': class_unit[0]},
+        self.log("Crawling {} class units".format(len(self.course_units)))
+        for course_unit in self.course_units:
+            yield Request(                
+                url="https://sigarra.up.pt/{}/pt/{}".format(course_unit[2], course_unit[1]),
+                meta={'course_unit_id': course_unit[0]},
                 callback=self.extractSchedule,
-                errback=self.func)
+                errback=self.func
+            )
             
     def func(self):
-        print("Error :(")
+        print("Se fodeu :(")
 
     def extractSchedule(self, response):
         # Check if there is no schedule available
@@ -120,23 +141,22 @@ class ScheduleSpider(scrapy.Spider):
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
                         yield self.extractClassSchedule(response, cur_col, cur_day, hour, int(class_duration) / 2,
-                                                        response.meta['id'])
+                                                        response.meta['course_unit_id'])
 
                 hour += 0.5
 
         # Overlapping classes
         for row in response.xpath('//table[@class="dados"]/tr[not(th)]'):
-            yield self.extractOverlappingClassSchedule(response, row, response.meta['id'])
+            yield self.extractOverlappingClassSchedule(response, row, response.meta['course_unit_id'])
 
-    def extractClassSchedule(self, response, cell, day, start_time, duration, id):
+    def extractClassSchedule(self, response, cell, day, start_time, duration, course_unit_id):
         lesson_type = cell.xpath(
             'b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
-
         table = cell.xpath('table/tr')
         location = table.xpath('td/a/text()').extract_first()
         professor_link = table.xpath('td[@class="textod"]//a/@href').extract_first()
         is_composed = 'composto_doc' in professor_link
-        professor_sigarra_id = professor_link.split('=')[1]
+        professor_id = professor_link.split('=')[1]
 
         clazz = cell.xpath('span/a')
         class_name = clazz.xpath('text()').extract_first()
@@ -145,25 +165,33 @@ class ScheduleSpider(scrapy.Spider):
         # If true, this means the class is composed of more than one class
         # And an additional request must be made to obtain all classes
         if "hor_geral.composto_desc" in class_url:
-            return response.follow(class_url,
-                                   dont_filter=True,
-                                   meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                         'professor_sigarra_id': professor_sigarra_id, 'location': location, 'day': day,
-                                         'composed_class_name': class_name, 'duration': duration},
-                                   callback=self.extractComposedClasses)
+            return response.follow(
+                class_url,
+                dont_filter=True,
+                meta={
+                    'course_unit_id': course_unit_id, 
+                    'lesson_type': lesson_type, 
+                    'start_time': start_time, 
+                    'is_composed': is_composed,
+                    'professor_id': professor_id, 
+                    'location': location, 
+                    'day': day,
+                    'duration': duration
+                },
+                callback=self.extractComposedClasses
+            )
 
-        return Schedule(
-            course_unit_id=id,
+        # DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE |===================| DONE
+        return Slot(
             lesson_type=lesson_type,
             day=day,
             start_time=start_time,
             duration=duration,
-            is_composed=is_composed,
-            professor_sigarra_id=professor_sigarra_id,
             location=location,
-            composed_class_name=None,
-            class_name=class_name,
-            last_updated=datetime.now()
+            is_composed=is_composed,
+            professor_id=professor_id,
+            class_id=get_class_id(course_unit_id, class_name),
+            last_updated=datetime.now(),
         )
 
     def extractComposedClasses(self, response):
@@ -171,21 +199,20 @@ class ScheduleSpider(scrapy.Spider):
             '//div[@id="conteudoinner"]/li/a/text()').extract()
 
         for class_name in class_names:
-            yield Schedule(
-                course_unit_id=response.meta['id'],
+            # DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE |===============| DONE
+            yield Slot(
                 lesson_type=response.meta['lesson_type'],
                 day=response.meta['day'],
                 start_time=response.meta['start_time'],
                 duration=response.meta['duration'],
-                is_composed=response.meta['is_composed'],
-                professor_sigarra_id=response.meta['professor_sigarra_id'],
                 location=response.meta['location'],
-                composed_class_name=response.meta['composed_class_name'],
-                class_name=class_name,
+                is_composed=response.meta['is_composed'],
+                professor_id=response.meta['professor_id'],
+                class_id=get_class_id(response.meta['course_unit_id'], class_name),
                 last_updated=datetime.now()
             )
 
-    def extractOverlappingClassSchedule(self, response, row, id):
+    def extractOverlappingClassSchedule(self, response, row, course_unit_id):
         day_str = row.xpath('td[2]/text()').extract_first()
         time_str = row.xpath('td[3]/text()').extract_first()
 
@@ -201,28 +228,45 @@ class ScheduleSpider(scrapy.Spider):
         location = row.xpath('td[4]/a/text()').extract_first()
         professor_link = row.xpath('td[@headers="t5"]/a/@href').extract_first()
         is_composed = 'composto_doc' in professor_link
-        professor_sigarra_id = professor_link.split('=')[1]
+        professor_id = professor_link.split('=')[1]
 
         clazz = row.xpath('td[6]/a')
-        class_url = clazz.xpath('@href').extract_first()
         class_name = clazz.xpath('text()').extract_first()
+        class_url = clazz.xpath('@href').extract_first()
 
         # If true, this means the class is composed of more than one class
         # And an additional request must be made to obtain all classes
         if "hor_geral.composto_desc" in class_url:
-            return response.follow(class_url,
-                                   dont_filter=True,
-                                   meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                         'professor_sigarra_id': professor_sigarra_id, 'location': location, 'day': day,
-                                         'composed_class_name': class_name},
-                                   callback=self.extractDurationFromComposedOverlappingClasses)
+            return response.follow(
+                class_url,
+                dont_filter=True,
+                meta={
+                    'course_unit_id': course_unit_id, 
+                    'lesson_type': lesson_type, 
+                    'start_time': start_time, 
+                    'is_composed': is_composed,
+                    'professor_id': professor_id, 
+                    'location': location, 
+                    'day': day
+                    },
+                callback=self.extractDurationFromComposedOverlappingClasses
+            )
 
-        return response.follow(class_url,
-                               dont_filter=True,
-                               meta={'id': id, 'lesson_type': lesson_type, 'start_time': start_time, 'is_composed': is_composed,
-                                     'professor_sigarra_id': professor_sigarra_id, 'location': location, 'day': day,
-                                     'class_name': class_name},
-                               callback=self.extractDurationFromOverlappingClass)
+        return response.follow(
+            class_url,
+            dont_filter=True,
+            meta={
+                'course_unit_id': course_unit_id, 
+                'lesson_type': lesson_type, 
+                'start_time': start_time, 
+                'is_composed': is_composed,
+                'professor_id': professor_id, 
+                'location': location, 
+                'day': day,
+                'class_name': class_name
+            },
+            callback=self.extractDurationFromOverlappingClass
+        )
 
     def extractDurationFromComposedOverlappingClasses(self, response):
         classes = response.xpath('//div[@id="conteudoinner"]/li/a')
@@ -231,15 +275,22 @@ class ScheduleSpider(scrapy.Spider):
             class_name = clazz.xpath('./text()').extract_first()
             class_url = clazz.xpath('@href').extract_first()
 
-            yield response.follow(class_url,
-                                  dont_filter=True,
-                                  meta={
-                                      'id': response.meta['id'], 'lesson_type': response.meta['lesson_type'], 'start_time': response.meta['start_time'],
-                                      'is_composed': response.meta['is_composed'], 'professor_sigarra_id': response.meta['professor_sigarra_id'],
-                                      'location': response.meta['location'], 'day': response.meta['day'],
-                                      'composed_class_name': response.meta['composed_class_name'], 'class_name': class_name
-                                  },
-                                  callback=self.extractDurationFromOverlappingClass)
+            yield response.follow(
+                class_url,
+                dont_filter=True,
+                meta={
+                    'course_unit_id': response.meta['course_unit_id'], 
+                    'lesson_type': response.meta['lesson_type'], 
+                    'start_time': response.meta['start_time'],
+                    'is_composed': response.meta['is_composed'], 
+                    'professor_id': response.meta['professor_id'],
+                    'location': response.meta['location'], 
+                    'day': response.meta['day'],
+                    'composed_class_name': response.meta['composed_class_name'], 
+                    'class_name': class_name
+                },
+                callback=self.extractDurationFromOverlappingClass
+            )
 
     def extractDurationFromOverlappingClass(self, response):
         day = response.meta['day']
@@ -280,16 +331,27 @@ class ScheduleSpider(scrapy.Spider):
         if duration is None:
             return None
 
-        yield Schedule(
-            course_unit_id=response.meta['id'],
+        yield Slot(
             lesson_type=response.meta['lesson_type'],
             day=day,
             start_time=start_time,
             duration=duration,
-            is_composed=response.meta['is_composed'],
-            professor_sigarra_id=response.meta['professor_sigarra_id'],
             location=response.meta['location'],
-            composed_class_name=response.meta['composed_class_name'] if 'composed_class_name' in response.meta else None,
-            class_name=response.meta['class_name'],
+            is_composed=response.meta['is_composed'],
+            professor_id=response.meta['professor_id'],
+            class_id=get_class_id(response.meta['course_unit_id'], response.meta['class_name']),
             last_updated=datetime.now(),
         )
+
+        yield Slot(
+            lesson_type=response.meta['lesson_type'],
+            day=response.meta['day'],
+            start_time=response.meta['start_time'],
+            duration=response.meta['duration'],
+            location=response.meta['location'],
+            is_composed=response.meta['is_composed'],
+            professor_id=response.meta['professor_id'],
+            class_id=get_class_id(response.meta['course_unit_id'], class_name),
+            last_updated=datetime.now()
+        )
+        

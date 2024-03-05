@@ -33,13 +33,11 @@ class Database:
         config_file = "./config.ini"
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file)
-        
 
     def get_database_path(self): 
         path = self.config['database']['path']
         filename = self.config['database']['filename']
         return "{0}/{1}".format(path, filename) 
-
 
     def create_table(self): 
         try: 
@@ -69,7 +67,6 @@ class Database:
 
     def insert(self, table_name, item): 
         try:
-
             sql = "INSERT INTO `{0}` (`{1}`) VALUES ({2})"
             columns = "`, `".join(item.keys())
             values = ", ".join("?" for _ in item.values())

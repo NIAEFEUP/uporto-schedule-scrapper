@@ -1,6 +1,5 @@
 import getpass
 import scrapy
-from scrapy.http import Request, FormRequest
 from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
@@ -27,7 +26,7 @@ class CourseMetadataSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, password=None, category=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(CourseMetadataSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = CONFIG[USERNAME]
@@ -44,7 +43,7 @@ class CourseMetadataSpider(scrapy.Spider):
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
             
-        yield Request(url=self.format_login_url(), callback=self.check_login_response, errback=self.login_response_err)
+        yield scrapy.http.Request(url=self.format_login_url(), callback=self.check_login_response, errback=self.login_response_err)
 
     def login_response_err(self, failure):
         print('Login failed. SIGARRA\'s response: error type 404;\nerror message "{}"'.format(failure))

@@ -84,7 +84,7 @@ CREATE TABLE `schedule` (
   `location` varchar(31) NOT NULL,
   `lesson_type` varchar(3) NOT NULL,
   `is_composed` boolean NOT NULL,
-  `professor_sigarra_id` INTEGER,
+  `professor_id` INTEGER,
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   `class_name` varchar(31) NOT NULL,
@@ -99,7 +99,7 @@ CREATE TABLE `schedule` (
 
 CREATE TABLE `schedule_professor` (
   `schedule_id` INTEGER NOT NULL,
-  `professor_sigarra_id` INTEGER NOT NULL
+  `professor_id` INTEGER NOT NULL
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
 -- -------------------------------------------------------- 
@@ -160,7 +160,7 @@ alter TABLE statistics ADD PRIMARY KEY (`course_unit_id`);
 
 alter TABLE professor ADD PRIMARY KEY (`sigarra_id`);
 
-alter TABLE schedule_professor ADD PRIMARY KEY (`schedule_id`, `professor_sigarra_id`); 
+alter TABLE schedule_professor ADD PRIMARY KEY (`schedule_id`, `professor_id`); 
 alter TABLE schedule_professor ADD FOREIGN KEY (`schedule_id`) REFERENCES `schedule`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 

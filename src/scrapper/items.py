@@ -34,6 +34,7 @@ class CourseUnit(scrapy.Item):
     semester = scrapy.Field()
     year = scrapy.Field()
     schedule_url = scrapy.Field()
+    classes_url = scrapy.Field()
     last_updated = scrapy.Field()
 
 class CourseMetadata(scrapy.Item):
@@ -42,22 +43,26 @@ class CourseMetadata(scrapy.Item):
     course_unit_year = scrapy.Field()
     ects = scrapy.Field()
 
-class Schedule(scrapy.Item):
+class Class(scrapy.Item):
     course_unit_id = scrapy.Field()
-    lesson_type = scrapy.Field()  # T, TP, PL, etc.
-    day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
-    duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
-    start_time = scrapy.Field()  # At what time the lesson starts
-    is_composed = scrapy.Field()
-    professor_sigarra_id = scrapy.Field()
-    location = scrapy.Field()  # B001, B003, etc.
-    class_name = scrapy.Field()  # 1MIEIC01
-    composed_class_name = scrapy.Field()  # None or COMP_372
+    name = scrapy.Field()  # 1MIEIC01
     last_updated = scrapy.Field()
     
-class ScheduleProfessor(scrapy.Item):
+class Slot(scrapy.Item):
+    lesson_type = scrapy.Field()  # T, TP, PL, etc.
+    day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
+    start_time = scrapy.Field()  # At what time the lesson starts
+    duration = scrapy.Field()  # In hours: 0.5 hours is half an hour
+    location = scrapy.Field()  # B001, B003, etc.
+    is_composed = scrapy.Field()  # If the class is composed
+    professor_id = scrapy.Field()
+    class_id = scrapy.Field()  # The class id
+    last_updated = scrapy.Field()
+
+
+class SlotProfessor(scrapy.Item):
     schedule_id = scrapy.Field()
-    professor_sigarra_id = scrapy.Field()
+    professor_id = scrapy.Field()
 
 class Professor(scrapy.Item):
     sigarra_id = scrapy.Field()
