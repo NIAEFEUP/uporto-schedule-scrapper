@@ -67,12 +67,12 @@ class ProfessorSpider(scrapy.Spider):
         print("Gathering professors")
         db = Database() 
         
-        sql = """SELECT sp.professor_id as professor_id, url 
-        FROM course_unit cu
-        JOIN schedule s
-        JOIN schedule_professor sp 
-        ON cu.id = s.course_unit_id AND s.id = sp.schedule_id 
-        GROUP BY sp.professor_id"""
+        sql = """
+        SELECT slot_professor.professor_id, url 
+        FROM course_unit JOIN class JOIN slot JOIN slot_professor
+        ON course_unit.id = class.course_unit_id AND class.id = slot.class_id AND slot.id = slot_professor.slot_id
+        GROUP BY slot_professor.professor_id
+        """
         db.cursor.execute(sql)
         self.prof_info = db.cursor.fetchall()
         db.connection.close()
@@ -91,7 +91,7 @@ class ProfessorSpider(scrapy.Spider):
         name = response.xpath('//table[@class="tabelasz"]/tr[1]/td[2]/b/text()').extract_first()
         acronym = response.xpath('//table[@class="tabelasz"]/tr[2]/td[2]/b/text()').extract_first()
         return Professor(
-            sigarra_id = response.meta['professor_id'],
+            id = response.meta['professor_id'],
             professor_acronym = acronym,
             professor_name = name
         )
