@@ -67,10 +67,10 @@ class ClassSpider(scrapy.Spider):
     def courseUnitRequests(self):
         db = Database()
         sql = """
-            SELECT course_unit.id, course_unit.classes_url, course.faculty_id
+            SELECT course_unit.id, course_unit.schedule_url, course.faculty_id
             FROM course_unit JOIN course
             ON course_unit.course_id = course.id
-            WHERE classes_url IS NOT NULL
+            WHERE schedule_url IS NOT NULL
         """
         db.cursor.execute(sql)
         self.course_units = db.cursor.fetchall()
@@ -80,23 +80,45 @@ class ClassSpider(scrapy.Spider):
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url="https://sigarra.up.pt/{}/pt/{}".format(course_unit[2], course_unit[1]),
-                meta={'id': course_unit[0]},
-                callback=self.extractClasses,
-                errback=self.func)
-            
-    def func(self):
-        print("Se fodeu :(")
+                meta={'id': course_unit[0], 'faculty': course_unit[2]},
+                callback=self.getClassesUrl,
+                errback=self.scrapyError
+            )
 
-    def extractClasses(self, response):
-        if response.xpath('//div[@id="erro"]/p[text()="Não existem turmas."]') is not None:
+    def getClassesUrl(self, response):
+        if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
             yield None
 
-        classes = response.xpath('//*[@id="conteudoinner"]/h3/text()').getall()
+        classUrl = response.xpath('//span[@class="textopequenoc"]/a/@href').getall()
 
-        for class_name in classes:
-            if class_name[:7] == "Turma: ":
+        for url in classUrl:
+            if "turmas_view" in url:
+                className = response.xpath('//span[@class="textopequenoc"]/a[@href="'+url+'"]/text()').extract_first()
                 yield Class(
+                    name=className.strip(),
                     course_unit_id=response.meta['id'],
-                    name=class_name[7:].strip(),   
                     last_updated=datetime.now()
                 )
+            elif "composto_desc" in url:
+                yield scrapy.http.Request(
+                    url="https://sigarra.up.pt/{}/pt/{}".format(response.meta['faculty'], url),
+                    meta={'id': response.meta['id']},
+                    callback=self.extractCompositeClass,
+                    errback=self.scrapyError
+                )
+            else:
+                yield None
+        
+    def extractCompositeClass(self, response):
+        classesNames = response.xpath('//div[@id="conteudoinner"]/li/a/text()').getall()
+        for className in classesNames:
+            yield Class(
+                name=className.strip(),
+                course_unit_id=response.meta['id'],
+                last_updated=datetime.now()
+            )
+
+    def scrapyError(self, error):
+        # print(error)
+        # O Scrapper não tem erros
+        return 

@@ -61,7 +61,7 @@ class Slot(scrapy.Item):
 
 
 class SlotProfessor(scrapy.Item):
-    schedule_id = scrapy.Field()
+    slot_id = scrapy.Field()
     professor_id = scrapy.Field()
 
 class Professor(scrapy.Item):
