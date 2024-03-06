@@ -14,18 +14,29 @@ from ..items import Slot
 def get_class_id(course_unit_id, class_name):
     db = Database()
     sql = """
-        SELECT class.id 
+        SELECT class.id, course_unit.url
         FROM course_unit JOIN class 
         ON course_unit.id = class.course_unit_id 
         WHERE course_unit.id = {} AND class.name = '{}'
     """.format(course_unit_id, class_name)
-
-    print("course unit: ", course_unit_id)
-    print("class name: ", class_name)
     
     db.cursor.execute(sql)
     class_id = db.cursor.fetchone()
     db.connection.close()
+
+    if (class_id == None): # TODO: verificar casos em que a aula já esta na db mas for some reason não foi encontrada
+        db2 = Database()
+        sql = """
+            SELECT course_unit.url
+            FROM course_unit  
+            WHERE course_unit.id = {}
+        """.format(course_unit_id)
+
+        db2.cursor.execute(sql)
+        class_url = db2.cursor.fetchone()
+        db2.connection.close()
+        print("Class not found: ", class_url[0])
+        return None    
     return class_id[0]
 
 class SlotSpider(scrapy.Spider):
@@ -286,7 +297,6 @@ class SlotSpider(scrapy.Spider):
                     'professor_id': response.meta['professor_id'],
                     'location': response.meta['location'], 
                     'day': response.meta['day'],
-                    'composed_class_name': response.meta['composed_class_name'], 
                     'class_name': class_name
                 },
                 callback=self.extractDurationFromOverlappingClass
@@ -341,17 +351,5 @@ class SlotSpider(scrapy.Spider):
             professor_id=response.meta['professor_id'],
             class_id=get_class_id(response.meta['course_unit_id'], response.meta['class_name']),
             last_updated=datetime.now(),
-        )
-
-        yield Slot(
-            lesson_type=response.meta['lesson_type'],
-            day=response.meta['day'],
-            start_time=response.meta['start_time'],
-            duration=response.meta['duration'],
-            location=response.meta['location'],
-            is_composed=response.meta['is_composed'],
-            professor_id=response.meta['professor_id'],
-            class_id=get_class_id(response.meta['course_unit_id'], class_name),
-            last_updated=datetime.now()
         )
         

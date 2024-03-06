@@ -57,39 +57,38 @@ class SlotProfessorSpider(scrapy.Spider):
             response_body = json.loads(response.body)
             if response_body['authenticated']:
                 self.log("Successfully logged in. Let's start crawling!")
-                return self.scheduleRequests()
+                return self.slotRequests()
            
 
-    def scheduleRequests(self):
+    def slotRequests(self):
         print("Gathering professors' metadata")
         db = Database() 
 
         sql = """
-        SELECT url, is_composed, s.professor_id as professor_id, s.id as schedule_id 
-        FROM course_unit c 
-        JOIN schedule s 
-        ON c.id = s.course_unit_id
+        SELECT url, is_composed, slot.professor_id as professor_id, slot.id as slot_id 
+        FROM course_unit JOIN class JOIN slot
+        ON course_unit.id = class.course_unit_id AND class.id = slot.class_id
         """
         db.cursor.execute(sql)
         self.prof_info = db.cursor.fetchall()
         db.connection.close()
 
-        self.log("Crawling {} schedules".format(len(self.prof_info)))
+        self.log("Crawling {} slots".format(len(self.prof_info)))
 
-        for (url, is_composed, professor_id, schedule_id) in self.prof_info:
+        for (url, is_composed, professor_id, slot_id) in self.prof_info:
             faculty = url.split('/')[3]
 
             # It is not the sigarra's professor id, but the link to the list of professors. 
             if is_composed:
                 yield scrapy.http.Request(
                     url="https://sigarra.up.pt/{}/pt/hor_geral.composto_doc?p_c_doc={}".format(faculty, professor_id),
-                    meta={'schedule_id': schedule_id},
+                    meta={'slot_id': slot_id},
                     dont_filter=True,
                     callback=self.extractCompoundProfessors)
             else:
             # It is the sigarra's professor id. 
                 yield SlotProfessor(
-                    schedule_id=schedule_id,
+                    slot_id=slot_id,
                     professor_id=professor_id,
                 )
  
@@ -98,6 +97,6 @@ class SlotProfessorSpider(scrapy.Spider):
 
         for professor_link in professors:
             yield SlotProfessor(
-                schedule_id=response.meta['schedule_id'],
+                slot_id=response.meta['slot_id'],
                 professor_id=professor_link.split('=')[1],
             )

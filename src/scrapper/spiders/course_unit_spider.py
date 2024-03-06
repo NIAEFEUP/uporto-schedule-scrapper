@@ -130,7 +130,6 @@ class CourseUnitSpider(scrapy.Spider):
             acronym = acronym.replace(".", "_")
 
         url = response.url
-        classes_url = response.xpath('//a[text()="Turmas"]/@href').extract_first()
         schedule_url = response.xpath(
             '//a[text()="Horário"]/@href').extract_first()
 
@@ -177,7 +176,6 @@ class CourseUnitSpider(scrapy.Spider):
                     acronym=acronym,
                     url=url,
                     schedule_url=schedule_url,
-                    classes_url=classes_url,
                     year=year,
                     semester=semester,
                     last_updated=datetime.now()

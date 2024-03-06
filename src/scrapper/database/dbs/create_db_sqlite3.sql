@@ -47,7 +47,6 @@ CREATE TABLE `course_unit` (
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
-  `classes_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL,
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -78,6 +77,7 @@ CREATE TABLE `class` (
   `name` varchar(31) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
+  UNIQUE (`name`, `course_unit_id`)
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
