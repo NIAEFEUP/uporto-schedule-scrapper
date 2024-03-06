@@ -65,7 +65,7 @@ class SlotProfessorSpider(scrapy.Spider):
         db = Database() 
 
         sql = """
-        SELECT url, is_composed, slot.professor_id as professor_id, slot.id as slot_id 
+        SELECT url, is_composed, slot.professor_id, slot.id
         FROM course_unit JOIN class JOIN slot
         ON course_unit.id = class.course_unit_id AND class.id = slot.class_id
         """
