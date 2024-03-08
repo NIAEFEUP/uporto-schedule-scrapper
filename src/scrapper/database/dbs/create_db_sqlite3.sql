@@ -121,7 +121,7 @@ CREATE TABLE `slot_professor` (
 CREATE TABLE `professor` (
   `id` INTEGER PRIMARY KEY,
   `professor_acronym` varchar(16),
-  `professor_name` varchar(50)
+  `professor_name` varchar(100)
 );
 
 -- --------------------------------------------------------
