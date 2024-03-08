@@ -25,17 +25,17 @@ def get_class_id(course_unit_id, class_name):
     db.connection.close()
 
     if (class_id == None): # TODO: verificar casos em que a aula já esta na db mas for some reason não foi encontrada
-        db2 = Database()
-        sql = """
-            SELECT course_unit.url
-            FROM course_unit  
-            WHERE course_unit.id = {}
-        """.format(course_unit_id)
+        # db2 = Database()
+        # sql = """
+        #     SELECT course_unit.url
+        #     FROM course_unit  
+        #     WHERE course_unit.id = {}
+        # """.format(course_unit_id)
 
-        db2.cursor.execute(sql)
-        class_url = db2.cursor.fetchone()
-        db2.connection.close()
-        print("Class not found: ", class_url[0])
+        # db2.cursor.execute(sql)
+        # class_url = db2.cursor.fetchone()
+        # db2.connection.close()
+        # print("Class not found: ", class_url[0])
         return None    
     return class_id[0]
 
@@ -117,8 +117,10 @@ class SlotSpider(scrapy.Spider):
                 errback=self.func
             )
             
-    def func(self):
-        print("Se fodeu :(")
+    def func(self, error):
+        # # O scrapper não tem erros
+        # print(error)
+        return
 
     def extractSchedule(self, response):
         # Check if there is no schedule available
