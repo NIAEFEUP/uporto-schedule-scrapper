@@ -150,6 +150,7 @@ CREATE TABLE `info` (
 -- 
 
 CREATE TABLE `statistics` (
+  `int` INTEGER AUTO_INCREMENT PRIMARY KEY,
   `course_unit_id` int(11) NOT NULL,
   `acronym` varchar(10) NOT NULL,
   `visited_times` int(11) NOT NULL,
