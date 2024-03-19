@@ -68,10 +68,14 @@ class CourseUnitSpider(scrapy.Spider):
            
 
     def courseRequests(self):
-        print("Gathering course units")
+        print("Gathering course units") 
         db = Database() 
 
-        sql = "SELECT course.id, year, course.id, faculty.acronym FROM course JOIN faculty ON course.faculty_id= faculty.acronym"
+        sql = """
+            SELECT course.id, year, course.id, faculty.acronym 
+            FROM course JOIN faculty 
+            ON course.faculty_id= faculty.acronym
+        """
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()
@@ -166,8 +170,7 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-            # print(self.course_units_ids)
-            if course_unit_id not in self.course_units_ids:
+            if (course_unit_id not in self.course_units_ids) and (schedule_url != None):
                 self.course_units_ids.add(course_unit_id)
                 yield CourseUnit(
                     id=course_unit_id,
@@ -182,7 +185,6 @@ class CourseUnitSpider(scrapy.Spider):
                 )
             else:
                 yield None
-                # print("Course unit already exists")
 
             
 
