@@ -89,11 +89,20 @@ class ClassSpider(scrapy.Spider):
         if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
             yield None
 
-        classUrl = response.xpath('//span[@class="textopequenoc"]/a/@href').getall()
+        classesUrl = list(set(
+            response.xpath('//span[@class="textopequenoc"]/a/@href').getall() 
+            + 
+            response.xpath('//td[@headers="t6"]/a/@href').getall()
+        ))
 
-        for url in classUrl:
+        
+
+        for url in classesUrl:
             if "turmas_view" in url:
-                className = response.xpath('//span[@class="textopequenoc"]/a[@href="'+url+'"]/text()').extract_first()
+                className = (
+                    response.xpath('//span[@class="textopequenoc"]/a[@href="'+url+'"]/text()').extract_first() 
+                    or response.xpath('//td[@headers="t6"]/a[@href="'+url+'"]/text()').extract_first()
+                )
                 yield Class(
                     name=className.strip(),
                     course_unit_id=response.meta['id'],

@@ -100,8 +100,8 @@ class SlotSpider(scrapy.Spider):
         db = Database()        
         sql = """
             SELECT course_unit.id, course_unit.schedule_url, course.faculty_id
-            FROM course_unit JOIN course
-            ON course_unit.course_id = course.id
+            FROM course JOIN course_metadata JOIN course_unit
+            ON course.id = course_metadata.course_id AND course_metadata.course_unit_id = course_unit.id
             WHERE schedule_url IS NOT NULL
         """
         db.cursor.execute(sql)
@@ -194,36 +194,42 @@ class SlotSpider(scrapy.Spider):
                 callback=self.extractComposedClasses
             )
 
-        # DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE |===================| DONE
-        return Slot(
-            lesson_type=lesson_type,
-            day=day,
-            start_time=start_time,
-            duration=duration,
-            location=location,
-            is_composed=is_composed,
-            professor_id=professor_id,
-            class_id=get_class_id(course_unit_id, class_name),
-            last_updated=datetime.now(),
-        )
+        class_id = get_class_id(course_unit_id, class_name)
+        if (class_id == None):
+            return Slot(
+                lesson_type=lesson_type,
+                day=day,
+                start_time=start_time,
+                duration=duration,
+                location=location,
+                is_composed=is_composed,
+                professor_id=professor_id,
+                class_id=class_id,
+                last_updated=datetime.now(),
+            )
+        else: 
+            return None 
 
     def extractComposedClasses(self, response):
         class_names = response.xpath(
             '//div[@id="conteudoinner"]/li/a/text()').extract()
 
         for class_name in class_names:
-            # DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE |===============| DONE
-            yield Slot(
-                lesson_type=response.meta['lesson_type'],
-                day=response.meta['day'],
-                start_time=response.meta['start_time'],
-                duration=response.meta['duration'],
-                location=response.meta['location'],
-                is_composed=response.meta['is_composed'],
-                professor_id=response.meta['professor_id'],
-                class_id=get_class_id(response.meta['course_unit_id'], class_name),
-                last_updated=datetime.now()
-            )
+            class_id = get_class_id(response.meta['course_unit_id'], class_name)
+            if (class_id == None):
+                yield Slot(
+                    lesson_type=response.meta['lesson_type'],
+                    day=response.meta['day'],
+                    start_time=response.meta['start_time'],
+                    duration=response.meta['duration'],
+                    location=response.meta['location'],
+                    is_composed=response.meta['is_composed'],
+                    professor_id=response.meta['professor_id'],
+                    class_id=class_id,
+                    last_updated=datetime.now()
+                )
+            else:
+                yield None
 
     def extractOverlappingClassSchedule(self, response, row, course_unit_id):
         day_str = row.xpath('td[2]/text()').extract_first()
@@ -343,15 +349,19 @@ class SlotSpider(scrapy.Spider):
         if duration is None:
             return None
 
-        yield Slot(
-            lesson_type=response.meta['lesson_type'],
-            day=day,
-            start_time=start_time,
-            duration=duration,
-            location=response.meta['location'],
-            is_composed=response.meta['is_composed'],
-            professor_id=response.meta['professor_id'],
-            class_id=get_class_id(response.meta['course_unit_id'], response.meta['class_name']),
-            last_updated=datetime.now(),
-        )
+        class_id = get_class_id(response.meta['course_unit_id'], response.meta['class_name'])
+        if (class_id != None):
+            yield Slot(
+                lesson_type=response.meta['lesson_type'],
+                day=day,
+                start_time=start_time,
+                duration=duration,
+                location=response.meta['location'],
+                is_composed=response.meta['is_composed'],
+                professor_id=response.meta['professor_id'],
+                class_id=get_class_id(response.meta['course_unit_id'], response.meta['class_name']),
+                last_updated=datetime.now(),
+            )
+        else:
+            yield None
         
