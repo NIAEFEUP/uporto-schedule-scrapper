@@ -1,7 +1,7 @@
 .PHONY: all clean
 FILES = $(shell ls)
         
-all: info faculties courses course_units course_metadata schedules schedule_professor professors
+all: info faculties courses course_units course_metadata classes slots slot_professor professors
 
 
 faculties: 
@@ -15,12 +15,15 @@ course_units:
 
 course_metadata:
 	scrapy crawl course_metadata
-	
-schedules:
-	scrapy crawl schedules
 
-schedule_professor:
-	scrapy crawl schedule_professor
+classes:
+	scrapy crawl classes
+
+slots:
+	scrapy crawl slots
+	
+slot_professor:
+	scrapy crawl slot_professor
 
 professors:
 	scrapy crawl professors
