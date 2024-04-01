@@ -153,8 +153,14 @@ class SlotSpider(scrapy.Spider):
                     class_duration = cur_col.xpath('@rowspan').extract_first()
                     if class_duration is not None:
                         rowspans[cur_day] = int(class_duration)
-                        yield self.extractClassSchedule(response, cur_col, cur_day, hour, int(class_duration) / 2,
-                                                        response.meta['course_unit_id'])
+                        yield self.extractClassSchedule(
+                            response, 
+                            cur_col, 
+                            cur_day, 
+                            hour, 
+                            int(class_duration) / 2,
+                            response.meta['course_unit_id']
+                        )
 
                 hour += 0.5
 
@@ -195,7 +201,7 @@ class SlotSpider(scrapy.Spider):
             )
 
         class_id = get_class_id(course_unit_id, class_name)
-        if (class_id == None):
+        if (class_id != None):
             return Slot(
                 lesson_type=lesson_type,
                 day=day,
@@ -216,7 +222,7 @@ class SlotSpider(scrapy.Spider):
 
         for class_name in class_names:
             class_id = get_class_id(response.meta['course_unit_id'], class_name)
-            if (class_id == None):
+            if (class_id != None):
                 yield Slot(
                     lesson_type=response.meta['lesson_type'],
                     day=response.meta['day'],

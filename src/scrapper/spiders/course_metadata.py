@@ -78,13 +78,16 @@ class CourseMetadataSpider(scrapy.Spider):
 
         self.log("Crawling {} courses".format(len(self.course_units)))
 
+        ids = self.get_courses_ids()
+
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url=course_unit[1],
                 meta={
                     'course_unit_id': course_unit[0],
                     'course_id': course_unit[2], 
-                    'course_unit_sigarra_id': course_unit[3]
+                    'course_unit_sigarra_id': course_unit[3],
+                    'ids': ids
                 },
                 callback=self.extractCourseUnitByYears)
     
@@ -93,9 +96,19 @@ class CourseMetadataSpider(scrapy.Spider):
         df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
 
         for (_, row) in df.iterrows():
-            yield CourseMetadata(
-                course_id = parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
-                course_unit_id = response.meta['course_unit_id'],
-                course_unit_year = row[3][0],
-                ects = row[5][0]
-            )
+            id = int(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0])
+            if id in response.meta['ids']:
+                yield CourseMetadata(
+                    course_id = parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
+                    course_unit_id = response.meta['course_unit_id'],
+                    course_unit_year = row[3][0],
+                    ects = row[5][0]
+                )
+
+    def get_courses_ids(self):
+        print('Getting courses ids...')
+        db = Database()
+        db.cursor.execute("SELECT id FROM course")
+        courses = db.cursor.fetchall()
+        db.connection.close()
+        return [int(c[0]) for c in courses]
