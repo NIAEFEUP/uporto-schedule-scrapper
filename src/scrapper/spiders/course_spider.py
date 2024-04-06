@@ -27,7 +27,6 @@ class CourseSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-
     def get_year(self):
         year = CONFIG[YEAR]
         if not year:
@@ -59,12 +58,18 @@ class CourseSpider(scrapy.Spider):
                     '//*[@id="conteudoinner"]/div[1]/a').extract_first() is not None:  # tests if this page points to another one
                 continue
             
+            # Check if the course has an acronym
+            # Some pages don't have an acronym, usually because they are not available for the current year
+            acronym = self.get_acronym(response)
+            if not acronym:
+                continue
+
             sigarra_id = response.url.split('=')[-1]
             course = Course(
+                id = sigarra_id,
                 faculty_id = response.meta['faculty_acronym'],    # New parameter 
-                sigarra_id = sigarra_id,
                 name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
-                acronym = self.get_acronym(response),
+                acronym = acronym,
                 course_type = response.meta['course_type'],
                 year = self.get_year(),
                 url = response.url,

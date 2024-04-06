@@ -15,7 +15,7 @@ Python solution to extract the courses schedules from the different Faculties of
 ### Local python
 
 ```bash
-pip install -r ./scr/requirements.txt   # Install dependencies
+pip install -r ./src/requirements.txt   # Install dependencies
 ```
 
 ### Virtual environment
@@ -99,7 +99,7 @@ root@00723f950c71:/scrapper# scrapy shell "https://sigarra.up.pt/fcnaup/pt/cur_g
 
 ## :triangular_ruler: Database design
 
-![Image](./docs/schema.2.0.png)
+![Image](./docs/schema.3.0.png)
 
 ## :page_with_curl: More information
 
