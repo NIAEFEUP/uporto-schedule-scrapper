@@ -1,10 +1,12 @@
 import getpass
 import scrapy
+
+import sqlite3
+
 from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
-from dotenv import dotenv_values
 import logging
 import json
 
@@ -13,13 +15,12 @@ from scrapper.settings import CONFIG, PASSWORD, USERNAME
 from ..database.Database import Database
 from ..items import CourseUnit
 
-
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     password = None
-
+    course_units_ids = set()
 
     def open_config(self):
         """
@@ -29,7 +30,7 @@ class CourseUnitSpider(scrapy.Spider):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read(config_file) 
 
-    def __init__(self, password=None, category=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(CourseUnitSpider, self).__init__(*args, **kwargs)
         self.open_config()
         self.user = CONFIG[USERNAME]
@@ -67,10 +68,14 @@ class CourseUnitSpider(scrapy.Spider):
            
 
     def courseRequests(self):
-        print("Gathering courses")
+        print("Gathering course units") 
         db = Database() 
 
-        sql = "SELECT course.id, year, course.sigarra_id, faculty.acronym FROM course JOIN faculty ON course.faculty_id= faculty.acronym"
+        sql = """
+            SELECT course.id, year, course.id, faculty.acronym 
+            FROM course JOIN faculty 
+            ON course.faculty_id= faculty.acronym
+        """
         db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
         db.connection.close()
@@ -97,6 +102,7 @@ class CourseUnitSpider(scrapy.Spider):
 
     def extractCourseUnits(self, response):
         course_units_table = response.css("table.dados .d")
+
         for course_unit_row in course_units_table:
             yield scrapy.http.Request(
                 url=response.urljoin(course_unit_row.css(
@@ -115,6 +121,7 @@ class CourseUnitSpider(scrapy.Spider):
 
         course_unit_id = parse_qs(urlparse(response.url).query)[
             'pv_ocorrencia_id'][0]
+
         acronym = response.xpath(
             '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
 
@@ -130,9 +137,9 @@ class CourseUnitSpider(scrapy.Spider):
         schedule_url = response.xpath(
             '//a[text()="Horário"]/@href').extract_first()
 
-        # If there is no schedule for this course unit
-        if schedule_url is not None:
-            schedule_url = response.urljoin(schedule_url)
+        # # If there is no schedule for this course unit
+        # if schedule_url is not None:
+        #     schedule_url = response.urljoin(schedule_url)
 
         # Occurrence has a string that contains both the year and the semester type
         occurrence = response.css('#conteudoinner > h2::text').extract_first()
@@ -163,15 +170,22 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-            yield CourseUnit(
-                sigarra_id=course_unit_id,
-                course_id=response.meta['course_id'],
-                name=name,
-                acronym=acronym,
-                url=url,
-                schedule_url=schedule_url,
-                year=year,
-                semester=semester,
-                last_updated=datetime.now()
-            )
+            if (course_unit_id not in self.course_units_ids) and (schedule_url != None):
+                self.course_units_ids.add(course_unit_id)
+                yield CourseUnit(
+                    id=course_unit_id,
+                    course_id=response.meta['course_id'],
+                    name=name,
+                    acronym=acronym,
+                    url=url,
+                    schedule_url=schedule_url,
+                    year=year,
+                    semester=semester,
+                    last_updated=datetime.now()
+                )
+            else:
+                yield None
+
+            
+
  
