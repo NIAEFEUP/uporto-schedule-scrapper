@@ -80,21 +80,45 @@ class ClassSpider(scrapy.Spider):
         for course_unit in self.course_units:
             yield scrapy.http.Request(
                 url="https://sigarra.up.pt/{}/pt/{}".format(course_unit[2], course_unit[1]),
-                meta={'id': course_unit[0], 'faculty': course_unit[2]},
-                callback=self.getClassesUrl,
+                meta={'id': course_unit[0], 'faculty': course_unit[2], 'schedule_url': course_unit[1]},
+                callback=self.getScheduleBlocksUrl,
                 errback=self.scrapyError
             )
 
-    def getClassesUrl(self, response):
+    def getScheduleBlocksUrl(self, response):
         if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
             yield None
 
+        week_blocks = list(set(
+            response.xpath('//td[@class="l sem-quebra"]//a/@href').getall() 
+                               + 
+            response.xpath('//td[@class="bloco-select sem-quebra"]//a/@href').getall()
+           ))
+        
+        if len(week_blocks) == 0:
+            yield scrapy.http.Request(
+                url="https://sigarra.up.pt/{}/pt/{}".format(response.meta['faculty'], response.meta['schedule_url']),
+                meta=response.meta,
+                callback=self.extractClasses,   
+                errback=self.scrapyError
+            )
+        
+        for url in week_blocks:
+            yield scrapy.http.Request(
+                url="https://sigarra.up.pt/{}/pt/{}".format(response.meta['faculty'], url),
+                meta=response.meta,
+                callback=self.extractClasses,
+                errback=self.scrapyError
+            )
+
+
+
+    def extractClasses(self, response):
         classesUrl = list(set(
             response.xpath('//span[@class="textopequenoc"]/a/@href').getall() 
             + 
             response.xpath('//td[@headers="t6"]/a/@href').getall()
         ))
-
         
 
         for url in classesUrl:
@@ -128,6 +152,7 @@ class ClassSpider(scrapy.Spider):
             )
 
     def scrapyError(self, error):
+
         # print(error)
         # O Scrapper não tem erros
         return 

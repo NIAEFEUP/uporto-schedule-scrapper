@@ -45,6 +45,7 @@ class SlotSpider(scrapy.Spider):
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
     days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2,
             'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
+    scraped_slots = set()
     # password = None
 
     def __init__(self, password=None, category=None, *args, **kwargs):
@@ -112,8 +113,8 @@ class SlotSpider(scrapy.Spider):
         for course_unit in self.course_units:
             yield Request(                
                 url="https://sigarra.up.pt/{}/pt/{}".format(course_unit[2], course_unit[1]),
-                meta={'course_unit_id': course_unit[0]},
-                callback=self.extractSchedule,
+                meta={'course_unit_id': course_unit[0], 'faculty': course_unit[2], 'schedule_url': course_unit[1]},
+                callback=self.getScheduleBlocks,
                 errback=self.func
             )
             
@@ -121,12 +122,34 @@ class SlotSpider(scrapy.Spider):
         # # O scrapper não tem erros
         # print(error)
         return
-
-    def extractSchedule(self, response):
-        # Check if there is no schedule available
+    
+    def getScheduleBlocks(self, response):
         if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
             yield None
 
+        week_blocks = list(set(
+            response.xpath('//td[@class="l sem-quebra"]//a/@href').getall() 
+                               + 
+            response.xpath('//td[@class="bloco-select sem-quebra"]//a/@href').getall()
+           ))
+        
+        if (len(week_blocks) == 0):
+            yield scrapy.http.Request(
+                url="https://sigarra.up.pt/{}/pt/{}".format(response.meta['faculty'], response.meta['schedule_url']),
+                meta=response.meta,
+                callback=self.extractSchedule,
+                errback=self.func
+            )
+        else:
+            for week_block in week_blocks:
+                yield scrapy.http.Request(
+                    url="https://sigarra.up.pt/{}/pt/{}".format(response.meta['faculty'], week_block),
+                    meta=response.meta,
+                    callback=self.extractSchedule,
+                    errback=self.func
+                )
+    
+    def extractSchedule(self, response):
         # Classes in timetable
         for schedule in response.xpath('//table[@class="horario"]'):
             # This array represents the rowspans left in the current row
@@ -169,6 +192,7 @@ class SlotSpider(scrapy.Spider):
             yield self.extractOverlappingClassSchedule(response, row, response.meta['course_unit_id'])
 
     def extractClassSchedule(self, response, cell, day, start_time, duration, course_unit_id):
+
         lesson_type = cell.xpath(
             'b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
         table = cell.xpath('table/tr')
@@ -202,6 +226,14 @@ class SlotSpider(scrapy.Spider):
 
         class_id = get_class_id(course_unit_id, class_name)
         if (class_id != None):
+
+            slot_identifier = (course_unit_id, lesson_type, day, start_time, duration, location, is_composed, professor_id, class_id)
+
+            if slot_identifier in self.scraped_slots:
+                return None 
+            else:
+                self.scraped_slots.add(slot_identifier)
+
             return Slot(
                 lesson_type=lesson_type,
                 day=day,
@@ -223,17 +255,24 @@ class SlotSpider(scrapy.Spider):
         for class_name in class_names:
             class_id = get_class_id(response.meta['course_unit_id'], class_name)
             if (class_id != None):
+
+                slot_identifier = (response.meta['course_unit_id'], response.meta['lesson_type'], response.meta['day'], response.meta['start_time'], response.meta['duration'], response.meta['location'], response.meta['is_composed'], response.meta['professor_id'], class_id)
+                
+                if slot_identifier in self.scraped_slots:
+                    return None
+                else:
+                    self.scraped_slots.add(slot_identifier)
                 yield Slot(
-                    lesson_type=response.meta['lesson_type'],
-                    day=response.meta['day'],
-                    start_time=response.meta['start_time'],
-                    duration=response.meta['duration'],
-                    location=response.meta['location'],
-                    is_composed=response.meta['is_composed'],
-                    professor_id=response.meta['professor_id'],
-                    class_id=class_id,
-                    last_updated=datetime.now()
-                )
+                        lesson_type=response.meta['lesson_type'],
+                        day=response.meta['day'],
+                        start_time=response.meta['start_time'],
+                        duration=response.meta['duration'],
+                        location=response.meta['location'],
+                        is_composed=response.meta['is_composed'],
+                        professor_id=response.meta['professor_id'],
+                        class_id=class_id,
+                        last_updated=datetime.now()
+                    )
             else:
                 yield None
 
@@ -354,9 +393,17 @@ class SlotSpider(scrapy.Spider):
 
         if duration is None:
             return None
+        
+
+        
 
         class_id = get_class_id(response.meta['course_unit_id'], response.meta['class_name'])
         if (class_id != None):
+            slot_identifier = (response.meta['course_unit_id'], response.meta['lesson_type'], day, start_time, duration, response.meta['location'], response.meta['is_composed'], response.meta['professor_id'], class_id)
+            if slot_identifier in self.scraped_slots:
+                return None
+            else:
+                self.scraped_slots.add(slot_identifier)
             yield Slot(
                 lesson_type=response.meta['lesson_type'],
                 day=day,
