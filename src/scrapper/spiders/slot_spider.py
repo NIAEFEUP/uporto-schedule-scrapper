@@ -5,6 +5,7 @@ from scrapy.http import Request, FormRequest
 import urllib.parse
 from configparser import ConfigParser, ExtendedInterpolation
 import json
+from datetime import time
 
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
@@ -43,9 +44,8 @@ class SlotSpider(scrapy.Spider):
     name = "slots"
     allowed_domains = ['sigarra.up.pt']
     login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
-    days = {'Segunda': 0, 'Terça': 1, 'Quarta': 2,
-            'Quinta': 3, 'Sexta': 4, 'Sábado': 5}
-    # password = None
+    days = {'Segunda-feira': 0, 'Terça-feira': 1, 'Quarta-feira': 2,
+            'Quinta-feira': 3, 'Sexta-feira': 4, 'Sábado': 5}
 
     def __init__(self, password=None, category=None, *args, **kwargs):
         super(SlotSpider, self).__init__(*args, **kwargs)
@@ -113,7 +113,7 @@ class SlotSpider(scrapy.Spider):
             yield Request(                
                 url="https://sigarra.up.pt/{}/pt/{}".format(course_unit[2], course_unit[1]),
                 meta={'course_unit_id': course_unit[0]},
-                callback=self.extractSchedule,
+                callback=self.makeRequestToSigarraScheduleAPI,
                 errback=self.func
             )
             
@@ -122,252 +122,27 @@ class SlotSpider(scrapy.Spider):
         # print(error)
         return
 
+    def makeRequestToSigarraScheduleAPI(self, response):
+        apiUrl = response.xpath('//div[@id="cal-shadow-container"]/@data-evt-source-url').extract_first()
+
+        yield Request(url=apiUrl, callback=self.extractSchedule)
+
     def extractSchedule(self, response):
-        # Check if there is no schedule available
-        if response.xpath('//div[@id="erro"]/h2/text()').extract_first() == "Sem Resultados":
-            yield None
+        schedule_data = response.json()["data"]
 
-        # Classes in timetable
-        for schedule in response.xpath('//table[@class="horario"]'):
-            # This array represents the rowspans left in the current row
-            # It is used because when a row has rowspan > 1, the table
-            # will seem to be missing a column and can cause out of sync errors
-            # between the HTML table and its memory representation
-            rowspans = [0, 0, 0, 0, 0, 0]
-            hour = 8
-            for row in schedule.xpath('./tr[not(th)]'):
-                cols = row.xpath('./td[not(contains(@class, "k"))]')
-                cols_iter = iter(cols)
+        for schedule in schedule_data:
+            date_format = "%Y-%m-%dT%H:%M:%S"
+            start_time = datetime.strptime(schedule["start"], date_format)
+            end_time = datetime.strptime(schedule["end"], date_format)
 
-                # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
-                for cur_day in range(0, 6):
-                    if rowspans[cur_day] > 0:
-                        rowspans[cur_day] -= 1
-
-                    # If there is a class in the current column, then just
-                    # skip it
-                    if rowspans[cur_day] > 0:
-                        continue
-
-                    cur_col = next(cols_iter)
-                    class_duration = cur_col.xpath('@rowspan').extract_first()
-                    if class_duration is not None:
-                        rowspans[cur_day] = int(class_duration)
-                        yield self.extractClassSchedule(
-                            response, 
-                            cur_col, 
-                            cur_day, 
-                            hour, 
-                            int(class_duration) / 2,
-                            response.meta['course_unit_id']
-                        )
-
-                hour += 0.5
-
-        # Overlapping classes
-        for row in response.xpath('//table[@class="dados"]/tr[not(th)]'):
-            yield self.extractOverlappingClassSchedule(response, row, response.meta['course_unit_id'])
-
-    def extractClassSchedule(self, response, cell, day, start_time, duration, course_unit_id):
-        lesson_type = cell.xpath(
-            'b/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
-        table = cell.xpath('table/tr')
-        location = table.xpath('td/a/text()').extract_first()
-        professor_link = table.xpath('td[@class="textod"]//a/@href').extract_first()
-        is_composed = 'composto_doc' in professor_link
-        professor_id = professor_link.split('=')[1]
-
-        clazz = cell.xpath('span/a')
-        class_name = clazz.xpath('text()').extract_first()
-        class_url = clazz.xpath('@href').extract_first()
-
-        # If true, this means the class is composed of more than one class
-        # And an additional request must be made to obtain all classes
-        if "hor_geral.composto_desc" in class_url:
-            return response.follow(
-                class_url,
-                dont_filter=True,
-                meta={
-                    'course_unit_id': course_unit_id, 
-                    'lesson_type': lesson_type, 
-                    'start_time': start_time, 
-                    'is_composed': is_composed,
-                    'professor_id': professor_id, 
-                    'location': location, 
-                    'day': day,
-                    'duration': duration
-                },
-                callback=self.extractComposedClasses
-            )
-
-        class_id = get_class_id(course_unit_id, class_name)
-        if (class_id != None):
-            return Slot(
-                lesson_type=lesson_type,
-                day=day,
-                start_time=start_time,
-                duration=duration,
-                location=location,
-                is_composed=is_composed,
-                professor_id=professor_id,
-                class_id=class_id,
-                last_updated=datetime.now(),
-            )
-        else: 
-            return None 
-
-    def extractComposedClasses(self, response):
-        class_names = response.xpath(
-            '//div[@id="conteudoinner"]/li/a/text()').extract()
-
-        for class_name in class_names:
-            class_id = get_class_id(response.meta['course_unit_id'], class_name)
-            if (class_id != None):
-                yield Slot(
-                    lesson_type=response.meta['lesson_type'],
-                    day=response.meta['day'],
-                    start_time=response.meta['start_time'],
-                    duration=response.meta['duration'],
-                    location=response.meta['location'],
-                    is_composed=response.meta['is_composed'],
-                    professor_id=response.meta['professor_id'],
-                    class_id=class_id,
-                    last_updated=datetime.now()
-                )
-            else:
-                yield None
-
-    def extractOverlappingClassSchedule(self, response, row, course_unit_id):
-        day_str = row.xpath('td[2]/text()').extract_first()
-        time_str = row.xpath('td[3]/text()').extract_first()
-
-        day = self.days[day_str]
-        hours, minutes = time_str.split(':')
-        start_time = int(hours)
-
-        if int(minutes) > 0:
-            start_time += int(minutes) / 60
-
-        lesson_type = row.xpath(
-            'td[1]/text()').extract_first().strip().replace('(', '', 1).replace(')', '', 1)
-        location = row.xpath('td[4]/a/text()').extract_first()
-        professor_link = row.xpath('td[@headers="t5"]/a/@href').extract_first()
-        is_composed = 'composto_doc' in professor_link
-        professor_id = professor_link.split('=')[1]
-
-        clazz = row.xpath('td[6]/a')
-        class_name = clazz.xpath('text()').extract_first()
-        class_url = clazz.xpath('@href').extract_first()
-
-        # If true, this means the class is composed of more than one class
-        # And an additional request must be made to obtain all classes
-        if "hor_geral.composto_desc" in class_url:
-            return response.follow(
-                class_url,
-                dont_filter=True,
-                meta={
-                    'course_unit_id': course_unit_id, 
-                    'lesson_type': lesson_type, 
-                    'start_time': start_time, 
-                    'is_composed': is_composed,
-                    'professor_id': professor_id, 
-                    'location': location, 
-                    'day': day
-                    },
-                callback=self.extractDurationFromComposedOverlappingClasses
-            )
-
-        return response.follow(
-            class_url,
-            dont_filter=True,
-            meta={
-                'course_unit_id': course_unit_id, 
-                'lesson_type': lesson_type, 
-                'start_time': start_time, 
-                'is_composed': is_composed,
-                'professor_id': professor_id, 
-                'location': location, 
-                'day': day,
-                'class_name': class_name
-            },
-            callback=self.extractDurationFromOverlappingClass
-        )
-
-    def extractDurationFromComposedOverlappingClasses(self, response):
-        classes = response.xpath('//div[@id="conteudoinner"]/li/a')
-
-        for clazz in classes:
-            class_name = clazz.xpath('./text()').extract_first()
-            class_url = clazz.xpath('@href').extract_first()
-
-            yield response.follow(
-                class_url,
-                dont_filter=True,
-                meta={
-                    'course_unit_id': response.meta['course_unit_id'], 
-                    'lesson_type': response.meta['lesson_type'], 
-                    'start_time': response.meta['start_time'],
-                    'is_composed': response.meta['is_composed'], 
-                    'professor_id': response.meta['professor_id'],
-                    'location': response.meta['location'], 
-                    'day': response.meta['day'],
-                    'class_name': class_name
-                },
-                callback=self.extractDurationFromOverlappingClass
-            )
-
-    def extractDurationFromOverlappingClass(self, response):
-        day = response.meta['day']
-        start_time = response.meta['start_time']
-        duration = None
-
-        # Classes in timetable
-        for schedule in response.xpath('//table[@class="horario"]'):
-            # This array represents the rowspans left in the current row
-            # It is used because when a row has rowspan > 1, the table
-            # will seem to be missing a column and can cause out of sync errors
-            # between the HTML table and its memory representation
-            rowspans = [0, 0, 0, 0, 0, 0]
-            hour = 8
-            for row in schedule.xpath('./tr[not(th)]'):
-                cols = row.xpath('./td[not(contains(@class, "k"))]')
-                cols_iter = iter(cols)
-
-                # 0 -> Monday, 1 -> Tuesday, ..., 5 -> Saturday (No sunday)
-                for cur_day in range(0, 6):
-                    if rowspans[cur_day] > 0:
-                        rowspans[cur_day] -= 1
-
-                    # If there is a class in the current column, then just
-                    # skip it
-                    if rowspans[cur_day] > 0:
-                        continue
-
-                    cur_col = next(cols_iter)
-                    class_duration = cur_col.xpath('@rowspan').extract_first()
-                    if class_duration is not None:
-                        rowspans[cur_day] = int(class_duration)
-                        if cur_day == day and start_time == hour:
-                            duration = int(class_duration) / 2
-
-                hour += 0.5
-
-        if duration is None:
-            return None
-
-        class_id = get_class_id(response.meta['course_unit_id'], response.meta['class_name'])
-        if (class_id != None):
             yield Slot(
-                lesson_type=response.meta['lesson_type'],
-                day=day,
-                start_time=start_time,
-                duration=duration,
-                location=response.meta['location'],
-                is_composed=response.meta['is_composed'],
-                professor_id=response.meta['professor_id'],
-                class_id=get_class_id(response.meta['course_unit_id'], response.meta['class_name']),
+                lesson_type=schedule["typology"]["acronym"],
+                day=self.days[schedule["week_days"][0]],
+                start_time=start_time.hour + (start_time.minute / 60),
+                duration=(end_time - start_time).total_seconds() / 3600,
+                location=schedule["rooms"][0]["name"],
+                is_composed=len(schedule["persons"]) > 0,
+                professor_id=schedule["persons"][0]["id"],
+                class_id=schedule["id"],
                 last_updated=datetime.now(),
             )
-        else:
-            yield None
-        
