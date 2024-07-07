@@ -44,11 +44,13 @@ class CourseMetadata(scrapy.Item):
     ects = scrapy.Field()
 
 class Class(scrapy.Item):
+    id = scrapy.Field()
     course_unit_id = scrapy.Field()
     name = scrapy.Field()  # 1MIEIC01
     last_updated = scrapy.Field()
     
 class Slot(scrapy.Item):
+    id = scrapy.Field()
     lesson_type = scrapy.Field()  # T, TP, PL, etc.
     day = scrapy.Field()  # 0 = monday, 1 = tuesday, .., 5 = saturday (no sunday)
     start_time = scrapy.Field()  # At what time the lesson starts

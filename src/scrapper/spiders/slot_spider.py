@@ -1,4 +1,5 @@
 import getpass
+import re
 import scrapy
 from datetime import datetime
 from scrapy.http import Request, FormRequest
@@ -10,7 +11,7 @@ from datetime import time
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database 
-from ..items import Slot
+from ..items import Slot, Class, SlotProfessor, Professor
 
 def get_class_id(course_unit_id, class_name):
     db = Database()
@@ -123,26 +124,52 @@ class SlotSpider(scrapy.Spider):
         return
 
     def makeRequestToSigarraScheduleAPI(self, response):
-        apiUrl = response.xpath('//div[@id="cal-shadow-container"]/@data-evt-source-url').extract_first()
+        self.api_url = response.xpath('//div[@id="cal-shadow-container"]/@data-evt-source-url').extract_first()
 
-        yield Request(url=apiUrl, callback=self.extractSchedule)
+        yield Request(url=self.api_url, callback=self.extractSchedule)
 
     def extractSchedule(self, response):
         schedule_data = response.json()["data"]
+        slot_ids = set()
 
         for schedule in schedule_data:
             date_format = "%Y-%m-%dT%H:%M:%S"
             start_time = datetime.strptime(schedule["start"], date_format)
             end_time = datetime.strptime(schedule["end"], date_format)
 
+            if(int(schedule["id"]) in slot_ids):
+                continue
+
+            slot_ids.add(int(schedule["id"]))
+
+            yield Class(
+                id=schedule["id"],
+                name=schedule["name"],
+                course_unit_id=re.search(r'uc/(\d+)/', self.api_url).group(1),
+                last_updated=datetime.now()
+            )
+
             yield Slot(
+                id=schedule["id"],
                 lesson_type=schedule["typology"]["acronym"],
                 day=self.days[schedule["week_days"][0]],
                 start_time=start_time.hour + (start_time.minute / 60),
                 duration=(end_time - start_time).total_seconds() / 3600,
                 location=schedule["rooms"][0]["name"],
                 is_composed=len(schedule["persons"]) > 0,
-                professor_id=schedule["persons"][0]["id"],
+                professor_id=schedule["persons"][0]["sigarra_id"],
                 class_id=schedule["id"],
                 last_updated=datetime.now(),
             )
+            
+            for teacher in schedule["persons"]:
+                yield Professor(
+                    id = teacher["sigarra_id"],
+                    professor_acronym = teacher["acronym"],
+                    professor_name = teacher["name"].split("-")[1].strip()
+                )
+
+                yield SlotProfessor(
+                    slot_id=schedule["id"],
+                    professor_id=teacher["sigarra_id"]
+                )
