@@ -10,8 +10,9 @@ from datetime import time
 
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
-from ..database.Database import Database 
+from ..database.Database import Database
 from ..items import Slot, Class, SlotProfessor, Professor
+
 
 def get_class_id(course_unit_id, class_name):
     db = Database()
@@ -21,16 +22,16 @@ def get_class_id(course_unit_id, class_name):
         ON course_unit.id = class.course_unit_id 
         WHERE course_unit.id = {} AND class.name = '{}'
     """.format(course_unit_id, class_name)
-    
+
     db.cursor.execute(sql)
     class_id = db.cursor.fetchone()
     db.connection.close()
 
-    if (class_id == None): # TODO: verificar casos em que a aula já esta na db mas for some reason não foi encontrada
+    if (class_id == None):  # TODO: verificar casos em que a aula já esta na db mas for some reason não foi encontrada
         # db2 = Database()
         # sql = """
         #     SELECT course_unit.url
-        #     FROM course_unit  
+        #     FROM course_unit
         #     WHERE course_unit.id = {}
         # """.format(course_unit_id)
 
@@ -38,8 +39,9 @@ def get_class_id(course_unit_id, class_name):
         # class_url = db2.cursor.fetchone()
         # db2.connection.close()
         # print("Class not found: ", class_url[0])
-        return None    
+        return None
     return class_id[0]
+
 
 class SlotSpider(scrapy.Spider):
     name = "slots"
@@ -53,6 +55,8 @@ class SlotSpider(scrapy.Spider):
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
+        self.professor_name_pattern = "\d+\s-\s[A-zÀ-ú](\s[A-zÀ-ú])*"
+        self.inserted_teacher_ids = set()
 
     def open_config(self):
         """
@@ -60,8 +64,7 @@ class SlotSpider(scrapy.Spider):
         """
         config_file = "./config.ini"
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
-        self.config.read(config_file) 
-
+        self.config.read(config_file)
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urllib.parse.urlencode({
@@ -94,11 +97,12 @@ class SlotSpider(scrapy.Spider):
                 print(message, flush=True)
                 self.log(message)
         else:
-            print('Login Failed. HTTP Error {}'.format(response.status), flush=True)
+            print('Login Failed. HTTP Error {}'.format(
+                response.status), flush=True)
             self.log('Login Failed. HTTP Error {}'.format(response.status))
 
     def classUnitRequests(self):
-        db = Database()        
+        db = Database()
         sql = """
             SELECT course_unit.id, course_unit.schedule_url, course.faculty_id
             FROM course JOIN course_metadata JOIN course_unit
@@ -108,31 +112,32 @@ class SlotSpider(scrapy.Spider):
         db.cursor.execute(sql)
         self.course_units = db.cursor.fetchall()
 
-        print("current course units: ", self.course_units)
-
         db.connection.close()
 
         self.log("Crawling {} class units".format(len(self.course_units)))
 
         for course_unit in self.course_units:
             course_unit_id = course_unit[0]
-            link_id_fragment = course_unit[1] # e.g. hor_geral.ucurr_view?pv_ocorrencia_id=514985 
+            # e.g. hor_geral.ucurr_view?pv_ocorrencia_id=514985
+            link_id_fragment = course_unit[1]
             faculty = course_unit[2]
 
-            yield Request(                
-                url="https://sigarra.up.pt/{}/pt/{}".format(faculty, link_id_fragment),
+            yield Request(
+                url="https://sigarra.up.pt/{}/pt/{}".format(
+                    faculty, link_id_fragment),
                 meta={'course_unit_id': course_unit_id},
                 callback=self.makeRequestToSigarraScheduleAPI,
                 errback=self.func
             )
-            
+
     def func(self, error):
         # # O scrapper não tem erros
-        # print(error)
+        print("An error has occured: ", error)
         return
 
     def makeRequestToSigarraScheduleAPI(self, response):
-        self.api_url = response.xpath('//div[@id="cal-shadow-container"]/@data-evt-source-url').extract_first()
+        self.api_url = response.xpath(
+            '//div[@id="cal-shadow-container"]/@data-evt-source-url').extract_first()
 
         yield Request(url=self.api_url, callback=self.extractSchedule, meta={'course_unit_id': re.search(r'uc/(\d+)/', self.api_url).group(1)})
 
@@ -149,22 +154,34 @@ class SlotSpider(scrapy.Spider):
             end_time = datetime.strptime(schedule["end"], date_format)
 
             for teacher in schedule["persons"]:
+                (sigarra_id, name) = self.get_professor_info(teacher)
+
+                if sigarra_id in self.inserted_teacher_ids:
+                    continue
+
+                self.inserted_teacher_ids.add(sigarra_id)
+
                 yield Professor(
-                    id = teacher["sigarra_id"],
-                    professor_acronym = teacher["acronym"],
-                    professor_name = teacher["name"] #.split("-")[1].strip()
+                    id=sigarra_id,
+                    professor_acronym=teacher["acronym"],
+                    professor_name=name
                 )
 
             for current_class in schedule["classes"]:
                 yield Class(
-                    id=current_class["sigarra_id"],
                     name=current_class["name"],
                     course_unit_id=course_unit_id,
                     last_updated=datetime.now()
                 )
 
+                # INFO Since we need to know at runtime the id of the slot so that we can then create SlotProfessor
+                # instances, we are going to be using the same id as the class in order to minimize database lookups
+                # during the runtime of the scrapper
+                current_class_id = get_class_id(
+                    course_unit_id, current_class["name"])
+
                 yield Slot(
-                    id=current_class["sigarra_id"],
+                    id=current_class_id,
                     lesson_type=schedule["typology"]["acronym"],
                     day=self.days[schedule["week_days"][0]],
                     start_time=start_time.hour + (start_time.minute / 60),
@@ -172,12 +189,34 @@ class SlotSpider(scrapy.Spider):
                     location=schedule["rooms"][0]["name"],
                     is_composed=len(schedule["classes"]) > 0,
                     professor_id=schedule["persons"][0]["sigarra_id"],
-                    class_id=current_class["sigarra_id"],
+                    class_id=current_class_id,
                     last_updated=datetime.now(),
                 )
-            
+
                 for teacher in schedule["persons"]:
+                    (sigarra_id, name) = self.get_professor_info(
+                        teacher)  # (sigarra_id | None, teacher_name)
+
                     yield SlotProfessor(
-                        slot_id=current_class["sigarra_id"]
-                        professor_id=teacher["sigarra_id"]
+                        slot_id=current_class_id,
+                        professor_id=sigarra_id
                     )
+
+    def get_professor_info(self, teacher):
+        """
+            The sigarra API that are using gives the name of the professors in two ways:
+            1. <sigarra_code> - <professor_name>
+            2. <name>
+
+            The option 2 generally occurs when there is not any teacher assigned. So, in order to retrive the
+            <professor_name> in the cases that we have a '-' in the middle, we have to check which one of option 1
+            or option 2 the api returned for that specific class.
+        """
+
+        if re.search(self.professor_name_pattern, teacher["name"]):
+            [professor_sigarra_id, professor_name,
+                *_] = teacher["name"].split("-", 1)
+
+            return (professor_sigarra_id.strip(), professor_name.strip())
+
+        return (teacher["sigarra_id"], teacher["name"])
