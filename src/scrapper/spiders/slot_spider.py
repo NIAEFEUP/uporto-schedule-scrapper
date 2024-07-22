@@ -195,7 +195,7 @@ class SlotSpider(scrapy.Spider):
 
                 for teacher in schedule["persons"]:
                     (sigarra_id, name) = self.get_professor_info(
-                        teacher)  # (sigarra_id | None, teacher_name)
+                        teacher)
 
                     yield SlotProfessor(
                         slot_id=current_class_id,
