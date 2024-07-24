@@ -149,7 +149,12 @@ class SlotSpider(scrapy.Spider):
             return
 
         date_format = "%Y-%m-%dT%H:%M:%S"
+
+        inserted_slots_ids = []
         for schedule in schedule_data:
+            if(schedule['id'] in inserted_slots_ids): continue
+            inserted_slots_ids.append(schedule['id'])
+
             start_time = datetime.strptime(schedule["start"], date_format)
             end_time = datetime.strptime(schedule["end"], date_format)
 
@@ -180,8 +185,10 @@ class SlotSpider(scrapy.Spider):
                 current_class_id = get_class_id(
                     course_unit_id, current_class["name"])
 
+                print(f"(id: {current_class_id}, name: {current_class['name']})")
+
                 yield Slot(
-                    id=current_class_id,
+                    id=schedule["id"],
                     lesson_type=schedule["typology"]["acronym"],
                     day=self.days[schedule["week_days"][0]],
                     start_time=start_time.hour + (start_time.minute / 60),
@@ -198,7 +205,7 @@ class SlotSpider(scrapy.Spider):
                         teacher)
 
                     yield SlotProfessor(
-                        slot_id=current_class_id,
+                        slot_id=schedule["id"],
                         professor_id=sigarra_id
                     )
 
