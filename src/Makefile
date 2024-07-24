@@ -1,7 +1,8 @@
 .PHONY: all clean
 FILES = $(shell ls)
         
-all: info faculties courses course_units course_metadata classes slots slot_professor professors
+# all: info faculties courses course_units course_metadata classes slots slot_professor professors
+all: info faculties courses course_units course_metadata slots
 
 
 faculties: 
@@ -16,18 +17,9 @@ course_units:
 course_metadata:
 	scrapy crawl course_metadata
 
-classes:
-	scrapy crawl classes
-
 slots:
 	scrapy crawl slots
 	
-slot_professor:
-	scrapy crawl slot_professor
-
-professors:
-	scrapy crawl professors
-
 info:
 	python ./scrapper/info.py
 
@@ -43,7 +35,7 @@ upload:
 
 convert_mysql:
 	@echo "Converting dump to mysql..."
-	@bash ./scripts/sqlite3-to-mysql.sh ./scripts/dump/data/dump_sqlite3.sql > ./scripts/dump/data/dump_mysql.sql
+	@bash ./scripts/sqlite3-to-mysql.sh ./scripts/dump/data/dump_sqlite3.sql > ./scripts/dump/data/01_data.sql
 	@echo "Convertion completed!"
 
 clean: 
