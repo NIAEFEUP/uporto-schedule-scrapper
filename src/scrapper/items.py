@@ -61,8 +61,12 @@ class Slot(scrapy.Item):
     location = scrapy.Field()  # B001, B003, etc.
     is_composed = scrapy.Field()  # If the class is composed
     professor_id = scrapy.Field()
-    class_id = scrapy.Field()  # The class id
     last_updated = scrapy.Field()
+
+
+class SlotClass(scrapy.Item):
+    slot_id = scrapy.Field()
+    class_id = scrapy.Field()
 
 
 class SlotProfessor(scrapy.Item):

@@ -9,13 +9,17 @@ from configparser import ConfigParser, ExtendedInterpolation
 from .database.Database import Database
 from tqdm import tqdm
 
+
 class MySQLPipeline():
-    def __init__(self): 
+    def __init__(self):
         self.open_config()
         self.db = Database()
-        self.counter = 0                                                        # Tracks how many items were processed until now.
-        self.pbar_initialized = False                                           # Avoids the percentage bar being initalized twice.
-        self.pbar_activated = eval(self.config['pbar']['activate'])             # If false, the percentage bar is not displayed. 
+        # Tracks how many items were processed until now.
+        self.counter = 0
+        # Avoids the percentage bar being initalized twice.
+        self.pbar_initialized = False
+        # If false, the percentage bar is not displayed.
+        self.pbar_activated = eval(self.config['pbar']['activate'])
 
     def open_config(self):
         """
@@ -28,12 +32,11 @@ class MySQLPipeline():
     def process_item(self, item, spider):
         self.process_pbar()
         self.db.insert(self.table_name, item)
-        return item 
+        return item
 
     # -------------------------------------------------------------------------
     # Percentage bar
     # -------------------------------------------------------------------------
-
 
     def config_pbar(self):
         """
@@ -44,7 +47,7 @@ class MySQLPipeline():
         """
         if not self.pbar_initialized:
             self.pbar = tqdm(total=self.expected_num)
-            self.pbar_initialized = True 
+            self.pbar_initialized = True
 
     def update_pbar(self):
         """
@@ -52,13 +55,13 @@ class MySQLPipeline():
         """
         self.pbar.update(1)
 
-    def close_pbar(self): 
+    def close_pbar(self):
         """
         Closes the percentage bar once if reaches to 100%. 
         """
         if self.counter == self.expected_num:
             self.pbar.close()
-    
+
     def process_pbar(self):
         """
         This function configures the percentage bar if necessary,
@@ -75,16 +78,18 @@ class MySQLPipeline():
 # Pipelines
 # -------------------------------------------------------------------------
 
+
 class FacultyPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_faculties'])
         self.table_name = 'faculty'
 
-    def process_item(self, item, spider): 
+    def process_item(self, item, spider):
         if isinstance(item, items.Faculty):
             super().process_item(item, spider)
         return item
+
 
 class CoursePipeline(MySQLPipeline):
     def __init__(self):
@@ -97,6 +102,7 @@ class CoursePipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item
 
+
 class CourseUnitPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
@@ -106,18 +112,20 @@ class CourseUnitPipeline(MySQLPipeline):
     def process_item(self, item, spider):
         if isinstance(item, items.CourseUnit):
             super().process_item(item, spider)
-        return item 
+        return item
+
 
 class CourseMetadataPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
-        self.expected_num = int(self.config['statistics']['num_course_metadata'])
+        self.expected_num = int(
+            self.config['statistics']['num_course_metadata'])
         self.table_name = 'course_metadata'
 
     def process_item(self, item, spider):
         if isinstance(item, items.CourseMetadata):
             super().process_item(item, spider)
-        return item 
+        return item
 
 
 class ClassPipeline(MySQLPipeline):
@@ -125,41 +133,57 @@ class ClassPipeline(MySQLPipeline):
         MySQLPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_classes'])
         self.table_name = 'class'
-    
+
     def process_item(self, item, spider):
         if isinstance(item, items.Class):
             super().process_item(item, spider)
-        return item 
+        return item
+
 
 class SlotPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_slots'])
         self.table_name = 'slot'
-    
+
     def process_item(self, item, spider):
         if isinstance(item, items.Slot):
             super().process_item(item, spider)
-        return item 
-    
+        return item
+
+
+class SlotClassPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_slot_class'])
+        self.table_name = 'slot_class'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.SlotClass):
+            super().process_item(item, spider)
+        return item
+
+
 class SlotProfessorPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
-        self.expected_num = int(self.config['statistics']['num_slot_professor'])
+        self.expected_num = int(
+            self.config['statistics']['num_slot_professor'])
         self.table_name = 'slot_professor'
-    
+
     def process_item(self, item, spider):
         if isinstance(item, items.SlotProfessor):
             super().process_item(item, spider)
-        return item 
-    
+        return item
+
+
 class ProfessorsPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_professors'])
         self.table_name = 'professor'
-    
+
     def process_item(self, item, spider):
         if isinstance(item, items.Professor):
             super().process_item(item, spider)
-        return item 
+        return item
