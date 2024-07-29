@@ -108,6 +108,20 @@ CREATE TABLE `slot` (
   FOREIGN KEY (`class_id`) REFERENCES `class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
+--
+-- Table structure for table `slot_class`
+--
+
+CREATE TABLE `slot_class` (
+  `slot_id` INTEGER NOT NULL,
+  `class_id` INTEGER NOT NULL,
+  FOREIGN KEY (`slot_id`) REFERENCES `slot` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`class_id`) REFERENCES `class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (`slot_id`, `class_id`)
+) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
+
+
+
 -- -------------------------------------------------------- 
 
 --
