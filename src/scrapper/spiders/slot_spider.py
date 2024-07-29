@@ -11,7 +11,7 @@ from datetime import time
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
-from ..items import Slot, Class, SlotProfessor, Professor
+from ..items import Slot, Class, SlotProfessor, Professor, SlotClass
 
 
 def get_class_id(course_unit_id, class_name):
@@ -152,7 +152,8 @@ class SlotSpider(scrapy.Spider):
 
         inserted_slots_ids = []
         for schedule in schedule_data:
-            if(schedule['id'] in inserted_slots_ids): continue
+            if (schedule['id'] in inserted_slots_ids):
+                continue
             inserted_slots_ids.append(schedule['id'])
 
             start_time = datetime.strptime(schedule["start"], date_format)
@@ -179,14 +180,6 @@ class SlotSpider(scrapy.Spider):
                     last_updated=datetime.now()
                 )
 
-                # INFO Since we need to know at runtime the id of the slot so that we can then create SlotProfessor
-                # instances, we are going to be using the same id as the class in order to minimize database lookups
-                # during the runtime of the scrapper
-                current_class_id = get_class_id(
-                    course_unit_id, current_class["name"])
-
-                print(f"(id: {current_class_id}, name: {current_class['name']})")
-
                 yield Slot(
                     id=schedule["id"],
                     lesson_type=schedule["typology"]["acronym"],
@@ -196,8 +189,7 @@ class SlotSpider(scrapy.Spider):
                     location=schedule["rooms"][0]["name"],
                     is_composed=len(schedule["classes"]) > 0,
                     professor_id=schedule["persons"][0]["sigarra_id"],
-                    class_id=current_class_id,
-                    last_updated=datetime.now(),
+                    last_updated=datetime.now()
                 )
 
                 for teacher in schedule["persons"]:
@@ -208,6 +200,13 @@ class SlotSpider(scrapy.Spider):
                         slot_id=schedule["id"],
                         professor_id=sigarra_id
                     )
+
+            for current_class in schedule["classes"]:
+                yield SlotClass(
+                    slot_id=schedule["id"],
+                    class_id=get_class_id(
+                        course_unit_id, current_class["name"])
+                )
 
     def get_professor_info(self, teacher):
         """
