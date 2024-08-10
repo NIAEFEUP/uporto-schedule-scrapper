@@ -48,6 +48,7 @@ CREATE TABLE `course_unit` (
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL,
+  `hash` varchar(32) ,
   UNIQUE (`id`, `semester`, `year`)
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );

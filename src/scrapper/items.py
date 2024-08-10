@@ -37,6 +37,7 @@ class CourseUnit(scrapy.Item):
     schedule_url = scrapy.Field()
     classes_url = scrapy.Field()
     last_updated = scrapy.Field()
+    hash = scrapy.Field()
 
 
 class CourseMetadata(scrapy.Item):
