@@ -155,19 +155,6 @@ CREATE TABLE `info` (
   `date` DATETIME PRIMARY KEY
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
--- --------------------------------------------------------
-
--- Table structure for table `statistics`
--- 
-
-CREATE TABLE `statistics` (
-  `int` INTEGER AUTO_INCREMENT PRIMARY KEY,
-  `course_unit_id` int(11) NOT NULL,
-  `acronym` varchar(10) NOT NULL,
-  `visited_times` int(11) NOT NULL,
-  `last_updated` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 
 --
 -- Indexes for table `course`
@@ -196,8 +183,3 @@ CREATE INDEX `class_course_unit_id` ON `class` (`course_unit_id`);
 -- Indexes for table `slot`
 --
 CREATE INDEX `slot_course_unit_id` ON `slot` (`class_id`);
-
---
--- Indexes for table `statistics`
---
-CREATE INDEX `statistics` ON `statistics` (`course_unit_id`);
