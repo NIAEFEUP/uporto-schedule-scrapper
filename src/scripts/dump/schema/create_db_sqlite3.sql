@@ -54,6 +54,7 @@ CREATE TABLE `course_unit` (
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,
   `schedule_url` varchar(2000) DEFAULT NULL,
+  `hash` varchar(64),
   `last_updated` datetime NOT NULL,
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
