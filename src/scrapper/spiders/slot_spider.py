@@ -208,6 +208,8 @@ class SlotSpider(scrapy.Spider):
                         course_unit_id, current_class["name"])
                 )
 
+                
+
     def get_professor_info(self, teacher):
         """
             The sigarra API that are using gives the name of the professors in two ways:
