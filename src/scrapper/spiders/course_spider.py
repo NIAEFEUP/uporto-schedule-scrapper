@@ -4,6 +4,7 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from configparser import ConfigParser, ExtendedInterpolation
 
+from scrapper.utils.DateUtils import get_scrapper_year
 from scrapper.settings import CONFIG, YEAR
 from ..items import Course
 from ..database.Database import Database
@@ -30,7 +31,7 @@ class CourseSpider(scrapy.Spider):
     def get_year(self):
         year = CONFIG[YEAR]
         if not year:
-            raise Exception('YEAR variable not specified for parsing in configuration file!')
+            return get_scrapper_year()
         return int(year)   
 
     # Get's the first letter of the course type and set it to upper case. 
@@ -39,7 +40,7 @@ class CourseSpider(scrapy.Spider):
     
     def parse(self, response):
         self.open_config()
-        
+
         hrefs = response.xpath('//*[@id="courseListComponent"]/div/dl/dd/ul/li/a/@href').extract()  
         for faculty_html in hrefs: 
             params = faculty_html.split("/")
