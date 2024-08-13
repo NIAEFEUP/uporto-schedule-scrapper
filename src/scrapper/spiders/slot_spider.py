@@ -1,4 +1,5 @@
 import getpass
+import hashlib
 import re
 import scrapy
 from datetime import datetime
@@ -18,8 +19,8 @@ def get_class_id(course_unit_id, class_name):
     db = Database()
     sql = """
         SELECT class.id, course_unit.url
-        FROM course_unit JOIN class 
-        ON course_unit.id = class.course_unit_id 
+        FROM course_unit JOIN class
+        ON course_unit.id = class.course_unit_id
         WHERE course_unit.id = {} AND class.name = '{}'
     """.format(course_unit_id, class_name)
 
@@ -144,6 +145,15 @@ class SlotSpider(scrapy.Spider):
     def extractSchedule(self, response):
         schedule_data = response.json()["data"]
         course_unit_id = response.meta.get('course_unit_id')
+        data_hash = hashlib.sha256(str(schedule_data).encode()).hexdigest()
+
+        db = Database()
+
+        sql = """
+           UPDATE course_unit SET  hash=  '{}'  WHERE id = {};
+        """.format(data_hash, course_unit_id)
+        db.cursor.execute(sql)
+        db.connection.close()
 
         if len(schedule_data) < 1:
             return
