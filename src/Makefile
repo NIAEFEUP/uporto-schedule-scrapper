@@ -33,8 +33,8 @@ upload:
 	@python ./scripts/upload.py
 	@echo "Upload completed!"
 
-convert_mysql:
-	@echo "Converting dump to mysql..."
+convert_postgres:
+	@echo "Converting dump to postgres..."
 	@bash ./scripts/sqlite3-to-mysql.sh ./scripts/dump/data/dump_sqlite3.sql > ./scripts/dump/data/01_data.sql
 	@echo "Convertion completed!"
 

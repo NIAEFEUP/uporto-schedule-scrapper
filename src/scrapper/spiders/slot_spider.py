@@ -235,6 +235,11 @@ class SlotSpider(scrapy.Spider):
             [professor_sigarra_id, professor_name,
                 *_] = teacher["name"].split("-", 1)
 
-            return (professor_sigarra_id.strip(), professor_name.strip())
+            try:
+                professor_sigarra_id = int(professor_sigarra_id.strip())
+            except:
+                professor_sigarra_id = teacher["id"]
+
+            return (professor_sigarra_id, professor_name.strip())
 
         return (teacher["sigarra_id"], teacher["name"])

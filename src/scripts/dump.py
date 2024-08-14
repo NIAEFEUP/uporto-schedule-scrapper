@@ -42,9 +42,16 @@ class Dump:
         f.close()
 
     def dump_table(self, table, con, f):
+        cursor = con.cursor()
+        cursor.execute("PRAGMA table_info({})".format(table))
+
+        columns = [row[1] for row in cursor.fetchall()]
+
         for line in con.iterdump():
             if line.startswith("INSERT") and "\"{}\"".format(table) in line:
-                f.write('%s\n' % line)
+                insert_stmt = "INSERT INTO {} ({}) VALUES ".format(table, ", ".join(columns))
+                values = line.split("VALUES")[1].strip()
+                f.write(insert_stmt + values + "\n")
 
 
 if __name__ == '__main__':
