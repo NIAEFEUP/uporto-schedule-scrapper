@@ -64,18 +64,21 @@ class Slot(scrapy.Item):
     professor_id = scrapy.Field()
     last_updated = scrapy.Field()
 
-
 class SlotClass(scrapy.Item):
     slot_id = scrapy.Field()
     class_id = scrapy.Field()
 
+class ProfessorLink(scrapy.Item):
+    id = scrapy.Field()
+    link = scrapy.Field()
 
 class SlotProfessor(scrapy.Item):
     slot_id = scrapy.Field()
     professor_id = scrapy.Field()
-
+    professor_link_id = scrapy.Field()
 
 class Professor(scrapy.Item):
     id = scrapy.Field()
     professor_acronym = scrapy.Field()
     professor_name = scrapy.Field()
+    professor_url = scrapy.Field()
