@@ -83,6 +83,7 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.ClassPipeline': 0,
     'scrapper.pipelines.SlotPipeline': 0,
     'scrapper.pipelines.SlotProfessorPipeline': 0,
+    'scrapper.pipelines.ProfessorLinkPipeline': 0,
     'scrapper.pipelines.ProfessorsPipeline': 0,
     'scrapper.pipelines.SlotClassPipeline': 0
 }

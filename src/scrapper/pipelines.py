@@ -10,7 +10,7 @@ from .database.Database import Database
 from tqdm import tqdm
 
 
-class MySQLPipeline():
+class DBPipeline():
     def __init__(self):
         self.open_config()
         self.db = Database()
@@ -79,9 +79,9 @@ class MySQLPipeline():
 # -------------------------------------------------------------------------
 
 
-class FacultyPipeline(MySQLPipeline):
+class FacultyPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_faculties'])
         self.table_name = 'faculty'
 
@@ -91,9 +91,9 @@ class FacultyPipeline(MySQLPipeline):
         return item
 
 
-class CoursePipeline(MySQLPipeline):
+class CoursePipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_courses'])
         self.table_name = 'course'
 
@@ -103,9 +103,9 @@ class CoursePipeline(MySQLPipeline):
         return item
 
 
-class CourseUnitPipeline(MySQLPipeline):
+class CourseUnitPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_course_units'])
         self.table_name = 'course_unit'
 
@@ -115,9 +115,9 @@ class CourseUnitPipeline(MySQLPipeline):
         return item
 
 
-class CourseMetadataPipeline(MySQLPipeline):
+class CourseMetadataPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(
             self.config['statistics']['num_course_metadata'])
         self.table_name = 'course_metadata'
@@ -128,9 +128,9 @@ class CourseMetadataPipeline(MySQLPipeline):
         return item
 
 
-class ClassPipeline(MySQLPipeline):
+class ClassPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_classes'])
         self.table_name = 'class'
 
@@ -140,9 +140,9 @@ class ClassPipeline(MySQLPipeline):
         return item
 
 
-class SlotPipeline(MySQLPipeline):
+class SlotPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_slots'])
         self.table_name = 'slot'
 
@@ -152,9 +152,9 @@ class SlotPipeline(MySQLPipeline):
         return item
 
 
-class SlotClassPipeline(MySQLPipeline):
+class SlotClassPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_slot_class'])
         self.table_name = 'slot_class'
 
@@ -164,9 +164,9 @@ class SlotClassPipeline(MySQLPipeline):
         return item
 
 
-class SlotProfessorPipeline(MySQLPipeline):
+class SlotProfessorPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
         self.expected_num = int(
             self.config['statistics']['num_slot_professor'])
         self.table_name = 'slot_professor'
@@ -176,10 +176,21 @@ class SlotProfessorPipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item
 
-
-class ProfessorsPipeline(MySQLPipeline):
+class ProfessorLinkPipeline(DBPipeline):
     def __init__(self):
-        MySQLPipeline.__init__(self)
+        DBPipeline.__init__(self)
+        self.expected_num = int(
+            self.config['statistics']['num_professor_link'])
+        self.table_name = 'professor_link'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.ProfessorLink):
+            super().process_item(item, spider)
+        return item
+
+class ProfessorsPipeline(DBPipeline):
+    def __init__(self):
+        DBPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_professors'])
         self.table_name = 'professor'
 

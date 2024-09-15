@@ -38,6 +38,7 @@ class Dump:
         self.dump_table("class", con, f)
         self.dump_table("slot", con, f)
         self.dump_table("slot_class", con, f)
+        self.dump_table("professor_link", con, f)
         self.dump_table("slot_professor", con, f)
         f.close()
 

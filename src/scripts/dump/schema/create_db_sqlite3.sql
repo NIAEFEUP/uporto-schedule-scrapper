@@ -119,6 +119,11 @@ CREATE TABLE `slot_class` (
   PRIMARY KEY (`slot_id`, `class_id`)
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
+CREATE TABLE `professor_link` (
+  `id` INTEGER PRIMARY KEY,
+  `link` varchar(256)
+) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
+
 -- -------------------------------------------------------- 
 
 --
@@ -128,8 +133,10 @@ CREATE TABLE `slot_class` (
 CREATE TABLE `slot_professor` (
   `slot_id` INTEGER NOT NULL,
   `professor_id` INTEGER NOT NULL,
+  `professor_link_id` INTEGER NOT NULL,
   FOREIGN KEY (`slot_id`) REFERENCES `slot` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`professor_id`) REFERENCES `professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`professor_link_id`) REFERENCES `professor_link` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   PRIMARY KEY (`slot_id`, `professor_id`)
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
@@ -142,7 +149,8 @@ CREATE TABLE `slot_professor` (
 CREATE TABLE `professor` (
   `id` INTEGER PRIMARY KEY,
   `professor_acronym` varchar(16),
-  `professor_name` varchar(100)
+  `professor_name` varchar(100),
+  `professor_url` varchar(128)
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
 -- --------------------------------------------------------

@@ -12,7 +12,7 @@ from datetime import time
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
-from ..items import Slot, Class, SlotProfessor, Professor, SlotClass
+from ..items import Slot, Class, SlotProfessor, Professor, SlotClass, ProfessorLink
 
 
 def get_class_id(course_unit_id, class_name):
@@ -102,6 +102,23 @@ class SlotSpider(scrapy.Spider):
                 response.status), flush=True)
             self.log('Login Failed. HTTP Error {}'.format(response.status))
 
+    def professor_link_exists(self, id: int) -> bool:
+        exists = False
+        db = Database()
+        sql = """
+            SELECT id
+            FROM professor_link 
+            WHERE id = {}
+        """.format(id)
+
+        db.cursor.execute(sql)
+        if db.cursor.fetchone() != None:
+            exists = True
+        
+        db.connection.close()
+
+        return exists
+
     def classUnitRequests(self):
         db = Database()
         sql = """
@@ -180,7 +197,8 @@ class SlotSpider(scrapy.Spider):
                 yield Professor(
                     id=sigarra_id,
                     professor_acronym=teacher["acronym"],
-                    professor_name=name
+                    professor_name=name,
+                    professor_url=teacher["sigarra_url"]
                 )
 
             for current_class in schedule["classes"]:
@@ -205,10 +223,18 @@ class SlotSpider(scrapy.Spider):
                 for teacher in schedule["persons"]:
                     (sigarra_id, name) = self.get_professor_info(
                         teacher)
+                    
+                    professor_link_id = schedule["id"]
+                    if not self.professor_link_exists(professor_link_id):
+                        yield ProfessorLink(
+                            id=schedule["id"],
+                            link=teacher["sigarra_url"]
+                        )
 
                     yield SlotProfessor(
                         slot_id=schedule["id"],
-                        professor_id=sigarra_id
+                        professor_id=sigarra_id,
+                        professor_link_id=schedule["id"]
                     )
 
             for current_class in schedule["classes"]:
