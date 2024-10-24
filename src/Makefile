@@ -17,6 +17,9 @@ course_units:
 course_metadata:
 	scrapy crawl course_metadata
 
+course_unit_group:
+	scrapy crawl course_unit_group
+
 slots:
 	scrapy crawl slots
 	

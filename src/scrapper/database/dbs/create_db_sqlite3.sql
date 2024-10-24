@@ -49,6 +49,7 @@ CREATE TABLE `course_unit` (
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL,
   `hash` varchar(64) ,
+  `course_unit_group` INTEGER,
   UNIQUE (`id`, `semester`, `year`)
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -143,6 +144,18 @@ CREATE TABLE `professor` (
 
 CREATE TABLE `info` (
   `date` DATETIME PRIMARY KEY
+);
+
+-- --------------------------------------------------------
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `info`
+--
+
+CREATE TABLE `course_unit_group` (
+  `id` INTEGER PRIMARY KEY,
+  `name` varchar(20)
 );
 
 -- --------------------------------------------------------

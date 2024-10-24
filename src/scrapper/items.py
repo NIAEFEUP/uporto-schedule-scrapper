@@ -79,3 +79,7 @@ class Professor(scrapy.Item):
     id = scrapy.Field()
     professor_acronym = scrapy.Field()
     professor_name = scrapy.Field()
+
+class CourseUnitGroup(scrapy.Item):
+    id = scrapy.Field()
+    name = scrapy.Field()
