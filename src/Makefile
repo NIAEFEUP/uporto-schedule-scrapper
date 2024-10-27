@@ -2,7 +2,7 @@
 FILES = $(shell ls)
         
 # all: info faculties courses course_units course_metadata classes slots slot_professor professors
-all: info faculties courses course_units course_metadata slots
+all: info faculties courses course_units course_unit_group course_metadata slots 
 
 
 faculties: 

@@ -181,7 +181,8 @@ class CourseUnitSpider(scrapy.Spider):
                     schedule_url=schedule_url,
                     year=year,
                     semester=semester,
-                    last_updated=datetime.now()
+                    last_updated=datetime.now(),
+                    course_group='Obrigatório'
                 )
             else:
                 yield None
