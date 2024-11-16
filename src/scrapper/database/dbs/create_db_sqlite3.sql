@@ -5,6 +5,8 @@
 
 -- --------------------------------------------------------
 
+
+
 --
 -- Table structure for table `faculty`
 --
@@ -49,7 +51,6 @@ CREATE TABLE `course_unit` (
   `schedule_url` varchar(2000) DEFAULT NULL,
   `last_updated` datetime NOT NULL,
   `hash` varchar(64) ,
-  `course_group` varchar(64) CHECK(course_group IN ('Competência Transversal', 'Obrigatório', 'Optativa')) NOT NULL,
   UNIQUE (`id`, `semester`, `year`)
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -137,13 +138,28 @@ CREATE TABLE `professor` (
   `professor_name` varchar(100)
 );
 
--- --------------------------------------------------------
---
--- Table structure for table `info`
---
-
+-- Table for info
 CREATE TABLE `info` (
   `date` DATETIME PRIMARY KEY
 );
+-- Table for course group
+CREATE TABLE `course_group` (
+  `id` INTEGER PRIMARY KEY,
+  `name` varchar(64),
+  `course_id` INTEGER,
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
 
--- --------------------------------------------------------
+-- Table for association of course unit and course group
+CREATE TABLE `course_unit_course_group` (
+  `course_unit_id` INTEGER NOT NULL,
+  `course_group_id` INTEGER NOT NULL,
+  PRIMARY KEY (`course_unit_id`, `course_group_id`),
+  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`course_group_id`) REFERENCES `course_group`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Table for info
+CREATE TABLE `info` (
+  `date` DATETIME PRIMARY KEY
+);
