@@ -156,6 +156,25 @@ CREATE TABLE `info` (
 ) ENGINE=InnoDB CHARSET = utf8 COLLATE = utf8_general_ci;
 
 
+CREATE TABLE `course_group` (
+  `id` INTEGER PRIMARY KEY,
+  `name` varchar(64) NOT NULL,
+  `course_id` INTEGER NOT NULL,
+);
+
+-----------------------------------------------------------
+--
+-- Table for association of   course unit and course group
+
+CREATE TABLE `course_unit_course_group` (
+  `course_unit_id` INTEGER NOT NULL,
+  `course_group_id` INTEGER NOT NULL,
+  PRIMARY KEY (`course_unit_id`, `course_group_id`),
+  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`course_group_id`) REFERENCES `course_group`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
 --
 -- Indexes for table `course`
 --
