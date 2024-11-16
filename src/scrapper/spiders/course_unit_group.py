@@ -52,8 +52,6 @@ class CourseUnitSpider(scrapy.Spider):
             if group_title:
                 group_name = group_title.strip()
                 print(f"Found group: {group_name} for course ID: {course_id}")
-
-
                 hash_object = hashlib.md5(group_name.encode('utf-8'))
                 hashed_group_name = hash_object.hexdigest()
                 numeric_group_id = int(hashed_group_name, 16) % 10**8  
@@ -73,15 +71,12 @@ class CourseUnitSpider(scrapy.Spider):
                     link = row.xpath('.//td[@class="t"]/a/@href').extract_first()
                     if link:
                         try:
-
                             course_unit_id = link.split("pv_ocorrencia_id=")[1].split("&")[0]
                             print(f"Found course unit ID: {course_unit_id} in group: {group_name}")
-
                             # Yield CUCG item 
                             course_unit_course_group_item = CUCG(
                                 course_unit_id=course_unit_id,
                                 course_group_id=numeric_group_id,
-
                             )
                             yield course_unit_course_group_item
                         except IndexError:
