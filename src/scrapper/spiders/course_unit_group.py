@@ -56,15 +56,6 @@ class CourseUnitSpider(scrapy.Spider):
                 hashed_group_name = hash_object.hexdigest()
                 numeric_group_id = int(hashed_group_name, 16) % 10**8  
                 print(f"Generated numeric group ID: {numeric_group_id}")
-
-                # Yield CourseGroup item
-                course_group_item = CourseGroup(
-                    id=numeric_group_id,
-                    name=group_name,
-                    course_id=course_id
-                )
-                yield course_group_item 
-
                 course_rows = group_div.xpath('.//table[contains(@class, "dadossz")]/tr')
                 for row in course_rows:
                     name = row.xpath('.//td[@class="t"]/a/text()').extract_first()
@@ -73,12 +64,30 @@ class CourseUnitSpider(scrapy.Spider):
                         try:
                             course_unit_id = link.split("pv_ocorrencia_id=")[1].split("&")[0]
                             print(f"Found course unit ID: {course_unit_id} in group: {group_name}")
-                            # Yield CUCG item 
-                            course_unit_course_group_item = CUCG(
-                                course_unit_id=course_unit_id,
-                                course_group_id=numeric_group_id,
-                            )
-                            yield course_unit_course_group_item
+
+                            sql = """
+                            SELECT count(*) 
+                            FROM course_unit WHERE id = ?
+                            """
+                            self.db.cursor.execute(sql, (course_unit_id,))
+                            result = self.db.cursor.fetchone()
+                            if result[0] > 0:
+                                # Yield CourseGroup item
+                                course_group_item = CourseGroup(
+                                    id=numeric_group_id,
+                                    name=group_name,
+                                    course_id=course_id
+                                )
+                                yield course_group_item 
+
+                                # Yield CUCG item 
+                                course_unit_course_group_item = CUCG(
+                                    course_unit_id=course_unit_id,
+                                    course_group_id=numeric_group_id,
+                                )
+                                yield course_unit_course_group_item
+                            else:
+                                print(f"Course unit ID {course_unit_id} not found in database.")
                         except IndexError:
                             self.logger.warning(f"Failed to parse course unit ID from link {link}")
                             print(f"Failed to parse course unit ID from link {link}")
