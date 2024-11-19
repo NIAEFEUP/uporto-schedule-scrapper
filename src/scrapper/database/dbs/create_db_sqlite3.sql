@@ -5,8 +5,6 @@
 
 -- --------------------------------------------------------
 
-
-
 --
 -- Table structure for table `faculty`
 --
@@ -138,11 +136,19 @@ CREATE TABLE `professor` (
   `professor_name` varchar(100)
 );
 
--- Table for info
+-- --------------------------------------------------------
+--
+-- Table structure for table `info`
+--
+
 CREATE TABLE `info` (
   `date` DATETIME PRIMARY KEY
 );
--- Table for course group
+
+-- --------------------------------------------------------
+--
+-- Table for `course group`
+--
 CREATE TABLE `course_group` (
   `id` INTEGER PRIMARY KEY,
   `name` varchar(64),
@@ -150,7 +156,10 @@ CREATE TABLE `course_group` (
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Table for association of course unit and course group
+-- --------------------------------------------------------
+--
+-- Table for `course_unit_course_group`
+--
 CREATE TABLE `course_unit_course_group` (
   `course_unit_id` INTEGER NOT NULL,
   `course_group_id` INTEGER NOT NULL,
@@ -159,7 +168,3 @@ CREATE TABLE `course_unit_course_group` (
   FOREIGN KEY (`course_group_id`) REFERENCES `course_group`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Table for info
-CREATE TABLE `info` (
-  `date` DATETIME PRIMARY KEY
-);
