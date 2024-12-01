@@ -153,6 +153,7 @@ CREATE TABLE `course_group` (
   `id` INTEGER PRIMARY KEY,
   `name` varchar(64),
   `course_id` INTEGER,
+  `group_course_id` INTEGER,
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

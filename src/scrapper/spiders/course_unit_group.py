@@ -52,14 +52,14 @@ class CourseUnitSpider(scrapy.Spider):
         result = self.db.cursor.fetchone()
         return result[0] > 0
 
-    def course_group_index(self, course_group_name, course_id):
+    def course_group_index(self, course_id, group_course_id):
         sql = """
         SELECT course_group.id
         FROM course_group 
-        WHERE name = ? 
+        WHERE group_course_id = ? 
         AND course_id = ?
         """
-        self.db.cursor.execute(sql, (course_group_name, course_id))
+        self.db.cursor.execute(sql, (group_course_id, course_id))
         result = self.db.cursor.fetchone()
         if result:
             return result[0]
@@ -83,6 +83,8 @@ class CourseUnitSpider(scrapy.Spider):
             group_title = group_div.xpath('.//h3/text()').extract_first()
             if group_title:
                 group_name = group_title.strip()
+                div_id = group_div.xpath('./@id').extract_first().split("_")[2]
+                print(f"div id is {div_id}")
                 course_rows = group_div.xpath('.//table[contains(@class, "dadossz")]/tr')
                 for row in course_rows:
                     name = row.xpath('.//td[@class="t"]/a/text()').extract_first()
@@ -93,13 +95,15 @@ class CourseUnitSpider(scrapy.Spider):
 
                             if self.course_unit_exists_already(course_unit_id):
                                 # Yield CourseGroup item
-                                course_group_id = self.course_group_index(group_name, course_id)
+                                course_group_id = self.course_group_index( course_id, div_id)
                                 if not course_group_id:
                                     course_group_id = self.get_next_group_id()
                                     course_group_item = CourseGroup(
                                         id=course_group_id,
                                         name=group_name,
-                                        course_id=course_id
+                                        course_id=course_id,
+                                        group_course_id=div_id
+
                                     )
                                     yield course_group_item 
 
