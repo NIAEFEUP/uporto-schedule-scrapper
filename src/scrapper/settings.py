@@ -86,7 +86,7 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.ProfessorsPipeline': 0,
     'scrapper.pipelines.SlotClassPipeline': 0,
     'scrapper.pipelines.CourseGroupPipeline': 0,
-    'scrapper.pipelines.CUCGPipeline': 0,
+    'scrapper.pipelines.CourseUnitGroupPipeline': 0,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

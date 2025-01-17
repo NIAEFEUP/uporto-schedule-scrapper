@@ -201,15 +201,15 @@ class CourseGroupPipeline(MySQLPipeline):
         return item
 
 
-class CUCGPipeline(MySQLPipeline):
+class CourseUnitGroupPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
         self.expected_num = int(self.config['statistics']['num_course_unit_course_group'])
         self.table_name = 'course_unit_course_group'
 
     def process_item(self, item, spider):
-        if isinstance(item, items.CUCG):
-            print("CUCG PROCESS")
+        if isinstance(item, items.CourseUnitGroup):
+            print("CourseUnitGroup PROCESS")
             super().process_item(item, spider)
         return item
 

@@ -1,16 +1,16 @@
 import scrapy
 import hashlib
-from ..items import CourseGroup, CUCG
+from ..items import CourseGroup, CourseUnitGroup
 from ..database.Database import Database
 
 
-class CourseUnitSpider(scrapy.Spider):
+class CourseUnitGroupSpider(scrapy.Spider):
     name = "course_unit_group" #This is the name of the table in the database it will be used for some queries
     allowed_domains = ['sigarra.up.pt'] #Domain we are going to scrape
 
     def __init__(self, *args, **kwargs):
         print("Initializing CourseUnitSpider...")
-        super(CourseUnitSpider, self).__init__(*args, **kwargs)
+        super(CourseUnitGroupSpider, self).__init__(*args, **kwargs)
         self.db = Database() 
 
         # All this is just to get the courses from the database
@@ -107,8 +107,8 @@ class CourseUnitSpider(scrapy.Spider):
                                     )
                                     yield course_group_item 
 
-                                # Yield CUCG item 
-                                course_unit_course_group_item = CUCG(
+                                # Yield CourseUnitGroup item 
+                                course_unit_course_group_item = CourseUnitGroup(
                                     course_unit_id=course_unit_id,
                                     course_group_id=course_group_id,
                                 )
