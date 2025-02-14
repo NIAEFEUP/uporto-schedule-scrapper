@@ -72,7 +72,7 @@ CREATE TABLE `course_unit_occurrence` (
   `id` INTEGER PRIMARY KEY ,
   `course_unit_id` int(11) NOT NULL,
   `year` tinyint(4) NOT NULL,
-  `semester` tinyint(4) NOT NULL,
+  `semester` TEXT NOT NULL,
   `last_updated` datetime NOT NULL
 );
 
