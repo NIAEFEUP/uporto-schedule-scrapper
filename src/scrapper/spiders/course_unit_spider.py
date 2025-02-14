@@ -13,7 +13,7 @@ import json
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
-from ..items import CourseUnit
+from ..items import CourseUnit, CourseUnitOccurrence
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
@@ -119,8 +119,10 @@ class CourseUnitSpider(scrapy.Spider):
         if name == 'Sem Resultados':
             return None  # Return None as yielding would continue the program and crash at the next assert
 
-        course_unit_id = parse_qs(urlparse(response.url).query)[
-            'pv_ocorrencia_id'][0]
+        current_occurence_id = parse_qs(urlparse(response.url).query)['pv_ocorrencia_id'][0]
+
+        # Get the link with text "Outras ocorrências" and extract the course unit ID from its URL
+        course_unit_id = parse_qs(urlparse(response.xpath('//a[text()="Outras ocorrências"]/@href').get()).query)['pv_ucurr_id'][0]
 
         acronym = response.xpath(
             '//div[@id="conteudoinner"]/table[@class="formulario"][1]//td[text()="Sigla:"]/following-sibling::td[1]/text()').extract_first()
@@ -134,9 +136,6 @@ class CourseUnitSpider(scrapy.Spider):
             acronym = acronym.replace(".", "_")
 
         url = response.url
-        schedule_url = response.xpath(
-            '//a[text()="Horário"]/@href').extract_first()
-
         # # If there is no schedule for this course unit
         # if schedule_url is not None:
         #     schedule_url = response.urljoin(schedule_url)
@@ -170,7 +169,7 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-            if (course_unit_id not in self.course_units_ids) and (schedule_url != None):
+            if (course_unit_id not in self.course_units_ids):
                 self.course_units_ids.add(course_unit_id)
                 yield CourseUnit(
                     id=course_unit_id,
@@ -178,14 +177,26 @@ class CourseUnitSpider(scrapy.Spider):
                     name=name,
                     acronym=acronym,
                     url=url,
-                    schedule_url=schedule_url,
-                    year=year,
-                    semester=semester,
                     last_updated=datetime.now()
+                )
+
+                yield scrapy.http.Request(
+                    url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
+                    meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
+                    callback=self.extractOccurrences
                 )
             else:
                 yield None
-
-            
-
- 
+                
+    def extractOccurrences(self, response):
+        data = json.loads(response.body)
+        
+        for uc in data:
+            if(uc.get('ano_letivo') > 2024): #Just for now
+                yield CourseUnitOccurrence(
+                    course_unit_id=response.meta['course_unit_id'],
+                    id=uc.get('id'),
+                    year=uc.get('ano_letivo'),
+                    semester=uc.get('periodo_nome'),
+                    last_updated=datetime.now()
+                )
