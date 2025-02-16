@@ -40,12 +40,10 @@ CREATE TABLE `course` (
 
 CREATE TABLE `course_unit` (
   `id` INTEGER PRIMARY KEY,
-  `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `last_updated` datetime NOT NULL,
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `last_updated` datetime NOT NULL
 );
 
 -- --------------------------------------------------------
@@ -53,7 +51,7 @@ CREATE TABLE `course_unit` (
 -- Table structure for table `course_metadata`
 --
 
-CREATE TABLE `course_metadata` (
+CREATE TABLE `course_course_unit` (
   `course_id` int(11) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,

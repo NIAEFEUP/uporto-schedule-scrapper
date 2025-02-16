@@ -40,7 +40,6 @@ CREATE INDEX course_faculty_id_idx ON course (faculty_id);
 
 CREATE TABLE course_unit (
   id SERIAL PRIMARY KEY,
-  course_id INT NOT NULL,
   name VARCHAR(200) NOT NULL,
   acronym VARCHAR(16) NOT NULL,
   url VARCHAR(2000) NOT NULL,
@@ -54,8 +53,7 @@ CREATE INDEX course_unit_course_id_idx ON course_unit (course_id);
 --
 -- Table structure for table `course_metadata`
 --
-
-CREATE TABLE course_metadata (
+CREATE TABLE course_course_unit (
   course_id INT NOT NULL,
   course_unit_id INT NOT NULL,
   course_unit_year SMALLINT NOT NULL,
@@ -65,8 +63,8 @@ CREATE TABLE course_metadata (
   FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX course_metadata_course_unit_id_idx ON course_metadata (course_unit_id);
-CREATE INDEX course_metadata_course_id_idx ON course_metadata (course_id);
+CREATE INDEX course_course_unit_course_unit_id_idx ON course_course_unit (course_unit_id);
+CREATE INDEX course_course_unit_course_id_idx ON course_course_unit (course_id);
 
 
 -- --------------------------------------------------------

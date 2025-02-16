@@ -28,12 +28,10 @@ class Course(scrapy.Item):
 
 class CourseUnit(scrapy.Item):
     id = scrapy.Field()
-    course_id = scrapy.Field()
     name = scrapy.Field()
     acronym = scrapy.Field()
     last_updated = scrapy.Field()
     url = scrapy.Field()
-    hash = scrapy.Field()
 
 class CourseUnitOccurrence(scrapy.Item):
     id = scrapy.Field()
@@ -42,7 +40,7 @@ class CourseUnitOccurrence(scrapy.Item):
     semester = scrapy.Field()
     last_updated = scrapy.Field()
 
-class CourseMetadata(scrapy.Item):
+class CourseCourseUnit(scrapy.Item):
     course_id = scrapy.Field()
     course_unit_id = scrapy.Field()
     course_unit_year = scrapy.Field()

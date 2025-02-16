@@ -13,7 +13,7 @@ import json
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
-from ..items import CourseUnit, CourseUnitOccurrence
+from ..items import CourseUnit, CourseUnitOccurrence, CourseCourseUnit
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
@@ -169,30 +169,49 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-            if (course_unit_id not in self.course_units_ids):
-                self.course_units_ids.add(course_unit_id)
                 yield CourseUnit(
                     id=course_unit_id,
-                    course_id=response.meta['course_id'],
                     name=name,
                     acronym=acronym,
                     url=url,
                     last_updated=datetime.now()
                 )
+                study_cycles_table = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]')
+                
+                if study_cycles_table:
+                    for row in study_cycles_table.xpath('.//tr[@class="d"]'):
 
-                yield scrapy.http.Request(
-                    url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
-                    meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
-                    callback=self.extractOccurrences
-                )
-            else:
-                yield None
+                        course_link = row.xpath('.//td[1]/a/@href').get()
+                        
+                        if course_link:
+                            course_id = parse_qs(urlparse(course_link).query)['pv_curso_id'][0]
+                            if str(response.meta['course_id']) == course_id:
+                                course_acronym = row.xpath('.//td[1]/a/text()').get()
+                                ects = row.xpath('.//td[6]/text()').get()
+                                curricular_years = row.xpath('.//td[4]/text()').get()
+                                
+                                if course_acronym and ects:
+                                    if curricular_years:
+                                        for year in curricular_years.split(','):
+                                            yield CourseCourseUnit(
+                                                course_id=response.meta['course_id'],
+                                                course_unit_id=course_unit_id,
+                                                course_unit_year=year.strip(),
+                                                ects=ects
+                                            )
+                    yield scrapy.http.Request(
+                        url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
+                        meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
+                        callback=self.extractOccurrences
+                    )
+                else:
+                    yield None
                 
     def extractOccurrences(self, response):
         data = json.loads(response.body)
         
         for uc in data:
-            if(uc.get('ano_letivo') > 2024): #Just for now
+            if(uc.get('ano_letivo') > 2021): #Just for now
                 yield CourseUnitOccurrence(
                     course_unit_id=response.meta['course_unit_id'],
                     id=uc.get('id'),

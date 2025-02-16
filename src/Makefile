@@ -14,9 +14,6 @@ courses:
 course_units:
 	scrapy crawl course_units
 
-course_metadata:
-	scrapy crawl course_metadata
-
 
 info:
 	python ./scrapper/info.py

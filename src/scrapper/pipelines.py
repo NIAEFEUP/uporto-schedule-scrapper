@@ -115,15 +115,15 @@ class CourseUnitPipeline(MySQLPipeline):
         return item
 
 
-class CourseMetadataPipeline(MySQLPipeline):
+class CourseCourseUnitPipeline(MySQLPipeline):
     def __init__(self):
         MySQLPipeline.__init__(self)
         self.expected_num = int(
-            self.config['statistics']['num_course_metadata'])
-        self.table_name = 'course_metadata'
+            self.config['statistics']['num_course_course_unit'])
+        self.table_name = 'course_course_unit'
 
     def process_item(self, item, spider):
-        if isinstance(item, items.CourseMetadata):
+        if isinstance(item, items.CourseCourseUnit):
             super().process_item(item, spider)
         return item
 

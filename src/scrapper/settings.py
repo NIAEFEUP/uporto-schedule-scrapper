@@ -78,7 +78,7 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 128
 ITEM_PIPELINES = {
     'scrapper.pipelines.FacultyPipeline': 0,
     'scrapper.pipelines.CoursePipeline': 0,
-    'scrapper.pipelines.CourseMetadataPipeline': 0,
+    'scrapper.pipelines.CourseCourseUnitPipeline': 0,
     'scrapper.pipelines.CourseUnitPipeline': 0,
     'scrapper.pipelines.CourseUnitOccurrencePipeline': 0,
 }
