@@ -78,13 +78,9 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 128
 ITEM_PIPELINES = {
     'scrapper.pipelines.FacultyPipeline': 0,
     'scrapper.pipelines.CoursePipeline': 0,
-    'scrapper.pipelines.CourseMetadataPipeline': 0,
+    'scrapper.pipelines.CourseCourseUnitPipeline': 0,
     'scrapper.pipelines.CourseUnitPipeline': 0,
-    'scrapper.pipelines.ClassPipeline': 0,
-    'scrapper.pipelines.SlotPipeline': 0,
-    'scrapper.pipelines.SlotProfessorPipeline': 0,
-    'scrapper.pipelines.ProfessorsPipeline': 0,
-    'scrapper.pipelines.SlotClassPipeline': 0
+    'scrapper.pipelines.CourseUnitOccurrencePipeline': 0,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

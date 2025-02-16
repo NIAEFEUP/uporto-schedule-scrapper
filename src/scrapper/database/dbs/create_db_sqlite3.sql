@@ -40,17 +40,10 @@ CREATE TABLE `course` (
 
 CREATE TABLE `course_unit` (
   `id` INTEGER PRIMARY KEY,
-  `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
   `url` varchar(2000) NOT NULL,
-  `semester` tinyint(4) NOT NULL,
-  `year` smallint(6) NOT NULL,
-  `schedule_url` varchar(2000) DEFAULT NULL,
-  `last_updated` datetime NOT NULL,
-  `hash` varchar(64) ,
-  UNIQUE (`id`, `semester`, `year`)
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `last_updated` datetime NOT NULL
 );
 
 -- --------------------------------------------------------
@@ -58,7 +51,7 @@ CREATE TABLE `course_unit` (
 -- Table structure for table `course_metadata`
 --
 
-CREATE TABLE `course_metadata` (
+CREATE TABLE `course_course_unit` (
   `course_id` int(11) NOT NULL,
   `course_unit_id` int(11) NOT NULL,
   `course_unit_year` tinyint(4) NOT NULL,
@@ -71,72 +64,19 @@ CREATE TABLE `course_metadata` (
 
 -- --------------------------------------------------------
 --
--- Table structure for table `class`
+--Table structure for table `course_unit_occurrence`
 --
-
-CREATE TABLE `class` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `name` varchar(31) NOT NULL,
+CREATE TABLE `course_unit_occurrence` (
+  `id` INTEGER PRIMARY KEY ,
   `course_unit_id` int(11) NOT NULL,
-  `last_updated` datetime NOT NULL,
-  UNIQUE (`name`, `course_unit_id`)
-  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- --------------------------------------------------------
---
--- Table structure for table `slot`
---
-
-CREATE TABLE `slot` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `lesson_type` varchar(3) NOT NULL,
-  `day` tinyint(3) NOT NULL,
-  `start_time` decimal(3,1) NOT NULL,
-  `duration` decimal(3,1) NOT NULL,
-  `location` varchar(31) NOT NULL,
-  `is_composed` boolean NOT NULL,
-  `professor_id` int (11),
+  `year` tinyint(4) NOT NULL,
+  `semester` TEXT NOT NULL,
   `last_updated` datetime NOT NULL
 );
 
--- -------------------------------------------------------- 
---
--- Table structure for table `slot_class`
---
-CREATE TABLE `slot_class` (
-  `slot_id` INTEGER NOT NULL,
-  `class_id` INTEGER NOT NULL,
-  FOREIGN KEY (`slot_id`) REFERENCES `slot` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`class_id`) REFERENCES `class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  PRIMARY KEY (`slot_id`, `class_id`)
-);
-
--- -------------------------------------------------------- 
---
--- Table structure for table `class_professor`
---
-
-CREATE TABLE `slot_professor` (
-  `slot_id` INTEGER NOT NULL,
-  `professor_id` INTEGER NOT NULL,
-  FOREIGN KEY (`slot_id`) REFERENCES `slot` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`professor_id`) REFERENCES `professor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  PRIMARY KEY (`slot_id`, `professor_id`)
-);
-
--- -------------------------------------------------------- 
---
--- Table structure for table `professor`
---
-
-CREATE TABLE `professor` (
-  `id` INTEGER PRIMARY KEY,
-  `professor_acronym` varchar(16),
-  `professor_name` varchar(100)
-);
 
 -- --------------------------------------------------------
+------------------------------------------------
 --
 -- Table structure for table `info`
 --

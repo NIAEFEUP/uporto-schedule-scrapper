@@ -1,8 +1,8 @@
 .PHONY: all clean
 FILES = $(shell ls)
         
-# all: info faculties courses course_units course_metadata classes slots slot_professor professors
-all: info faculties courses course_units course_metadata slots
+# all: info faculties courses course_units 
+all: info faculties courses course_units 
 
 
 faculties: 
@@ -14,12 +14,7 @@ courses:
 course_units:
 	scrapy crawl course_units
 
-course_metadata:
-	scrapy crawl course_metadata
 
-slots:
-	scrapy crawl slots
-	
 info:
 	python ./scrapper/info.py
 

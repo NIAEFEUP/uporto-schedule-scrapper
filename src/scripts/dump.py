@@ -33,12 +33,8 @@ class Dump:
         self.dump_table("faculty", con, f)
         self.dump_table("course", con, f)
         self.dump_table("course_unit", con, f)
-        self.dump_table("course_metadata", con, f)
-        self.dump_table("professor", con, f)
-        self.dump_table("class", con, f)
-        self.dump_table("slot", con, f)
-        self.dump_table("slot_class", con, f)
-        self.dump_table("slot_professor", con, f)
+        self.dump_table("course_course_unit", con, f)
+        self.dump_table("course_unit_occurrence", con, f)
         f.close()
 
     def dump_table(self, table, con, f):
