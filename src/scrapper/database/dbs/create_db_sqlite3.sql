@@ -64,9 +64,9 @@ CREATE TABLE `course_course_unit` (
 
 -- --------------------------------------------------------
 --
---Table structure for table `course_unit_occurrence`
+--Table structure for table `course_unit_instance`
 --
-CREATE TABLE `course_unit_occurrence` (
+CREATE TABLE `course_unit_instance` (
   `id` INTEGER PRIMARY KEY ,
   `course_unit_id` int(11) NOT NULL,
   `year` tinyint(4) NOT NULL,

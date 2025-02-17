@@ -13,7 +13,7 @@ import json
 from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
-from ..items import CourseUnit, CourseUnitOccurrence, CourseCourseUnit
+from ..items import CourseUnit, CourseUnitInstance, CourseCourseUnit
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
@@ -140,18 +140,18 @@ class CourseUnitSpider(scrapy.Spider):
         # if schedule_url is not None:
         #     schedule_url = response.urljoin(schedule_url)
 
-        # Occurrence has a string that contains both the year and the semester type
-        occurrence = response.css('#conteudoinner > h2::text').extract_first()
+        # Instance has a string that contains both the year and the semester type
+        Instance = response.css('#conteudoinner > h2::text').extract_first()
 
         # Possible types: '1', '2', 'A', 'SP'
         # '1' and '2' represent a semester
         # 'A' represents an annual course unit
         # 'SP' represents a course unit without effect this year
-        semester = occurrence[24:26].strip()
+        semester = Instance[24:26].strip()
 
         # Represents the civil year. If the course unit is taught on the curricular year
         # 2017/2018, then year is 2017.
-        year = int(occurrence[12:16])
+        year = int(Instance[12:16])
 
         assert semester == '1S' or semester == '2S' or semester == 'A' or semester == 'SP' \
             or semester == '1T' or semester == '2T' or semester == '3T' or semester == '4T'
@@ -202,17 +202,17 @@ class CourseUnitSpider(scrapy.Spider):
                     yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
-                        callback=self.extractOccurrences
+                        callback=self.extractInstances
                     )
                 else:
                     yield None
                 
-    def extractOccurrences(self, response):
+    def extractInstances(self, response):
         data = json.loads(response.body)
         
         for uc in data:
-            if(uc.get('ano_letivo') > 2021): #Just for now
-                yield CourseUnitOccurrence(
+            if(uc.get('ano_letivo') > 2022): #Just for now
+                yield CourseUnitInstance(
                     course_unit_id=response.meta['course_unit_id'],
                     id=uc.get('id'),
                     year=uc.get('ano_letivo'),
