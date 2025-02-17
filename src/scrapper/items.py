@@ -33,7 +33,7 @@ class CourseUnit(scrapy.Item):
     last_updated = scrapy.Field()
     url = scrapy.Field()
 
-class CourseUnitOccurrence(scrapy.Item):
+class CourseUnitInstance(scrapy.Item):
     id = scrapy.Field()
     course_unit_id = scrapy.Field()
     year = scrapy.Field()

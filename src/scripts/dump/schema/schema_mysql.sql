@@ -69,9 +69,9 @@ CREATE INDEX course_course_unit_course_id_idx ON course_course_unit (course_id);
 
 -- --------------------------------------------------------
 --
---Table structure for table `course_unit_occurrence`
+--Table structure for table `course_unit_instance`
 --
-CREATE TABLE course_unit_occurrence (
+CREATE TABLE course_unit_instance (
   id SERIAL PRIMARY KEY,
   course_unit_id INT NOT NULL,
   year SMALLINT NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE course_unit_occurrence (
   last_updated TIMESTAMP NOT NULL
 );
 
-CREATE INDEX course_unit_occurrence_course_unit_id_idx ON course_unit_occurrence (course_unit_id);
+CREATE INDEX course_unit_instance_course_unit_id_idx ON course_unit_instance (course_unit_id);
 
 
 
