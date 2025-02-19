@@ -23,7 +23,7 @@ CREATE TABLE course (
   faculty_id VARCHAR(10) NOT NULL,
   name VARCHAR(200) NOT NULL,
   acronym VARCHAR(10) NOT NULL,
-  course_type VARCHAR(2) NOT NULL,
+  course_type VARCHAR(50) NOT NULL,
   year INT NOT NULL,
   url VARCHAR(2000) NOT NULL,
   plan_url VARCHAR(2000) NOT NULL,

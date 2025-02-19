@@ -35,8 +35,6 @@ class CourseSpider(scrapy.Spider):
         return int(year)   
 
     # Get's the first letter of the course type and set it to upper case. 
-    def get_course_type(self, url):
-        return url.split('/')[6][0].upper()
     
     def parse(self, response):
         self.open_config()
@@ -45,7 +43,7 @@ class CourseSpider(scrapy.Spider):
         for faculty_html in hrefs: 
             params = faculty_html.split("/")
             url = f"https://sigarra.up.pt/{params[-3]}/pt/cur_geral.cur_view?pv_ano_lectivo={self.get_year()}&pv_curso_id={params[-2]}"
-            yield scrapy.Request(url= url, callback=self.get_course, meta={'faculty_acronym': params[-3], 'course_type': self.get_course_type(response.url)})
+            yield scrapy.Request(url= url, callback=self.get_course, meta={'faculty_acronym': params[-3]})
     
     def get_acronym(self, response):
         acronym = response.xpath('//td[text()="Sigla: "]/following-sibling::td/text()').get()
@@ -62,8 +60,12 @@ class CourseSpider(scrapy.Spider):
             # Check if the course has an acronym
             # Some pages don't have an acronym, usually because they are not available for the current year
             acronym = self.get_acronym(response)
+
+            
             if not acronym:
                 continue
+
+            course_type= response.xpath('//td[text()="Tipo de curso/ciclo de estudos: "]/following-sibling::td/text()').get()
 
             sigarra_id = response.url.split('=')[-1]
             course = Course(
@@ -71,7 +73,7 @@ class CourseSpider(scrapy.Spider):
                 faculty_id = response.meta['faculty_acronym'],    # New parameter 
                 name = response.xpath('//*[@id="conteudoinner"]/h1[2]').extract()[0][4:-5],
                 acronym = acronym,
-                course_type = response.meta['course_type'],
+                course_type = course_type,
                 year = self.get_year(),
                 url = response.url,
                 plan_url = f"cur_geral.cur_planos_estudos_view?pv_plano_id={sigarra_id}&pv_ano_lectivo={self.get_year()}",
