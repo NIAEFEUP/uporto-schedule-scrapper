@@ -25,7 +25,7 @@ CREATE TABLE `course` (
   `faculty_id` varchar(10) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(10) NOT NULL,
-  `course_type` varchar(2) NOT NULL,
+  `course_type` varchar(50) NOT NULL,
   `year` int(11) NOT NULL,
   `url` varchar(2000) NOT NULL,
   `plan_url` varchar(2000) NOT NULL,
