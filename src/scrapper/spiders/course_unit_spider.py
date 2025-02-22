@@ -17,62 +17,18 @@ from ..items import CourseUnit, CourseUnitInstance, CourseCourseUnit
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
-    allowed_domains = ['sigarra.up.pt']
-    login_page_base = 'https://sigarra.up.pt/feup/pt/mob_val_geral.autentica'
-    password = None
     course_units_ids = set()
-
-    def open_config(self):
-        """
-        Reads and saves the configuration file. 
-        """
-        config_file = "./config.ini"
-        self.config = ConfigParser(interpolation=ExtendedInterpolation())
-        self.config.read(config_file) 
-
-    def __init__(self, *args, **kwargs):
-        super(CourseUnitSpider, self).__init__(*args, **kwargs)
-        self.open_config()
-        self.user = CONFIG[USERNAME]
-        self.password = CONFIG[PASSWORD]
-        logging.getLogger('scrapy').propagate = False
-
-    def format_login_url(self):
-        return '{}?{}'.format(self.login_page_base, urlencode({
-            'pv_login': self.user,
-            'pv_password': self.password
-        }))
 
     def start_requests(self):
         "This function is called before crawling starts."
-        if self.password is None:
-            self.password = getpass.getpass(prompt='Password: ', stream=None)
-            
-        yield Request(url=self.format_login_url(), callback=self.check_login_response, errback=self.login_response_err)
-
-    def login_response_err(self, failure):
-        print('Login failed. SIGARRA\'s response: error type 404;\nerror message "{}"'.format(failure))
-        print("Check your password")
-    
-    def check_login_response(self, response):
-        """Check the response returned by a login request to see if we are
-        successfully logged in. Since we used the mobile login API endpoint,
-        we can just check the status code.
-        """ 
-
-        if response.status == 200:
-            response_body = json.loads(response.body)
-            if response_body['authenticated']:
-                self.log("Successfully logged in. Let's start crawling!")
-                return self.courseRequests()
-           
+        return self.courseRequests()
 
     def courseRequests(self):
         print("Gathering course units") 
         db = Database() 
 
         sql = """
-            SELECT course.id, year, course.id, faculty.acronym 
+            SELECT course.id, year, faculty.acronym 
             FROM course JOIN faculty 
             ON course.faculty_id= faculty.acronym
         """
@@ -85,10 +41,10 @@ class CourseUnitSpider(scrapy.Spider):
         for course in self.courses:
             yield scrapy.http.Request(
                 url='https://sigarra.up.pt/{}/pt/ucurr_geral.pesquisa_ocorr_ucs_list?pv_ano_lectivo={}&pv_curso_id={}'.format(
-                    course[3], course[1], course[2]),
+                    course[2], course[1], course[0]),
                 meta={'course_id': course[0]},
                 callback=self.extractSearchPages)
-
+            
     def extractSearchPages(self, response):
         last_page_url = response.css(
             ".paginar-saltar-barra-posicao > div:last-child > a::attr(href)").extract_first()
@@ -169,6 +125,8 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
+                if (course_unit_id in self.course_units_ids): continue
+                self.course_units_ids.add(course_unit_id)
                 yield CourseUnit(
                     id=course_unit_id,
                     name=name,
@@ -184,21 +142,25 @@ class CourseUnitSpider(scrapy.Spider):
                         course_link = row.xpath('.//td[1]/a/@href').get()
                         
                         if course_link:
-                            course_id = parse_qs(urlparse(course_link).query)['pv_curso_id'][0]
-                            if str(response.meta['course_id']) == course_id:
-                                course_acronym = row.xpath('.//td[1]/a/text()').get()
-                                ects = row.xpath('.//td[6]/text()').get()
-                                curricular_years = row.xpath('.//td[4]/text()').get()
-                                
-                                if course_acronym and ects:
-                                    if curricular_years:
-                                        for year in curricular_years.split(','):
-                                            yield CourseCourseUnit(
-                                                course_id=response.meta['course_id'],
-                                                course_unit_id=course_unit_id,
-                                                course_unit_year=year.strip(),
-                                                ects=ects
-                                            )
+                            course_id_meta = response.meta.get('course_id')
+                            query_params = parse_qs(urlparse(course_link).query)
+                            if 'pv_curso_id' in query_params:
+                                course_id = query_params['pv_curso_id'][0]
+                                if str(course_id_meta) == course_id:
+                                    course_acronym = row.xpath('.//td[1]/a/text()').get()
+                                    ects = row.xpath('.//td[6]/text()').get()
+                                    curricular_years = row.xpath('.//td[4]/text()').get()
+                                    
+                                    if course_acronym and ects:
+                                        if curricular_years:
+                                            for year in curricular_years.split(','):
+                                                yield CourseCourseUnit(
+                                                    course_id=course_id_meta,
+                                                    course_unit_id=course_unit_id,
+                                                    course_unit_year=year.strip(),
+                                                    ects=ects
+                                                )
+
                     yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},

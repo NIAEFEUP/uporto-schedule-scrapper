@@ -12,21 +12,21 @@ from dotenv import dotenv_values
 
 class CourseSpider(scrapy.Spider):
     name = "courses"
-    allowed_domains = ['sigarra.up.pt']
-    login_page = 'https://sigarra.up.pt/feup/pt/'
+    # allowed_domains = ['sigarra.up.pt']
+    # login_page = 'https://sigarra.up.pt/feup/pt/'
 
     bachelors_url = "https://www.up.pt/portal/en/study/bachelors-and-integrated-masters-degrees/courses/"
     masters_url = "https://www.up.pt/portal/en/study/masters-degrees/courses/"
     doctors_url = "https://www.up.pt/portal/en/study/doctorates/courses/"
     start_urls = [bachelors_url, masters_url, doctors_url]
     
-    def open_config(self):
-        """
-        Reads and saves the configuration file. 
-        """
-        config_file = "./config.ini"
-        self.config = ConfigParser(interpolation=ExtendedInterpolation())
-        self.config.read(config_file) 
+    # def open_config(self):
+    #     """
+    #     Reads and saves the configuration file. 
+    #     """
+    #     config_file = "./config.ini"
+    #     self.config = ConfigParser(interpolation=ExtendedInterpolation())
+    #     self.config.read(config_file) 
 
     def get_year(self):
         year = CONFIG[YEAR]
@@ -37,7 +37,7 @@ class CourseSpider(scrapy.Spider):
     # Get's the first letter of the course type and set it to upper case. 
     
     def parse(self, response):
-        self.open_config()
+        # self.open_config()
 
         hrefs = response.xpath('//*[@id="courseListComponent"]/div/dl/dd/ul/li/a/@href').extract()  
         for faculty_html in hrefs: 
