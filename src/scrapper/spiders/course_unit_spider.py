@@ -7,6 +7,7 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
+import pandas as pd
 import logging
 import json
 
@@ -136,38 +137,24 @@ class CourseUnitSpider(scrapy.Spider):
                 )
                 study_cycles_table = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]')
                 
-                if study_cycles_table:
-                    for row in study_cycles_table.xpath('.//tr[@class="d"]'):
-
-                        course_link = row.xpath('.//td[1]/a/@href').get()
-                        
-                        if course_link:
-                            course_id_meta = response.meta.get('course_id')
-                            query_params = parse_qs(urlparse(course_link).query)
-                            if 'pv_curso_id' in query_params:
-                                course_id = query_params['pv_curso_id'][0]
-                                if str(course_id_meta) == course_id:
-                                    course_acronym = row.xpath('.//td[1]/a/text()').get()
-                                    ects = row.xpath('.//td[6]/text()').get()
-                                    curricular_years = row.xpath('.//td[4]/text()').get()
-                                    
-                                    if course_acronym and ects:
-                                        if curricular_years:
-                                            for year in curricular_years.split(','):
-                                                yield CourseCourseUnit(
-                                                    course_id=course_id_meta,
-                                                    course_unit_id=course_unit_id,
-                                                    course_unit_year=year.strip(),
-                                                    ects=ects
-                                                )
-
-                    yield scrapy.http.Request(
+                
+                study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
+                df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
+                print(df)
+                for (_, row) in df.iterrows():
+                        yield CourseCourseUnit(
+                                course_id= parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
+                                course_unit_id=course_unit_id,
+                                course_unit_year=row[3][0],
+                                ects=row[5][0]
+                                )
+                yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
                         callback=self.extractInstances
                     )
-                else:
-                    yield None
+
+                       
                 
     def extractInstances(self, response):
         data = json.loads(response.body)
