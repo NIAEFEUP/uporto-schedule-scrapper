@@ -15,10 +15,12 @@ from scrapper.settings import CONFIG, PASSWORD, USERNAME
 
 from ..database.Database import Database
 from ..items import CourseUnit, CourseUnitInstance, CourseCourseUnit
+import hashlib
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     course_units_ids = set()
+    course_courses_units_hashes = set()
 
     def start_requests(self):
         "This function is called before crawling starts."
@@ -138,13 +140,18 @@ class CourseUnitSpider(scrapy.Spider):
                 
                 study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
                 df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
+
                 for (_, row) in df.iterrows():
-                        yield CourseCourseUnit(
+                        cu = CourseCourseUnit(
                                 course_id= parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
                                 course_unit_id=course_unit_id,
                                 course_unit_year=row[3][0],
                                 ects=row[5][0]
                                 )
+                        hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['course_unit_year']).encode()).hexdigest()
+                        if(hash_ccu not in self.course_courses_units_hashes):
+                            self.course_courses_units_hashes.add(hash_ccu)
+                            yield cu
                 yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
