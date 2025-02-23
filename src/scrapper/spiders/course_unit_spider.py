@@ -128,15 +128,15 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-                if (course_unit_id in self.course_units_ids): continue
-                self.course_units_ids.add(course_unit_id)
-                yield CourseUnit(
-                    id=course_unit_id,
-                    name=name,
-                    acronym=acronym,
-                    url=url,
-                    last_updated=datetime.now()
-                )
+                if (course_unit_id not in self.course_units_ids):
+                    self.course_units_ids.add(course_unit_id)
+                    yield CourseUnit(
+                        id=course_unit_id,
+                        name=name,
+                        acronym=acronym,
+                        url=url,
+                        last_updated=datetime.now()
+                    )
                 
                 study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
                 df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
