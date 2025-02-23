@@ -1,4 +1,4 @@
-
+PRAGMA foreign_keys = ON;
 --
 -- Database: `tts` FOR SQLITE 3 
 --

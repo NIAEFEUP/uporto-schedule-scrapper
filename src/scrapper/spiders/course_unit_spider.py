@@ -142,16 +142,17 @@ class CourseUnitSpider(scrapy.Spider):
                 df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
 
                 for (_, row) in df.iterrows():
-                        cu = CourseCourseUnit(
-                                course_id= parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
-                                course_unit_id=course_unit_id,
-                                course_unit_year=row[3][0],
-                                ects=row[5][0]
-                                )
-                        hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['course_unit_year']).encode()).hexdigest()
-                        if(hash_ccu not in self.course_courses_units_hashes):
-                            self.course_courses_units_hashes.add(hash_ccu)
-                            yield cu
+                        if(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0] == str(response.meta['course_id'])):
+                            cu = CourseCourseUnit(
+                                    course_id= parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
+                                    course_unit_id=course_unit_id,
+                                    course_unit_year=row[3][0],
+                                    ects=row[5][0]
+                                    )
+                            hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['course_unit_year']).encode()).hexdigest()
+                            if(hash_ccu not in self.course_courses_units_hashes):
+                                self.course_courses_units_hashes.add(hash_ccu)
+                                yield cu
                 yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
