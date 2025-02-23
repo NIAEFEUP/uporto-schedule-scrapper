@@ -21,6 +21,7 @@ class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     course_units_ids = set()
     course_courses_units_hashes = set()
+    course_unit_instances_ids= set()
 
     def start_requests(self):
         "This function is called before crawling starts."
@@ -139,8 +140,9 @@ class CourseUnitSpider(scrapy.Spider):
                     )
                 
                 study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
+                if study_cycles is None:
+                    continue
                 df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
-
                 for (_, row) in df.iterrows():
                         if(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0] == str(response.meta['course_id'])):
                             cu = CourseCourseUnit(
@@ -166,10 +168,14 @@ class CourseUnitSpider(scrapy.Spider):
         
         for uc in data:
             if(uc.get('ano_letivo') > 2022): #Just for now
-                yield CourseUnitInstance(
-                    course_unit_id=response.meta['course_unit_id'],
-                    id=uc.get('id'),
-                    year=uc.get('ano_letivo'),
-                    semester=uc.get('periodo_nome'),
-                    last_updated=datetime.now()
-                )
+                if(uc.get('id') not in self.course_unit_instances_ids):
+                    self.course_unit_instances_ids.add(uc.get('id'))
+                    yield CourseUnitInstance(
+                        course_unit_id=response.meta['course_unit_id'],
+                        id=uc.get('id'),
+                        year=uc.get('ano_letivo'),
+                        semester=uc.get('periodo_nome'),
+                        last_updated=datetime.now()
+                    )
+
+    
