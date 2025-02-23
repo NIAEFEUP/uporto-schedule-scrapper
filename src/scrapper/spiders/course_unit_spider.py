@@ -11,7 +11,7 @@ import pandas as pd
 import logging
 import json
 
-from scrapper.settings import CONFIG, PASSWORD, USERNAME
+from scrapper.settings import CONFIG
 
 from ..database.Database import Database
 from ..items import CourseUnit, CourseUnitInstance, CourseCourseUnit
