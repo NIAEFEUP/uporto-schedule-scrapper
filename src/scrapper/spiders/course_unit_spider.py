@@ -135,8 +135,6 @@ class CourseUnitSpider(scrapy.Spider):
                     url=url,
                     last_updated=datetime.now()
                 )
-                study_cycles_table = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]')
-                
                 
                 study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
                 df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
