@@ -31,19 +31,19 @@ class CourseUnit(scrapy.Item):
     name = scrapy.Field()
     acronym = scrapy.Field()
     last_updated = scrapy.Field()
-    url = scrapy.Field()
-
-class CourseUnitInstance(scrapy.Item):
-    id = scrapy.Field()
-    course_unit_id = scrapy.Field()
-    year = scrapy.Field()
-    semester = scrapy.Field()
-    last_updated = scrapy.Field()
+    recent_occr = scrapy.Field()
 
 class CourseCourseUnit(scrapy.Item):
     course_id = scrapy.Field()
     course_unit_id = scrapy.Field()
-    course_unit_year = scrapy.Field()
+    year = scrapy.Field()
+    semester = scrapy.Field()
     ects = scrapy.Field()
-
-
+    
+class CourseUnitProfessor(scrapy.Item):
+    course_unit_id = scrapy.Field()
+    professor_id = scrapy.Field()
+    
+class Professor(scrapy.Item):
+    id = scrapy.Field()
+    name = scrapy.Field()

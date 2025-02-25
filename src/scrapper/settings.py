@@ -17,8 +17,6 @@ CONFIG = {
 }
 
 YEAR = 'TTS_SCRAPY_YEAR'
-USERNAME = 'TTS_SCRAPY_USER'
-PASSWORD = 'TTS_SCRAPY_PASSWORD'
 
 BOT_NAME = 'scrapper'
 
@@ -80,7 +78,8 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.CoursePipeline': 0,
     'scrapper.pipelines.CourseCourseUnitPipeline': 0,
     'scrapper.pipelines.CourseUnitPipeline': 0,
-    'scrapper.pipelines.CourseUnitInstancePipeline': 0,
+    'scrapper.pipelines.CourseUnitProfessorPipeline': 0,
+    'scrapper.pipelines.ProfessorPipeline': 0,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
