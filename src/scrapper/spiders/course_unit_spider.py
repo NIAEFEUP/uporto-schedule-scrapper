@@ -7,17 +7,21 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urlparse, parse_qs, urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
+import pandas as pd
 import logging
 import json
 
-from scrapper.settings import CONFIG, PASSWORD, USERNAME
+from scrapper.settings import CONFIG
 
 from ..database.Database import Database
 from ..items import CourseUnit, CourseUnitInstance, CourseCourseUnit
+import hashlib
 
 class CourseUnitSpider(scrapy.Spider):
     name = "course_units"
     course_units_ids = set()
+    course_courses_units_hashes = set()
+    course_unit_instances_ids= set()
 
     def start_requests(self):
         "This function is called before crawling starts."
@@ -125,59 +129,53 @@ class CourseUnitSpider(scrapy.Spider):
             semesters = [1, 2]
 
         for semester in semesters:
-                if (course_unit_id in self.course_units_ids): continue
-                self.course_units_ids.add(course_unit_id)
-                yield CourseUnit(
-                    id=course_unit_id,
-                    name=name,
-                    acronym=acronym,
-                    url=url,
-                    last_updated=datetime.now()
-                )
-                study_cycles_table = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]')
+                if (course_unit_id not in self.course_units_ids):
+                    self.course_units_ids.add(course_unit_id)
+                    yield CourseUnit(
+                        id=course_unit_id,
+                        name=name,
+                        acronym=acronym,
+                        url=url,
+                        last_updated=datetime.now()
+                    )
                 
-                if study_cycles_table:
-                    for row in study_cycles_table.xpath('.//tr[@class="d"]'):
-
-                        course_link = row.xpath('.//td[1]/a/@href').get()
-                        
-                        if course_link:
-                            course_id_meta = response.meta.get('course_id')
-                            query_params = parse_qs(urlparse(course_link).query)
-                            if 'pv_curso_id' in query_params:
-                                course_id = query_params['pv_curso_id'][0]
-                                if str(course_id_meta) == course_id:
-                                    course_acronym = row.xpath('.//td[1]/a/text()').get()
-                                    ects = row.xpath('.//td[6]/text()').get()
-                                    curricular_years = row.xpath('.//td[4]/text()').get()
-                                    
-                                    if course_acronym and ects:
-                                        if curricular_years:
-                                            for year in curricular_years.split(','):
-                                                yield CourseCourseUnit(
-                                                    course_id=course_id_meta,
-                                                    course_unit_id=course_unit_id,
-                                                    course_unit_year=year.strip(),
-                                                    ects=ects
-                                                )
-
-                    yield scrapy.http.Request(
+                study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
+                if study_cycles is None:
+                    continue
+                df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
+                for (_, row) in df.iterrows():
+                        if(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0] == str(response.meta['course_id'])):
+                            cu = CourseCourseUnit(
+                                    course_id= parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
+                                    course_unit_id=course_unit_id,
+                                    course_unit_year=row[3][0],
+                                    ects=row[5][0]
+                                    )
+                            hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['course_unit_year']).encode()).hexdigest()
+                            if(hash_ccu not in self.course_courses_units_hashes):
+                                self.course_courses_units_hashes.add(hash_ccu)
+                                yield cu
+                yield scrapy.http.Request(
                         url="https://sigarra.up.pt/feup/pt/mob_ucurr_geral.outras_ocorrencias?pv_ocorrencia_id={}".format(current_occurence_id),
                         meta={'course_unit_id': course_unit_id, 'semester': semester, 'year': year},
                         callback=self.extractInstances
                     )
-                else:
-                    yield None
+
+                       
                 
     def extractInstances(self, response):
         data = json.loads(response.body)
         
         for uc in data:
             if(uc.get('ano_letivo') > 2022): #Just for now
-                yield CourseUnitInstance(
-                    course_unit_id=response.meta['course_unit_id'],
-                    id=uc.get('id'),
-                    year=uc.get('ano_letivo'),
-                    semester=uc.get('periodo_nome'),
-                    last_updated=datetime.now()
-                )
+                if(uc.get('id') not in self.course_unit_instances_ids):
+                    self.course_unit_instances_ids.add(uc.get('id'))
+                    yield CourseUnitInstance(
+                        course_unit_id=response.meta['course_unit_id'],
+                        id=uc.get('id'),
+                        year=uc.get('ano_letivo'),
+                        semester=uc.get('periodo_nome'),
+                        last_updated=datetime.now()
+                    )
+
+    
