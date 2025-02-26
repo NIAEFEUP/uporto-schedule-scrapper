@@ -7,6 +7,9 @@ from ..database.Database import Database
 class CourseUnitGroupSpider(scrapy.Spider):
     name = "course_unit_group" #This is the name of the table in the database it will be used for some queries
     allowed_domains = ['sigarra.up.pt'] #Domain we are going to scrape
+    
+    course_groups = set()
+    course_unit_course_groups = set() 
 
     def __init__(self, *args, **kwargs):
         print("Initializing CourseUnitSpider...")
@@ -52,19 +55,6 @@ class CourseUnitGroupSpider(scrapy.Spider):
         result = self.db.cursor.fetchone()
         return result[0] > 0
 
-    def course_group_index(self, course_id, group_course_id):
-        sql = """
-        SELECT course_group.id
-        FROM course_group 
-        WHERE group_course_id = ? 
-        AND course_id = ?
-        """
-        self.db.cursor.execute(sql, (group_course_id, course_id))
-        result = self.db.cursor.fetchone()
-        if result:
-            return result[0]
-        return None
-
     def get_next_group_id(self):
         sql = """
         SELECT MAX(id) FROM course_group
@@ -78,7 +68,7 @@ class CourseUnitGroupSpider(scrapy.Spider):
     def parse_course_plan(self, response): #Scrape the course plan page to get course groups and the course units in each group then just yield the items
         group_divs = response.xpath('//div[contains(@id, "div_id_")]')
         course_id = response.meta['course_id']
-
+        
         for group_div in group_divs:
             group_title = group_div.xpath('.//h3/text()').extract_first()
             if group_title:
@@ -87,34 +77,50 @@ class CourseUnitGroupSpider(scrapy.Spider):
                 print(f"div id is {div_id}")
                 course_rows = group_div.xpath('.//table[contains(@class, "dadossz")]/tr')
                 for row in course_rows:
-                    name = row.xpath('.//td[@class="t"]/a/text()').extract_first()
                     link = row.xpath('.//td[@class="t"]/a/@href').extract_first()
                     if link:
                         try:
                             course_unit_id = link.split("pv_ocorrencia_id=")[1].split("&")[0]
+                            
+                            sql= """
+                            SELECT year, semester
+                            FROM course_unit
+                            WHERE id = ?
+                            """
+                            self.db.cursor.execute(sql, (course_unit_id,))
+                            result = self.db.cursor.fetchone()  
+                            if result:
+                                semester = result[1]
+                                year = result[0]
+                                if semester is not None and year is not None:
+                                    try:
+                                        semester = int(semester)
+                                        year = int(year)
+                                    except ValueError:
+                                        self.logger.warning(f"Invalid semester or year value for course unit ID: {course_unit_id}, semester: {semester}, year: {year}")
+                                        continue
 
-                            if self.course_unit_exists_already(course_unit_id):
-                                # Yield CourseGroup item
-                                course_group_id = self.course_group_index( course_id, div_id)
-                                if not course_group_id:
-                                    course_group_id = self.get_next_group_id()
-                                    course_group_item = CourseGroup(
-                                        id=course_group_id,
-                                        name=group_name,
-                                        course_id=course_id,
-                                        group_course_id=div_id
-
+                                    cg_id = int(div_id)*10 + year + semester
+                                    if(cg_id not in self.course_groups):
+                                        self.course_groups.add(cg_id)
+                                        course_group_item = CourseGroup(
+                                            id=cg_id,
+                                            name=group_name,
+                                            course_id=course_id,
+                                            semester=semester,
+                                            year=year
+                                        )
+                                        yield course_group_item
+                                    cucg_hash = hashlib.md5(f"{course_unit_id}{cg_id}".encode()).hexdigest()
+                                    #if not self.course_unit_exists_already(course_unit_id): #This check makes no sense because it is checking if the course unit exists, but it should check if the course unit group exists
+                                    self.course_unit_course_groups.add(cucg_hash)
+                                    course_unit_course_group_item = CourseUnitGroup(
+                                        course_unit_id=course_unit_id,
+                                        course_group_id=cg_id,
                                     )
-                                    yield course_group_item 
-
-                                # Yield CourseUnitGroup item 
-                                course_unit_course_group_item = CourseUnitGroup(
-                                    course_unit_id=course_unit_id,
-                                    course_group_id=course_group_id,
-                                )
-                                yield course_unit_course_group_item
-                            else:
-                                print(f"Course unit ID {course_unit_id} not found in database.")
+                                    yield course_unit_course_group_item
+                                else:
+                                    self.logger.warning(f"Semester or year is None for course unit ID: {course_unit_id}")
                         except IndexError:
                             self.logger.warning(f"Failed to parse course unit ID from link {link}")
                     else:

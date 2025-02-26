@@ -85,7 +85,8 @@ class CourseGroup(scrapy.Item):
     id = scrapy.Field()
     name = scrapy.Field()
     course_id = scrapy.Field()
-    group_course_id = scrapy.Field()
+    year = scrapy.Field()
+    semester = scrapy.Field()
     
 class CourseUnitGroup(scrapy.Item):
     course_unit_id = scrapy.Field()
