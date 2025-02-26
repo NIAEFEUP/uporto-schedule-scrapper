@@ -126,7 +126,7 @@ class CourseUnitSpider(scrapy.Spider):
                 id=course_unit_id,
                 name=name,
                 acronym=acronym,
-                recent_occr=current_occurence_id, # This might be wrong but I fix it later xd just cuz not not null
+                recent_occr=current_occurence_id, # This might be wrong but I fix it later xd just cuz not null
                 last_updated=datetime.now()
             )
         
@@ -182,8 +182,6 @@ class CourseUnitSpider(scrapy.Spider):
         valid_instances.sort(key=sort_key)
 
         max_occr_id = valid_instances[0].get('id') if valid_instances else None
-        
-        
         
         db = Database()
         sql = """

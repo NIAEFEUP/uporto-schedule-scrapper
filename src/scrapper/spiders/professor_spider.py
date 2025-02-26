@@ -9,7 +9,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 import json
 from datetime import time
 
-from scrapper.settings import CONFIG
+from scrapper.settings import CONFIG, START_YEAR
 
 from ..database.Database import Database
 from ..items import Professor, CourseUnitProfessor
@@ -57,14 +57,15 @@ class ProfessorSpider(scrapy.Spider):
             data = json.loads(response.body)
             
             for instance in data:
-                instance_id = instance.get('id')
-                if instance_id:
-                    yield Request(
-                        url=f"https://sigarra.up.pt/{response.meta['faculty_id']}/pt/mob_ucurr_geral.perfil?pv_ocorrencia_id={instance_id}",
-                        meta={'course_unit_id': response.meta['course_unit_id'], 'faculty_id': response.meta['faculty_id'], 'instance_id': instance_id, 'recent_occr': response.meta['recent_occr']},
-                        callback=self.parseUCInfo,
-                        errback=self.func
-                    )
+                if(instance.get('ano_letivo')  >= START_YEAR):
+                    instance_id = instance.get('id')
+                    if instance_id:
+                        yield Request(
+                            url=f"https://sigarra.up.pt/{response.meta['faculty_id']}/pt/mob_ucurr_geral.perfil?pv_ocorrencia_id={instance_id}",
+                            meta={'course_unit_id': response.meta['course_unit_id'], 'faculty_id': response.meta['faculty_id'], 'instance_id': instance_id, 'recent_occr': response.meta['recent_occr']},
+                            callback=self.parseUCInfo,
+                            errback=self.func
+                        )
 
     def func(self, error):
         print("An error has occurred: ", error)
@@ -85,7 +86,13 @@ class ProfessorSpider(scrapy.Spider):
                 professor_id = professor.get('doc_codigo')
                 professor_name = professor.get('nome')
                 if professor_id and professor_name:
-                        hash = hashlib.md5((str(course_unit_id) + str(professor_id)).encode('utf-8')).hexdigest()
+                        if professor_id not in self.inserted_teacher_ids:
+                            self.inserted_teacher_ids.add(professor_id)
+                            yield Professor(
+                                id=professor_id,
+                                name=professor_name
+                            )
+                        hash = hashlib.sha256(str(course_unit_id).encode('utf-8') + str(professor_id).encode('utf-8')).hexdigest()
                         if hash not in self.cu_professors:
                             self.cu_professors.add(hash)
                             if(response.meta['recent_occr'] == response.meta['instance_id']):
@@ -93,10 +100,4 @@ class ProfessorSpider(scrapy.Spider):
                                 course_unit_id = course_unit_id,
                                 professor_id = professor_id
                                 )
-                        if professor_id not in self.inserted_teacher_ids:
-                            self.inserted_teacher_ids.add(professor_id)
-                            yield Professor(
-                                id=professor_id,
-                                name=professor_name
-                            )
 

@@ -17,6 +17,7 @@ CONFIG = {
 }
 
 YEAR = 'TTS_SCRAPY_YEAR'
+START_YEAR = int(CONFIG['START_YEAR'])
 
 BOT_NAME = 'scrapper'
 
