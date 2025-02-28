@@ -84,8 +84,8 @@ class ProfessorSpider(scrapy.Spider):
                     # Add course-unit professor relation if not already inserted
                     cu_professor_key = f"{course_unit_id}_{professor_id}"
                     if cu_professor_key not in self.cu_professors:
-                        self.cu_professors.add(cu_professor_key)
                         if response.meta['recent_occr'] == response.meta['instance_id']:
+                            self.cu_professors.add(cu_professor_key)
                             yield CourseUnitProfessor(course_unit_id=course_unit_id, professor_id=professor_id)
 
     def handle_error(self, failure):
