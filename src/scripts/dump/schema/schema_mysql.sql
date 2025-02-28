@@ -42,7 +42,7 @@ CREATE TABLE course_unit (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
   acronym VARCHAR(16) NOT NULL,
-  url VARCHAR(2000) NOT NULL,
+  recent_occr INT NOT NULL,
   last_updated TIMESTAMP NOT NULL,
   FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -56,7 +56,8 @@ CREATE INDEX course_unit_course_id_idx ON course_unit (course_id);
 CREATE TABLE course_course_unit (
   course_id INT NOT NULL,
   course_unit_id INT NOT NULL,
-  course_unit_year SMALLINT NOT NULL,
+  year SMALLINT NOT NULL,
+  semester VARCHAR(10) NOT NULL,
   ects FLOAT(4) NOT NULL,
   PRIMARY KEY (course_id, course_unit_id, course_unit_year),
   FOREIGN KEY (course_unit_id) REFERENCES course_unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -67,20 +68,25 @@ CREATE INDEX course_course_unit_course_unit_id_idx ON course_course_unit (course
 CREATE INDEX course_course_unit_course_id_idx ON course_course_unit (course_id);
 
 
--- --------------------------------------------------------
---
---Table structure for table `course_unit_instance`
---
-CREATE TABLE course_unit_instance (
+
+CREATE TABLE professor (
   id SERIAL PRIMARY KEY,
-  course_unit_id INT NOT NULL,
-  year SMALLINT NOT NULL,
-  semester VARCHAR(100) NOT NULL,
-  last_updated TIMESTAMP NOT NULL
+  name VARCHAR(200) NOT NULL
 );
 
-CREATE INDEX course_unit_instance_course_unit_id_idx ON course_unit_instance (course_unit_id);
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `course_unit_professor`
+--
+
+CREATE TABLE course_unit_professor (
+  course_unit_id INT NOT NULL,
+  professor_id INT NOT NULL,
+  PRIMARY KEY (course_unit_id, professor_id),
+  FOREIGN KEY (course_unit_id) REFERENCES course_unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 
 -- --------------------------------------------------------

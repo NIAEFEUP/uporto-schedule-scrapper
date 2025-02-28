@@ -34,7 +34,8 @@ class Dump:
         self.dump_table("course", con, f)
         self.dump_table("course_unit", con, f)
         self.dump_table("course_course_unit", con, f)
-        self.dump_table("course_unit_instance", con, f)
+        self.dump_table("professor", con, f)
+        self.dump_table("course_unit_professor", con, f)
         f.close()
 
     def dump_table(self, table, con, f):
