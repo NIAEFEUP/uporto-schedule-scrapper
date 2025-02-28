@@ -13,13 +13,20 @@ class FacultySpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        print(ONLY_FEUP)
         for facHtml in response.css('.component-margin.hot-links a'):
-             if( ONLY_FEUP and facHtml.css('::attr(href)').extract_first().split("/")[-2] == "feup"):
+            if ONLY_FEUP == "True":
+                if(facHtml.css('::attr(href)').extract_first().split("/")[-2] == "feup"):
+                    yield Faculty(
+                        acronym=facHtml.css('::attr(href)').extract_first().split("/")[-2],
+                        name=facHtml.css('::text').extract_first(),
+                        last_updated=datetime.now()
+                    )
+            else:
                 yield Faculty(
-                    acronym=facHtml.css('::attr(href)').extract_first().split("/")[-2],
-                    name=facHtml.css('::text').extract_first(),
-                    last_updated=datetime.now()
-                )
+                        acronym=facHtml.css('::attr(href)').extract_first().split("/")[-2],
+                        name=facHtml.css('::text').extract_first(),
+                        last_updated=datetime.now()
+                    )
+                
 
         
