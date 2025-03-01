@@ -143,7 +143,7 @@ class CourseUnitSpider(scrapy.Spider):
                             semester=semester,
                             ects=row[5][0]
                             )
-                    hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['year']).encode()).hexdigest()
+                    hash_ccu = hashlib.md5((cu['course_id']+cu['course_unit_id']+cu['year']+ cu['semester']).encode()).hexdigest()
                     if(hash_ccu not in self.course_courses_units_hashes):
                         self.course_courses_units_hashes.add(hash_ccu)
                         yield cu
