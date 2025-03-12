@@ -65,6 +65,21 @@ class CourseUnitGroupSpider(scrapy.Spider):
             return result[0] + 1
         return 1
 
+
+    def get_year_semester(self, course_unit_id):
+
+        db = Database() 
+        sql= """
+        SELECT course_metadata.course_unit_year, semester
+        FROM course_unit
+        JOIN course_metadata ON course_metadata.course_unit_id = course_unit.id
+        WHERE course_unit.id = ?
+        """
+        db.cursor.execute(sql, (course_unit_id,))
+        result = db.cursor.fetchone()
+        db.connection.close()
+        return result
+    
     def parse_course_plan(self, response): #Scrape the course plan page to get course groups and the course units in each group then just yield the items
         group_divs = response.xpath('//div[contains(@id, "div_id_")]')
         course_id = response.meta['course_id']
@@ -74,7 +89,6 @@ class CourseUnitGroupSpider(scrapy.Spider):
             if group_title:
                 group_name = group_title.strip()
                 div_id = group_div.xpath('./@id').extract_first().split("_")[2]
-                print(f"div id is {div_id}")
                 course_rows = group_div.xpath('.//table[contains(@class, "dadossz")]/tr')
                 for row in course_rows:
                     link = row.xpath('.//td[@class="t"]/a/@href').extract_first()
@@ -82,13 +96,7 @@ class CourseUnitGroupSpider(scrapy.Spider):
                         try:
                             course_unit_id = link.split("pv_ocorrencia_id=")[1].split("&")[0]
                             
-                            sql= """
-                            SELECT year, semester
-                            FROM course_unit
-                            WHERE id = ?
-                            """
-                            self.db.cursor.execute(sql, (course_unit_id,))
-                            result = self.db.cursor.fetchone()  
+                            result = self.get_year_semester(course_unit_id)
                             if result:
                                 semester = result[1]
                                 year = result[0]
@@ -100,7 +108,7 @@ class CourseUnitGroupSpider(scrapy.Spider):
                                         self.logger.warning(f"Invalid semester or year value for course unit ID: {course_unit_id}, semester: {semester}, year: {year}")
                                         continue
 
-                                    cg_id = int(div_id)*10 + year + semester
+                                    cg_id = int(f"{div_id}{year}{semester}")
                                     if(cg_id not in self.course_groups):
                                         self.course_groups.add(cg_id)
                                         course_group_item = CourseGroup(
@@ -110,18 +118,16 @@ class CourseUnitGroupSpider(scrapy.Spider):
                                             semester=semester,
                                             year=year
                                         )
+     
                                         yield course_group_item
                                     cucg_hash = hashlib.md5(f"{course_unit_id}{cg_id}".encode()).hexdigest()
-                                    #if not self.course_unit_exists_already(course_unit_id): #This check makes no sense because it is checking if the course unit exists, but it should check if the course unit group exists
-                                    self.course_unit_course_groups.add(cucg_hash)
-                                    course_unit_course_group_item = CourseUnitGroup(
-                                        course_unit_id=course_unit_id,
-                                        course_group_id=cg_id,
-                                    )
-                                    yield course_unit_course_group_item
-                                else:
-                                    self.logger.warning(f"Semester or year is None for course unit ID: {course_unit_id}")
+                                    if cucg_hash not in self.course_unit_course_groups : #This check makes no sense because it is checking if the course unit exists, but it should check if the course unit group exists
+                                        self.course_unit_course_groups.add(cucg_hash)
+                                        course_unit_course_group_item = CourseUnitGroup(
+                                            course_unit_id=course_unit_id,
+                                            course_group_id=cg_id,
+                                        )
+                                        yield course_unit_course_group_item
                         except IndexError:
                             self.logger.warning(f"Failed to parse course unit ID from link {link}")
-                    else:
-                        print(f"No link found for course unit in group: {group_name}")
+       
