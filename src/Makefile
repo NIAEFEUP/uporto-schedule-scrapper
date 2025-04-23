@@ -22,7 +22,9 @@ slots:
 	
 info:
 	python ./scrapper/info.py
-
+	
+class_vacancies:
+	scrapy crawl class_vacancies
 dump:
 	@echo "Dumping files..."
 	python ./scripts/dump.py

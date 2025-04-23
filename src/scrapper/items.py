@@ -50,6 +50,7 @@ class CourseMetadata(scrapy.Item):
 class Class(scrapy.Item):
     course_unit_id = scrapy.Field()
     name = scrapy.Field()  # 1MIEIC01
+    vacancies = scrapy.Field()  # Number of vacancies
     last_updated = scrapy.Field()
 
 

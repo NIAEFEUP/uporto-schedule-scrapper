@@ -187,3 +187,4 @@ class ProfessorsPipeline(MySQLPipeline):
         if isinstance(item, items.Professor):
             super().process_item(item, spider)
         return item
+
