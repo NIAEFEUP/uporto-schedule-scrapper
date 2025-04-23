@@ -82,7 +82,7 @@ class ClassVacancySpider(scrapy.Spider):
             yield scrapy.Request(
             url=url,
             callback=self.parse_class_vacancies,
-            meta={'course_unit': {'id': course}}
+            meta={'course': {'id': course}}
         )
                 
     def parse_class_vacancies(self, response):
@@ -102,14 +102,28 @@ class ClassVacancySpider(scrapy.Spider):
             print("----------------------------------")
 
             for _, row in df.iterrows():
-                course_code = row[2]
+                course_unit_acronym = row[2]
 
                 i = 0
                 while True:
                     if len(row) <= i + 4:
                         break
-                    if pd.notna(row[i +3]) and row[i +4] != '-':
-                        print(f"!!{course_code} | {row[i+3]} | {row.get(i+4, 'N/A')}!!\n")    
+                    if pd.notna(row[i + 3]) and row[i + 4] != '-':
+                        class_name = row[i + 3]
+                        vacancy_num = row[i + 4]
+                        
+                        sql = f"""
+                            UPDATE class
+                            SET vacancies = ?
+                            WHERE course_unit_id = 
+                            (SELECT course_unit.id
+                            FROM course_unit
+                            WHERE course_unit.acronym =  ?
+                            AND course_unit.course_id = ?)
+                            AND name = ?
+                        """
+                        db = Database()
+                        db.cursor.execute(sql, (vacancy_num, course_unit_acronym, response.meta['course']['id'], class_name))
                     i += 2
                     
         except Exception as e:
