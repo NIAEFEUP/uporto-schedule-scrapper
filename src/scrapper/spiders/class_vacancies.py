@@ -94,13 +94,8 @@ class ClassVacancySpider(scrapy.Spider):
             return
         
         try:
-            # Read the table
             df = pd.read_html(table_html)[0]
             
-            # Print basic info
-            print("\nCourse Code | Class Name | Vacancies")
-            print("----------------------------------")
-
             for _, row in df.iterrows():
                 course_unit_acronym = row[2]
 
@@ -128,5 +123,3 @@ class ClassVacancySpider(scrapy.Spider):
                     
         except Exception as e:
             self.logger.error(f"Error processing table: {str(e)}")
-            import traceback
-            traceback.print_exc()
