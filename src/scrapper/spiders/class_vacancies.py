@@ -86,15 +86,33 @@ class ClassVacancySpider(scrapy.Spider):
         )
                 
     def parse_class_vacancies(self, response):
-        # Get the first table with class "tabela" as HTML string
+        # Get the table HTML
         table_html = response.css("table.tabela").get()
         
         if not table_html:
             self.logger.error("No table found with class 'tabela'")
             return
         
-       
-        df = pd.read_html(table_html)[0]
-        self.logger.info(f"Successfully parsed table:\n{df}")
-        print(df)
-        
+        try:
+            # Read the table
+            df = pd.read_html(table_html)[0]
+            
+            # Print basic info
+            print("\nCourse Code | Class Name | Vacancies")
+            print("----------------------------------")
+
+            for _, row in df.iterrows():
+                course_code = row[2]
+
+                i = 0
+                while True:
+                    if len(row) <= i + 4:
+                        break
+                    if pd.notna(row[i +3]) and row[i +4] != '-':
+                        print(f"!!{course_code} | {row[i+3]} | {row.get(i+4, 'N/A')}!!\n")    
+                    i += 2
+                    
+        except Exception as e:
+            self.logger.error(f"Error processing table: {str(e)}")
+            import traceback
+            traceback.print_exc()
