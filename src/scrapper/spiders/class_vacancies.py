@@ -68,22 +68,18 @@ class ClassVacancySpider(scrapy.Spider):
         """
         # Get the list of course units from the database
         db = Database()
-        sql = """
-            SELECT course.id, year, course.id, faculty.acronym 
-            FROM course JOIN faculty 
-            ON course.faculty_id= faculty.acronym
-        """
-        db.cursor.execute(sql)
+        
+        
         self.courses = db.cursor.fetchall()
-        self.courses = [22841]
         # Iterate over each course unit and make a request to its class vacancies page
-        for course in self.courses:
-            url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id=22841"
-            yield scrapy.Request(
-            url=url,
-            callback=self.parse_class_vacancies,
-            meta={'course': {'id': course}}
-        )
+        
+        url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id=22841"
+        print(url)
+        yield scrapy.Request(
+        url=url,
+        callback=self.parse_class_vacancies,
+        meta={'course': {'id': 22841}})
+    
                 
     def parse_class_vacancies(self, response):
         # Get the table HTML
@@ -95,9 +91,11 @@ class ClassVacancySpider(scrapy.Spider):
         
         try:
             df = pd.read_html(table_html)[0]
+            print(df.head())
             
             for _, row in df.iterrows():
-                course_unit_acronym = row[2]
+                course_unit_name = row[1]
+                print(f" Processing course unit: {course_unit_name}")
 
                 i = 0
                 while True:
@@ -113,12 +111,13 @@ class ClassVacancySpider(scrapy.Spider):
                             WHERE course_unit_id = 
                             (SELECT course_unit.id
                             FROM course_unit
-                            WHERE course_unit.acronym =  ?
+                            WHERE course_unit.name =  ?
                             AND course_unit.course_id = ?)
                             AND name = ?
                         """
                         db = Database()
-                        db.cursor.execute(sql, (vacancy_num, course_unit_acronym, response.meta['course']['id'], class_name))
+                        db.cursor.execute(sql, (vacancy_num, course_unit_name, response.meta['course']['id'], class_name))
+                        db.connection.commit()
                     i += 2
                     
         except Exception as e:
