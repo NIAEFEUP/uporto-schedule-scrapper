@@ -38,6 +38,7 @@ class CourseUnit(scrapy.Item):
     classes_url = scrapy.Field()
     last_updated = scrapy.Field()
     hash = scrapy.Field()
+    course_group = scrapy.Field()
 
 
 class CourseMetadata(scrapy.Item):
@@ -79,3 +80,15 @@ class Professor(scrapy.Item):
     id = scrapy.Field()
     professor_acronym = scrapy.Field()
     professor_name = scrapy.Field()
+
+class CourseGroup(scrapy.Item):
+    id = scrapy.Field()
+    name = scrapy.Field()
+    course_id = scrapy.Field()
+    year = scrapy.Field()
+    semester = scrapy.Field()
+    
+class CourseUnitGroup(scrapy.Item):
+    course_unit_id = scrapy.Field()
+    course_group_id =scrapy.Field()
+
