@@ -41,6 +41,8 @@ class Dump:
         self.dump_table("slot_professor", con, f)
         self.dump_table("course_group", con, f)
         self.dump_table("course_unit_group", con, f)
+        self.dump_table("course_path", con, f)
+        self.dump_table("course_unit_course_path", con, f)
         f.close()
 
     def dump_table(self, table, con, f):
