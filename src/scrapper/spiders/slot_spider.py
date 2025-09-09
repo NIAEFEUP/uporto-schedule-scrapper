@@ -8,8 +8,8 @@ import urllib.parse
 from configparser import ConfigParser, ExtendedInterpolation
 import json
 from datetime import time
-
-from scrapper.settings import CONFIG, PASSWORD, USERNAME
+import pandas as pd
+from scrapper.settings import CONFIG, PASSWORD, USERNAME, VACANCY_COURSES
 
 from ..database.Database import Database
 from ..items import Slot, Class, SlotProfessor, Professor, SlotClass
@@ -58,6 +58,9 @@ class SlotSpider(scrapy.Spider):
         self.password = CONFIG[PASSWORD]
         self.professor_name_pattern = "\d+\s-\s[A-zÀ-ú](\s[A-zÀ-ú])*"
         self.inserted_teacher_ids = set()
+        self.class_map = dict()
+        self.allowed_courses = [int(c) for c in CONFIG[VACANCY_COURSES].split(',')] 
+        self.visited_course_vacancies = set()
 
     def open_config(self):
         """
@@ -105,7 +108,7 @@ class SlotSpider(scrapy.Spider):
     def classUnitRequests(self):
         db = Database()
         sql = """
-            SELECT course_unit.id, course_unit.schedule_url, course.faculty_id
+            SELECT course_unit.id, course_unit.schedule_url, course.faculty_id, course.id
             FROM course JOIN course_metadata JOIN course_unit
             ON course.id = course_metadata.course_id AND course_metadata.course_unit_id = course_unit.id
             WHERE schedule_url IS NOT NULL
@@ -122,6 +125,15 @@ class SlotSpider(scrapy.Spider):
             # e.g. hor_geral.ucurr_view?pv_ocorrencia_id=514985
             link_id_fragment = course_unit[1]
             faculty = course_unit[2]
+            
+            course_id = course_unit[3]
+            if (course_id not in self.visited_course_vacancies) and (course_id in  self.allowed_courses ):
+                url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id={course_id}"
+                yield scrapy.Request(
+                    url=url,
+                    callback=self.parse_class_vacancies,
+                    meta={'course': {'id': course_id}})
+                self.visited_course_vacancies.add(course_id)
 
             yield Request(
                 url="https://sigarra.up.pt/{}/pt/{}".format(
@@ -130,7 +142,51 @@ class SlotSpider(scrapy.Spider):
                 callback=self.makeRequestToSigarraScheduleAPI,
                 errback=self.func
             )
+              
+    def parse_class_vacancies(self, response):
+        db = Database()
+        table_html = response.css("table.tabela").get()
+        
+        if not table_html:
+            self.logger.error("No table found with class 'tabela'")
+            return
+        
+        try:
+            
+            df = pd.read_html(table_html)[0]
 
+            for _, row in df.iterrows():
+               
+                course_unit_name = row[1]
+              
+
+                i = 0
+                while i + 4 < len(row):
+                    if pd.notna(row[i + 3]) and row[i + 4] != '-':
+                        class_name = row[i + 3]
+                        vacancy_num = row[i + 4]
+                    
+                        
+                        sql = """
+                            SELECT course_unit.id
+                            FROM course_unit
+                            WHERE course_unit.name =  ?
+                            
+                        """
+                        
+                        db.cursor.execute(sql, (course_unit_name,))
+                        course_unit_id = db.cursor.fetchone()
+                        
+                        if course_unit_id:
+                            self.class_map[class_name + str(course_unit_id[0])] = vacancy_num
+                        
+                    i += 2
+            db.connection.close()
+                    
+        except Exception as e:
+            self.logger.error(f"Error processing table: {str(e)}")
+
+    
     def func(self, error):
         # # O scrapper não tem erros
         print("An error has occured: ", error)
@@ -187,6 +243,7 @@ class SlotSpider(scrapy.Spider):
                 yield Class(
                     name=current_class["name"],
                     course_unit_id=course_unit_id,
+                    vacancies = self.class_map.get(current_class["name"] + str(course_unit_id), None),
                     last_updated=datetime.now()
                 )
 

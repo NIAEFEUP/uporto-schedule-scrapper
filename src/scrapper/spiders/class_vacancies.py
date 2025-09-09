@@ -32,8 +32,7 @@ class ClassVacancySpider(scrapy.Spider):
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
-        self.allowed_courses = CONFIG[VACANCY_COURSES]
-        
+        self.allowed_courses = [int(c) for c in CONFIG[VACANCY_COURSES].split(',')]         
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
@@ -79,11 +78,11 @@ class ClassVacancySpider(scrapy.Spider):
         self.courses = db.cursor.fetchall()
         db.connection.close()
         
-        allowed_courses = [int(c) for c in self.allowed_courses.split(',')]
+
         for course in self.courses:
             
             course_id = course[0]
-            if course_id in allowed_courses:
+            if course_id in self.allowed_courses:
                 url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id={course_id}"
                 yield scrapy.Request(
                 url=url,
@@ -92,8 +91,9 @@ class ClassVacancySpider(scrapy.Spider):
         
                 
     def parse_class_vacancies(self, response):
+        db = Database()
         table_html = response.css("table.tabela").get()
-        
+
         if not table_html:
             self.logger.error("No table found with class 'tabela'")
             return
@@ -107,13 +107,13 @@ class ClassVacancySpider(scrapy.Spider):
               
 
                 i = 0
-                while len(row) <= i + 4:
+                while i + 4 < len(row):
 
                     if pd.notna(row[i + 3]) and row[i + 4] != '-':
                         class_name = row[i + 3]
                         vacancy_num = row[i + 4]
                         
-                        sql = f"""
+                        sql = """
                             UPDATE class
                             SET vacancies = ?
                             WHERE course_unit_id = 
@@ -123,7 +123,6 @@ class ClassVacancySpider(scrapy.Spider):
                             AND course_unit.course_id = ?)
                             AND name = ?
                         """
-                        db = Database()
                         db.cursor.execute(sql, (vacancy_num, course_unit_name, response.meta['course']['id'], class_name))
                         db.connection.commit()
                     i += 2
