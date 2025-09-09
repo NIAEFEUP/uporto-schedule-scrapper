@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from configparser import ConfigParser, ExtendedInterpolation
 import json
 
-from scrapper.settings import CONFIG, PASSWORD, USERNAME
+from scrapper.settings import CONFIG, PASSWORD, USERNAME, VACANCY_COURSES
 from ..database.Database import Database
 from ..items import Class
 from dotenv import dotenv_values
@@ -32,6 +32,8 @@ class ClassVacancySpider(scrapy.Spider):
         self.open_config()
         self.user = CONFIG[USERNAME]
         self.password = CONFIG[PASSWORD]
+        self.allowed_courses = CONFIG[VACANCY_COURSES]
+        
 
     def format_login_url(self):
         return '{}?{}'.format(self.login_page_base, urlencode({
@@ -41,6 +43,7 @@ class ClassVacancySpider(scrapy.Spider):
 
     def start_requests(self):
         "This function is called before crawling starts."
+
         if self.password is None:
             self.password = getpass.getpass(prompt='Password: ', stream=None)
             
@@ -66,23 +69,29 @@ class ClassVacancySpider(scrapy.Spider):
         """
         This function is responsible for making the requests to the class vacancies page.
         """
-        # Get the list of course units from the database
-        db = Database()
-        
-        
+        db = Database() 
+
+        sql = """
+            SELECT course.id
+            FROM course 
+        """
+        db.cursor.execute(sql)
         self.courses = db.cursor.fetchall()
-        # Iterate over each course unit and make a request to its class vacancies page
+        db.connection.close()
         
-        url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id=22841"
-        print(url)
-        yield scrapy.Request(
-        url=url,
-        callback=self.parse_class_vacancies,
-        meta={'course': {'id': 22841}})
-    
+        allowed_courses = [int(c) for c in self.allowed_courses.split(',')]
+        for course in self.courses:
+            
+            course_id = course[0]
+            if course_id in allowed_courses:
+                url = f"https://sigarra.up.pt/feup/pt/it_geral.vagas?pv_curso_id={course_id}"
+                yield scrapy.Request(
+                url=url,
+                callback=self.parse_class_vacancies,
+                meta={'course': {'id': course_id}})
+        
                 
     def parse_class_vacancies(self, response):
-        # Get the table HTML
         table_html = response.css("table.tabela").get()
         
         if not table_html:
@@ -91,16 +100,15 @@ class ClassVacancySpider(scrapy.Spider):
         
         try:
             df = pd.read_html(table_html)[0]
-            print(df.head())
-            
+
             for _, row in df.iterrows():
+               
                 course_unit_name = row[1]
-                print(f" Processing course unit: {course_unit_name}")
+              
 
                 i = 0
-                while True:
-                    if len(row) <= i + 4:
-                        break
+                while len(row) <= i + 4:
+
                     if pd.notna(row[i + 3]) and row[i + 4] != '-':
                         class_name = row[i + 3]
                         vacancy_num = row[i + 4]
