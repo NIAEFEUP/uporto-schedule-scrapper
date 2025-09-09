@@ -147,3 +147,27 @@ CREATE TABLE `info` (
 );
 
 -- --------------------------------------------------------
+--
+-- Table for `course group`
+--
+CREATE TABLE `course_group` (
+  `id` INTEGER PRIMARY KEY,
+  `name` varchar(64),
+  `course_id` INTEGER NOT NULL,
+  `year` INTEGER NOT NULL,
+  `semester` INTEGER NOT NULL,
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- --------------------------------------------------------
+--
+-- Table for `course_unit_course_group`
+--
+CREATE TABLE `course_unit_course_group` (
+  `course_unit_id` INTEGER NOT NULL,
+  `course_group_id` INTEGER NOT NULL,
+  PRIMARY KEY (`course_unit_id`, `course_group_id`),
+  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`course_group_id`) REFERENCES `course_group`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+

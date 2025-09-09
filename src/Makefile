@@ -2,8 +2,7 @@
 FILES = $(shell ls)
         
 # all: info faculties courses course_units course_metadata classes slots slot_professor professors
-all: info faculties courses course_units course_metadata slots class_vacancies
-
+all: info faculties courses course_units course_metadata course_unit_group slots class_vacancies
 
 faculties: 
 	scrapy crawl faculties 
@@ -16,6 +15,9 @@ course_units:
 
 course_metadata:
 	scrapy crawl course_metadata
+
+course_unit_group:
+	scrapy crawl course_unit_group
 
 slots:
 	scrapy crawl slots

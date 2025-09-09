@@ -188,3 +188,28 @@ class ProfessorsPipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item
 
+class CourseGroupPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_course_groups'])
+        self.table_name = 'course_group'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.CourseGroup):
+            print("CG PROCESS")
+            super().process_item(item, spider)
+        return item
+
+
+class CourseUnitGroupPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(self.config['statistics']['num_course_unit_course_group'])
+        self.table_name = 'course_unit_course_group'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.CourseUnitGroup):
+            print("CourseUnitGroup PROCESS")
+            super().process_item(item, spider)
+        return item
+
