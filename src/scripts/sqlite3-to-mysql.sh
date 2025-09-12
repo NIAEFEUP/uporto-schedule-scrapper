@@ -17,4 +17,24 @@ sed \
 -e "s/'t'/1/g" \
 -e "s/'f'/0/g" \
 -e "s/'\([0-9]\+\),\([0-9]\+\)'/\1\.\2/g" \
-$1
+$1 > tmp.sql
+
+echo "BEGIN;" > ./scripts/dump/data/01_data.sql
+echo "
+	DELETE FROM info;
+	DELETE FROM slot_class;
+	DELETE FROM slot_professor;
+	DELETE FROM course_metadata;
+	DELETE FROM class;
+	DELETE FROM slot ;
+	DELETE FROM professor;
+	DELETE FROM course_unit;
+	DELETE FROM course;
+	DELETE FROM faculty;
+" >> ./scripts/dump/data/01_data.sql
+
+cat tmp.sql >> ./scripts/dump/data/01_data.sql
+
+rm tmp.sql
+
+echo "COMMIT;" >> ./scripts/dump/data/01_data.sql
