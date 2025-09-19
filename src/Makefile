@@ -2,7 +2,7 @@
 FILES = $(shell ls)
         
 # all: info faculties courses course_units course_metadata classes slots slot_professor professors
-all: info faculties courses course_units course_metadata course_unit_group  slots 
+all: info faculties courses course_units course_metadata course_unit_group slots 
 
 faculties: 
 	scrapy crawl faculties 
@@ -24,7 +24,9 @@ slots:
 	
 info:
 	python ./scrapper/info.py
-
+	
+class_vacancies:
+	scrapy crawl class_vacancies
 dump:
 	@echo "Dumping files..."
 	python ./scripts/dump.py

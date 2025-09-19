@@ -83,6 +83,7 @@ CREATE TABLE `course_metadata` (
 CREATE TABLE `class` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `name` varchar(31) NOT NULL,
+  `vacancies` int(11),
   `course_unit_id` int(11) NOT NULL,
   `last_updated` datetime NOT NULL,
   FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
