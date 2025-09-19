@@ -85,6 +85,7 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.SlotProfessorPipeline': 0,
     'scrapper.pipelines.ProfessorsPipeline': 0,
     'scrapper.pipelines.SlotClassPipeline': 0,
+    'scrapper.pipelines.CoursePathPipeline': 0,
     'scrapper.pipelines.CourseGroupPipeline': 0,
     'scrapper.pipelines.CourseUnitGroupPipeline': 0,
 }

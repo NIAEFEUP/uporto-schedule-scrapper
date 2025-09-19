@@ -156,7 +156,10 @@ CREATE TABLE `course_group` (
   `course_id` INTEGER NOT NULL,
   `year` INTEGER NOT NULL,
   `semester` INTEGER NOT NULL,
-  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  'path_id' INTEGER,
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`path_id`) REFERENCES `course_path`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+
 );
 
 -- --------------------------------------------------------
@@ -171,3 +174,22 @@ CREATE TABLE `course_unit_course_group` (
   FOREIGN KEY (`course_group_id`) REFERENCES `course_group`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+
+
+CREATE TABLE `course_path` (
+  `id` INTEGER PRIMARY KEY,
+  `code` int(11) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  UNIQUE (`code` , `course_id`),
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+CREATE TABLE `course_unit_course_path` (
+  `course_unit_id` INTEGER NOT NULL,
+  `course_path_id` INTEGER NOT NULL,
+  PRIMARY KEY (`course_unit_id`, `course_path_id`),
+  FOREIGN KEY (`course_unit_id`) REFERENCES `course_unit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`course_path_id`) REFERENCES `course_path`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);

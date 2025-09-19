@@ -213,3 +213,16 @@ class CourseUnitGroupPipeline(MySQLPipeline):
             super().process_item(item, spider)
         return item
 
+
+
+class CoursePathPipeline(MySQLPipeline):
+    def __init__(self):
+        MySQLPipeline.__init__(self)
+        self.expected_num = int(
+            self.config['statistics']['num_course_path'])
+        self.table_name = 'course_path'
+
+    def process_item(self, item, spider):
+        if isinstance(item, items.CoursePath):
+            super().process_item(item, spider)
+        return item

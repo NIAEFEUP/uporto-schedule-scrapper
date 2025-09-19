@@ -93,3 +93,15 @@ class CourseUnitGroup(scrapy.Item):
     course_unit_id = scrapy.Field()
     course_group_id =scrapy.Field()
 
+
+
+class CoursePath(scrapy.Item):
+    id = scrapy.Field()
+    code = scrapy.Field()
+    name = scrapy.Field()
+    course_id = scrapy.Field()
+
+
+class CourseUnitCoursePath(scrapy.Item):
+    course_unit_id = scrapy.Field()
+    course_path_id = scrapy.Field()
