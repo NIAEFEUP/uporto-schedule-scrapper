@@ -22,7 +22,6 @@ class FacultySpider(scrapy.Spider):
         return href.split("/")[-2]
 
     def parse(self, response):
-        print("PARSING")
         for facHtml in response.css('.component-margin.hot-links a'):
             yield Faculty(
                 acronym=self.extract_faculty_name(facHtml.css('::attr(href)').extract_first()),
