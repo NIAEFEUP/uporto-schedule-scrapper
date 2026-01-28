@@ -21,6 +21,7 @@ $1 > tmp.sql
 
 echo "BEGIN;" > ./scripts/dump/data/01_data.sql
 echo "
+	ALTER TABLE course_group ALTER COLUMN name TYPE varchar(255);
 	DELETE FROM info;
 	DELETE FROM slot_class;
 	DELETE FROM slot_professor;
@@ -31,6 +32,7 @@ echo "
 	DELETE FROM course_unit;
 	DELETE FROM course;
 	DELETE FROM faculty;
+	DELETE FROM course_group;
 " >> ./scripts/dump/data/01_data.sql
 
 cat tmp.sql >> ./scripts/dump/data/01_data.sql
