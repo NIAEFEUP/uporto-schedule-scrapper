@@ -39,14 +39,15 @@ def dump_vacancies():
     dump_filepath = get_dump_filepath(config)
 
     with open(dump_filepath, 'w', encoding='utf-8') as dump_file:
-        cursor = db_conn.cursor()
-        cursor.execute("""
-            SELECT course_unit_id, name, vacancies
-            FROM class
-        """)
+        with db_conn:
+            cursor = db_conn.cursor()
+            cursor.execute("""
+                SELECT course_unit_id, name, vacancies
+                FROM class
+            """)
 
-        for course_unit_id, name, vacancies in cursor.fetchall():
-            dump_class_vacancies(course_unit_id, name, vacancies, dump_file)
+            for course_unit_id, name, vacancies in cursor.fetchall():
+                dump_class_vacancies(course_unit_id, name, vacancies, dump_file)
 
 if __name__ == '__main__':
     dump_vacancies()
