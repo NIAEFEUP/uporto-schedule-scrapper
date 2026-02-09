@@ -2,7 +2,7 @@
 
 import sqlite3
 from configparser import ConfigParser, ExtendedInterpolation
-from typing import TextIO
+from typing import Optional, TextIO
 
 CONFIG_PATH = './config.ini'
 
@@ -25,8 +25,11 @@ def get_dump_filepath(config: list[str]):
 
     return filepath
 
-def dump_class_vacancies(course_unit_id: int, name: str, vacancies: int, dump_file: TextIO):
-    stmt = "UPDATE class SET vacancies = {} WHERE course_unit_id = {} AND name = '{}';" \
+def dump_class_vacancies(course_unit_id: int, name: str, vacancies: Optional[int], dump_file: TextIO):
+    if vacancies is None:  # Ignore classes with no vacancies information
+        return
+
+    stmt = "UPDATE class SET vacancies={} WHERE course_unit_id={} AND name='{}';" \
         .format(vacancies, course_unit_id, name)
     dump_file.write(stmt + "\n")
 
