@@ -36,11 +36,10 @@ def dump_class_vacancies(course_unit_id: int, name: str, vacancies: Optional[int
 
 def dump_vacancies():
     config = get_config()
-    db_conn = get_db_connection(config)
     dump_filepath = get_dump_filepath(config)
 
     with open(dump_filepath, 'w', encoding='utf-8') as dump_file:
-        with db_conn:
+        with get_db_connection(config) as db_conn:
             cursor = db_conn.cursor()
             cursor.execute("""
                 SELECT course_unit_id, name, vacancies
