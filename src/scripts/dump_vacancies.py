@@ -29,8 +29,9 @@ def dump_class_vacancies(course_unit_id: int, name: str, vacancies: Optional[int
     if vacancies is None:  # Ignore classes with no vacancies information
         return
 
-    stmt = "UPDATE class SET vacancies={} WHERE course_unit_id={} AND name='{}';" \
-        .format(vacancies, course_unit_id, name)
+    escaped_name = name.replace("'", "''")
+    stmt = "UPDATE class SET vacancies = {} WHERE course_unit_id = {} AND name = '{}';" \
+        .format(vacancies, course_unit_id, escaped_name)
     dump_file.write(stmt + "\n")
 
 def dump_vacancies():
