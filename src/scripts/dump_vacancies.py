@@ -11,14 +11,14 @@ def get_config():
     config.read(CONFIG_PATH)
     return config
 
-def get_db_connection(config: list[str]):
+def get_db_connection(config: ConfigParser):
     path = config['database']['path']
     filename = config['database']['filename']
     filepath = path + '/' + filename
 
     return sqlite3.connect(filepath)
 
-def get_dump_filepath(config: list[str]):
+def get_dump_filepath(config: ConfigParser):
     path = config['vacancies_dump']['path']
     filename = config['vacancies_dump']['filename']
     filepath = path + '/' + filename
