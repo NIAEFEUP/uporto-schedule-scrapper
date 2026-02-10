@@ -7,7 +7,6 @@ import json
 
 from scrapper.settings import CONFIG, PASSWORD, USERNAME, VACANCY_COURSES
 from ..database.Database import Database
-from dotenv import dotenv_values
 import pandas as pd
 
 

@@ -1,6 +1,16 @@
 import sqlite3 
+import psycopg2
 from os.path import exists
 from configparser import ConfigParser, ExtendedInterpolation
+
+from dotenv import dotenv_values
+
+import os
+
+CONFIG = {
+    **dotenv_values(".env"),  # load variables
+    **os.environ,  # override loaded values with environment variables
+}
 
 class Database:    
     # -------------------------------------------------------------------------
@@ -13,7 +23,15 @@ class Database:
             self.database_file_path = self.get_database_path()
 
             exists_db = exists(self.database_file_path) 
-            self.connection = sqlite3.connect(self.database_file_path, check_same_thread=False, isolation_level=None)
+
+            self.connection = sqlite3.connect(self.database_file_path, check_same_thread=False, isolation_level=None) if not CONFIG.get('PROD', '0') == '1' else psycopg2.connect(
+                host=CONFIG['POSTGRES_HOST'],
+                port=CONFIG['POSTGRES_PORT'],
+                user=CONFIG['POSTGRES_USER'],
+                password=CONFIG['POSTGRES_PASSWORD'],
+                dbname=CONFIG['POSTGRES_DB']
+            )
+
             self.cursor = self.connection.cursor()
 
             if not exists_db:
