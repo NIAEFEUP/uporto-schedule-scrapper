@@ -16,6 +16,7 @@ CONFIG = {
     **os.environ,  # override loaded values with environment variables
 }
 
+PROD = 'PROD'
 YEAR = 'TTS_SCRAPY_YEAR'
 USERNAME = 'TTS_SCRAPY_USER'
 PASSWORD = 'TTS_SCRAPY_PASSWORD'

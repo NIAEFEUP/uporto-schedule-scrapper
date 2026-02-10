@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-
 import sqlite3
+import psycopg2
 from configparser import ConfigParser, ExtendedInterpolation
+
+import os
+from dotenv import dotenv_values
+
 from typing import Optional, TextIO
+
+CONFIG = {
+    **dotenv_values(".env"),  # load variables
+    **os.environ,  # override loaded values with environment variables
+}
 
 CONFIG_PATH = './config.ini'
 
@@ -12,11 +21,29 @@ def get_config():
     return config
 
 def get_db_connection(config: ConfigParser):
+    print("Using SQLite database")
     path = config['database']['path']
     filename = config['database']['filename']
     filepath = path + '/' + filename
 
     return sqlite3.connect(filepath)
+
+def get_db_connection_postgres(config: ConfigParser):
+    print("Using PostgreSQL database")
+
+    host = CONFIG['POSTGRES_HOST']
+    port = CONFIG['POSTGRES_PORT']
+    user = CONFIG['POSTGRES_USER']
+    password = CONFIG['POSTGRES_PASSWORD']
+    dbname = CONFIG['POSTGRES_DB']
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        dbname=dbname
+    )
 
 def get_dump_filepath(config: ConfigParser):
     path = config['vacancies_dump']['path']
@@ -39,7 +66,9 @@ def dump_vacancies():
     dump_filepath = get_dump_filepath(config)
 
     with open(dump_filepath, 'w', encoding='utf-8') as dump_file:
-        with get_db_connection(config) as db_conn:
+        prod = CONFIG['PROD'] if CONFIG['PROD'] is not None else 0
+        connection = get_db_connection(config) if int(prod) == 0 else get_db_connection_postgres(config)
+        with connection as db_conn:
             cursor = db_conn.cursor()
             cursor.execute("""
                 SELECT course_unit_id, name, vacancies

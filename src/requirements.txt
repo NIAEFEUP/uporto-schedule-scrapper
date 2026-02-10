@@ -30,3 +30,4 @@ tqdm==4.64.1
 urllib3_secure_extra==0.1.0
 Twisted==22.10.0
 python-dotenv==1.0.1
+psycopg2==2.9.6
