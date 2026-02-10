@@ -24,7 +24,7 @@ class Database:
 
             exists_db = exists(self.database_file_path) 
 
-            self.connection = sqlite3.connect(self.database_file_path, check_same_thread=False, isolation_level=None) if not CONFIG.get('PROD', '0') == '1' else psycopg2.connect(
+            self.connection = sqlite3.connect(self.database_file_path, check_same_thread=False, isolation_level=None) if int(CONFIG['PROD']) == 0 else psycopg2.connect(
                 host=CONFIG['POSTGRES_HOST'],
                 port=CONFIG['POSTGRES_PORT'],
                 user=CONFIG['POSTGRES_USER'],
