@@ -120,7 +120,17 @@ class ClassVacancySpider(scrapy.Spider):
                             WHERE course_unit.name =  ?
                             AND course_unit.course_id = ?)
                             AND name = ?
+                        """ if int(CONFIG['PROD']) == 0 else """
+                            UPDATE class
+                            SET vacancies = %s
+                            WHERE course_unit_id =
+                            (SELECT course_unit.id
+                            FROM course_unit
+                            WHERE course_unit.name =  %s
+                            AND course_unit.course_id = %s)
+                            AND name = %s
                         """
+
                         db.cursor.execute(sql, (vacancy_num, course_unit_name, response.meta['course']['id'], class_name))
                         db.connection.commit()
                     i += 2
