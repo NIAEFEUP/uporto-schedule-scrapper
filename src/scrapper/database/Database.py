@@ -34,7 +34,7 @@ class Database:
 
             self.cursor = self.connection.cursor()
 
-            if not exists_db:
+            if int(CONFIG['PROD']) == 0 and not exists_db:
                 self.create_table()
 
         except Exception as e:
