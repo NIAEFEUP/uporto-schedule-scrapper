@@ -1,13 +1,13 @@
 .PHONY: all clean
 FILES = $(shell ls)
-        
+
 # all: info faculties courses course_units course_metadata classes slots slot_professor professors
 all: info faculties courses course_units course_metadata course_unit_group
 
-faculties: 
-	scrapy crawl faculties 
+faculties:
+	scrapy crawl faculties
 
-courses: 
+courses:
 	scrapy crawl courses
 
 course_units:
@@ -21,9 +21,13 @@ course_unit_group:
 
 info:
 	python ./scrapper/info.py
-	
+
 class_vacancies:
 	scrapy crawl class_vacancies
+	@echo "Dumping vacancies..."
+	@python ./scripts/dump_vacancies.py
+	@echo "Vacancies dump completed!"
+
 dump:
 	@echo "Dumping files..."
 	python ./scripts/dump.py
@@ -39,6 +43,6 @@ convert_postgres:
 	@bash ./scripts/sqlite3-to-mysql.sh ./scripts/dump/data/dump_sqlite3.sql > ./scripts/dump/data/01_data.sql
 	@echo "Convertion completed!"
 
-clean: 
+clean:
 	@echo "Removing database.db"
 	@rm ./scrapper/database/dbs/database.db

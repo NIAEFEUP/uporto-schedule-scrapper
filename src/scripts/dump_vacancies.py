@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+import sqlite3
+from configparser import ConfigParser, ExtendedInterpolation
+from typing import Optional, TextIO
+
+CONFIG_PATH = './config.ini'
+
+def get_config():
+    config = ConfigParser(interpolation=ExtendedInterpolation())
+    config.read(CONFIG_PATH)
+    return config
+
+def get_db_connection(config: ConfigParser):
+    path = config['database']['path']
+    filename = config['database']['filename']
+    filepath = path + '/' + filename
+
+    return sqlite3.connect(filepath)
+
+def get_dump_filepath(config: ConfigParser):
+    path = config['vacancies_dump']['path']
+    filename = config['vacancies_dump']['filename']
+    filepath = path + '/' + filename
+
+    return filepath
+
+def dump_class_vacancies(course_unit_id: int, name: str, vacancies: Optional[int], dump_file: TextIO):
+    if vacancies is None:  # Ignore classes with no vacancies information
+        return
+
+    escaped_name = name.replace("'", "''")
+    stmt = "UPDATE class SET vacancies = {} WHERE course_unit_id = {} AND name = '{}';" \
+        .format(vacancies, course_unit_id, escaped_name)
+    dump_file.write(stmt + "\n")
+
+def dump_vacancies():
+    config = get_config()
+    dump_filepath = get_dump_filepath(config)
+
+    with open(dump_filepath, 'w', encoding='utf-8') as dump_file:
+        with get_db_connection(config) as db_conn:
+            cursor = db_conn.cursor()
+            cursor.execute("""
+                SELECT course_unit_id, name, vacancies
+                FROM class
+            """)
+
+            for course_unit_id, name, vacancies in cursor.fetchall():
+                dump_class_vacancies(course_unit_id, name, vacancies, dump_file)
+
+if __name__ == '__main__':
+    dump_vacancies()
