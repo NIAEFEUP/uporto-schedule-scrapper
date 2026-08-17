@@ -95,15 +95,31 @@ class CourseMetadataSpider(scrapy.Spider):
         study_cycles = response.xpath('//h3[text()="Ciclos de Estudo/Cursos"]/following-sibling::table[1]').get()
         df = pd.read_html(study_cycles, decimal=',', thousands='.', extract_links="all")[0]
 
+        seen = set()
         for (_, row) in df.iterrows():
-            id = int(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0])
-            if id in response.meta['ids']:
-                yield CourseMetadata(
-                    course_id = parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0],
-                    course_unit_id = response.meta['course_unit_id'],
-                    course_unit_year = row[3][0],
-                    ects = row[5][0]
-                )
+            c_id = int(parse_qs(urlparse(row[0][1]).query).get('pv_curso_id')[0])
+            if c_id in response.meta['ids']:
+                c_unit_year = row[3][0]
+                
+                key = (c_id, response.meta['course_unit_id'], c_unit_year)
+                if key not in seen:
+                    seen.add(key)
+                    
+                    ects_val = row[5][0]
+                    if pd.isna(ects_val) or str(ects_val).strip() == "":
+                        ects = 0.0
+                    else:
+                        try:
+                            ects = float(str(ects_val).replace(',', '.'))
+                        except ValueError:
+                            ects = 0.0
+
+                    yield CourseMetadata(
+                        course_id = c_id,
+                        course_unit_id = response.meta['course_unit_id'],
+                        course_unit_year = c_unit_year,
+                        ects = ects
+                    )
 
     def get_courses_ids(self):
         print('Getting courses ids...')
