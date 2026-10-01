@@ -43,6 +43,7 @@ CREATE TABLE `course_unit` (
   `course_id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
   `acronym` varchar(16) NOT NULL,
+  `code` varchar(64) NOT NULL,
   `url` varchar(2000) NOT NULL,
   `semester` tinyint(4) NOT NULL,
   `year` smallint(6) NOT NULL,

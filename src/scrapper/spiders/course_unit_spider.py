@@ -133,6 +133,11 @@ class CourseUnitSpider(scrapy.Spider):
         if acronym is not None:
             acronym = acronym.replace(".", "_")
 
+        code = response.xpath('//td[contains(normalize-space(.), "Código:")]/following-sibling::td[1]//text()').get()
+
+        if code is not None:
+            code = code.replace('\xa0', ' ').strip()
+
         url = response.url
         schedule_url = response.xpath(
             '//a[text()="Horário"]/@href').extract_first()
@@ -177,6 +182,7 @@ class CourseUnitSpider(scrapy.Spider):
                     course_id=response.meta['course_id'],
                     name=name,
                     acronym=acronym,
+                    code=code,
                     url=url,
                     schedule_url=schedule_url,
                     year=year,
